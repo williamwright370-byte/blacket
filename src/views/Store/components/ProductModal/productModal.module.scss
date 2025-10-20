@@ -52,3 +52,18 @@
     width: 100%;
     object-fit: contain;
 }
+
+.productCurrencyImage {
+    width: 24px;
+    height: 24px;
+    user-select: none;
+    object-fit: contain;
+}
+
+.productPrice {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    gap: 2px;
+}

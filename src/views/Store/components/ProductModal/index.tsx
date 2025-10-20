@@ -1,22 +1,25 @@
+import { useState } from "react";
 import { useModal } from "@stores/ModalStore/index";
 import { useResource } from "@stores/ResourceStore/index";
 import { useData } from "@stores/DataStore/index";
 import { useUser } from "@stores/UserStore/index";
-import { Modal, Button, Markdown } from "@components/index";
+import { Modal, Button, Markdown, ErrorContainer } from "@components/index";
 import styles from "./productModal.module.scss";
 
 import { ProductModalProps } from "../../store.d";
+import { Forbidden, InternalServerError } from "@blacket/types";
 
 export default function ProductModal({ product }: ProductModalProps) {
+    const { user } = useUser();
+    if (!user) return null;
+    if (!product) return null;
+    if (!product.description) product.description = "No description available.";
+
     const { closeModal, createModal } = useModal();
     const { resourceIdToPath } = useResource();
     const { fontIdToName } = useData();
-    const { user } = useUser();
 
-    if (!user) return null;
-
-    if (!product) return null;
-    if (!product.description) product.description = "No description available.";
+    const [error, setError] = useState<string>("");
 
     return (
         <>
@@ -47,14 +50,25 @@ export default function ProductModal({ product }: ProductModalProps) {
                 </div>
             </Modal.ModalBody>
 
+            {error !== "" && <ErrorContainer>{error}</ErrorContainer>}
+
             <Modal.ModalButtonContainer>
                 <Button.GenericButton onClick={() => {
+                    if (product.isPriceUsingCrystals && (user.crystals < product.price)) return setError(Forbidden.STRIPE_NOT_ENOUGH_CRYSTALS);
+
                     closeModal();
 
                     createModal(<Modal.PurchaseProductModal product={product} />);
-                }} type="submit">${product.price} USD{product.isSubscription && product.price > 0 ? " lifetime" : ""}</Button.GenericButton>
+                }} type="submit">
+                    <div className={styles.productPrice}>
+                        {product.isPriceUsingCrystals && <img className={styles.productCurrencyImage} src={window.constructCDNUrl("/content/crystal.png")} />}
+                        {product.isPriceUsingCrystals ? `${product.price} Crystals` : `$${product.price} USD`} {product.isSubscription && product.price > 0 ? "lifetime" : ""}
+                    </div>
+                </Button.GenericButton>
                 {product.isSubscription && (
                     <Button.GenericButton onClick={() => {
+                        if (product.isPriceUsingCrystals) return setError(InternalServerError.STRIPE_SUBSCRIPTION_USING_CRYSTALS);
+
                         closeModal();
 
                         createModal(<Modal.PurchaseProductModal product={product} subscription={true} />);

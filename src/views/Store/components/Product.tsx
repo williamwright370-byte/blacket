@@ -12,20 +12,26 @@ export default function Product({ product, ...props }: ProductProps) {
 
     return (
         <div className={styles.product} style={{ background: `linear-gradient(15deg, ${product.color1}, ${product.color2})` }} {...props}>
+            <Textfit
+                mode="single"
+                min={1}
+                max={20}
+                className={styles.productTitle}
+                style={{
+                    fontFamily: product.fontId ? fontIdToName(product.fontId) : ""
+                }}
+            >
+                {product.name}
+            </Textfit>
+
+
             <ImageOrVideo className={styles.productImage} src={resourceIdToPath(product.imageId)} draggable={false} />
 
             <div className={styles.productText}>
-                <Textfit
-                    mode="single"
-                    min={1}
-                    max={25}
-                    className={styles.productTitle}
-                    style={{
-                        fontFamily: product.fontId ? fontIdToName(product.fontId) : ""
-                    }}
-                >
-                    {product.name}
-                </Textfit>
+                {/* <div className={styles.productTag}>
+                    500 Crystals
+                </div> */}
+
                 {/* <div className={styles.productPrice}>
                     ${product.price} USD
                     {product.isSubscription && " monthly"}
@@ -37,7 +43,10 @@ export default function Product({ product, ...props }: ProductProps) {
                 )} */}
                 {!product.isSubscription
                     ? <div className={styles.productPrice}>
-                        ${product.price} USD
+                        {product.isPriceUsingCrystals ? <>
+                            <img className={styles.productCurrencyImage} src={window.constructCDNUrl("/content/crystal.png")} />
+                            {product.price} Crystals
+                        </> : `$${product.price} USD`}
                     </div>
                     : <>
                         <div className={styles.productPrice}>
