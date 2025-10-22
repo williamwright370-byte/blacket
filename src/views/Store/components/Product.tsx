@@ -12,42 +12,64 @@ export default function Product({ product, ...props }: ProductProps) {
 
     return (
         <div className={styles.product} style={{ background: `linear-gradient(15deg, ${product.color1}, ${product.color2})` }} {...props}>
-            <Textfit
-                mode="single"
-                min={1}
-                max={20}
-                className={styles.productTitle}
-                style={{
-                    fontFamily: product.fontId ? fontIdToName(product.fontId) : ""
-                }}
+            {product.tag && (
+                <div className={styles.cornerRibbon}>
+                    <Textfit
+                        mode="multi"
+                        min={5}
+                        max={16}
+                        className={styles.cornerRibbonContent}
+                    >
+                        {product.tag}
+                    </Textfit>
+                </div>
+            )}
+
+            <div
+                className={styles.productTop}
+                style={product.tag ? {
+                    marginRight: 55,
+                    transform: "scale(0.9)"
+                } : {}}
             >
-                {product.name}
-            </Textfit>
+                <Textfit
+                    mode="single"
+                    min={1}
+                    max={20}
+                    className={styles.productTitle}
+                    style={{
+                        fontFamily: product.fontId ? fontIdToName(product.fontId) : ""
+                    }}
+                >
+                    {product.name}
+                </Textfit>
 
+                {product.subname && <Textfit
+                    mode="single"
+                    min={1}
+                    max={15}
+                    className={styles.productSubtitle}
+                >
+                    {product.subname}
+                </Textfit>}
+            </div>
 
-            <ImageOrVideo className={styles.productImage} src={resourceIdToPath(product.imageId)} draggable={false} />
+            <div className={styles.productImageContainer}>
+                <ImageOrVideo className={styles.productImage} src={resourceIdToPath(product.imageId)} draggable={false} />
+                <div className={styles.productShadow} />
+                {/* <ImageOrVideo className={styles.productShadow} src={resourceIdToPath(product.imageId)} draggable={false} /> */}
+            </div>
 
-            <div className={styles.productText}>
-                {/* <div className={styles.productTag}>
-                    500 Crystals
-                </div> */}
-
-                {/* <div className={styles.productPrice}>
-                    ${product.price} USD
-                    {product.isSubscription && " monthly"}
-                </div> */}
-                {/* {(product.yearlyPrice || product.lifetimePrice) && (
-                    <div className={styles.productSubPrice}>
-                        ${product.yearlyPrice || product.lifetimePrice} USD {product.yearlyPrice ? " yearly" : " lifetime"}
-                    </div>
-                )} */}
+            <div className={styles.productBottom}>
                 {!product.isSubscription
-                    ? <div className={styles.productPrice}>
-                        {product.isPriceUsingCrystals ? <>
-                            <img className={styles.productCurrencyImage} src={window.constructCDNUrl("/content/crystal.png")} />
-                            {product.price} Crystals
-                        </> : `$${product.price} USD`}
-                    </div>
+                    ? <>
+                        <div className={styles.productPrice}>
+                            {product.isPriceUsingCrystals ? <>
+                                <img className={styles.productCurrencyImage} src={window.constructCDNUrl("/content/crystal.png")} />
+                                {product.price} Crystals
+                            </> : `$${product.price} USD`}
+                        </div>
+                    </>
                     : <>
                         <div className={styles.productPrice}>
                             ${product.subscriptionPrice} USD monthly
@@ -59,9 +81,7 @@ export default function Product({ product, ...props }: ProductProps) {
                 }
             </div>
 
-            {Array.from({ length: 3 }, (_, i) => (
-                <div key={i} className={styles.shine} />
-            ))}
-        </div>
+            {Array.from({ length: 3 }, (_, i) => <div key={i} className={styles.shine} />)}
+        </div >
     );
 }
