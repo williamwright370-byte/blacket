@@ -5,6 +5,7 @@ import Textfit from "react-textfit";
 import styles from "../store.module.scss";
 
 import { ProductProps } from "../store.d";
+import Price from "./Price";
 
 export default function Product({ product, ...props }: ProductProps) {
     const { resourceIdToPath } = useResource();
@@ -29,13 +30,13 @@ export default function Product({ product, ...props }: ProductProps) {
                 className={styles.productTop}
                 style={product.tag ? {
                     marginRight: 55,
-                    transform: "scale(0.9)"
+                    transform: "scale(0.85)"
                 } : {}}
             >
                 <Textfit
                     mode="single"
                     min={1}
-                    max={20}
+                    max={25}
                     className={styles.productTitle}
                     style={{
                         fontFamily: product.fontId ? fontIdToName(product.fontId) : ""
@@ -63,12 +64,15 @@ export default function Product({ product, ...props }: ProductProps) {
             <div className={styles.productBottom}>
                 {!product.isSubscription
                     ? <>
-                        <div className={styles.productPrice}>
-                            {product.isPriceUsingCrystals ? <>
-                                <img className={styles.productCurrencyImage} src={window.constructCDNUrl("/content/crystal.png")} />
-                                {product.price} Crystals
-                            </> : `$${product.price} USD`}
-                        </div>
+                        {product.discount ? <>
+                            <Price price={product.price} isSubPrice={true} isPriceUsingCrystals={product.isPriceUsingCrystals} strikethrough />
+                            <Price price={product.price} discount={product.discount} isPriceUsingCrystals={product.isPriceUsingCrystals} />
+                        </> : <Price price={product.price} isPriceUsingCrystals={product.isPriceUsingCrystals} />}
+
+                        {product.subtag && <div className={styles.productSubTag}>
+                            <i className="fa-solid fa-sparkle" />
+                            {product.subtag}
+                        </div>}
                     </>
                     : <>
                         <div className={styles.productPrice}>

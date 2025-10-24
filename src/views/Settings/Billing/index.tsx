@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useUser } from "@stores/UserStore/index";
 import { useModal } from "@stores/ModalStore/index";
 import { useData } from "@stores/DataStore/index";
+import { useResource } from "@stores/ResourceStore/index";
 import { Button, Modal } from "@components/index";
 import { Transaction } from "./components";
 import { useTransactions } from "@controllers/users/useTransactions";
@@ -15,6 +16,7 @@ export default function SettingsBilling() {
 
     const { createModal } = useModal();
     const { products } = useData();
+    const { resourceIdToPath } = useResource();
     const { getTransactions } = useTransactions();
 
     const [paymentMethodString, setPaymentMethodString] = useState<string | null>(null);
@@ -50,7 +52,8 @@ export default function SettingsBilling() {
                     : undefined
             }}>
                 <div className={styles.planDetailsContainer}>
-                    <img src={window.constructCDNUrl("/content/logo.png")} className={styles.planLogo} />
+                    {/* <img src={window.constructCDNUrl("/content/logo.png")} className={styles.planLogo} /> */}
+                    <img src={planProduct ? resourceIdToPath(planProduct.imageId) : window.constructCDNUrl("/content/logo.png")} className={styles.planLogo} />
 
                     <div className={styles.planDetails}>
                         <div className={styles.planName}>

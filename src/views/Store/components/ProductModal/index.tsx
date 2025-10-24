@@ -21,6 +21,9 @@ export default function ProductModal({ product }: ProductModalProps) {
 
     const [error, setError] = useState<string>("");
 
+    const FINAL_PRICE = !product.discount ? product.price :
+        (product.price * (1 - (product.discount / 100))).toFixed(product.isPriceUsingCrystals ? 0 : 2);
+
     return (
         <>
             <Modal.ModalHeader>
@@ -54,7 +57,7 @@ export default function ProductModal({ product }: ProductModalProps) {
 
             <Modal.ModalButtonContainer>
                 <Button.GenericButton onClick={() => {
-                    if (product.isPriceUsingCrystals && (user.crystals < product.price)) return setError(Forbidden.STRIPE_NOT_ENOUGH_CRYSTALS);
+                    if (product.isPriceUsingCrystals && (user.crystals < Number(FINAL_PRICE))) return setError(Forbidden.STRIPE_NOT_ENOUGH_CRYSTALS);
 
                     closeModal();
 
@@ -62,7 +65,7 @@ export default function ProductModal({ product }: ProductModalProps) {
                 }} type="submit">
                     <div className={styles.productPrice}>
                         {product.isPriceUsingCrystals && <img className={styles.productCurrencyImage} src={window.constructCDNUrl("/content/crystal.png")} />}
-                        {product.isPriceUsingCrystals ? `${product.price} Crystals` : `$${product.price} USD`} {product.isSubscription && product.price > 0 ? "lifetime" : ""}
+                        {product.isPriceUsingCrystals ? `${FINAL_PRICE} Crystals` : `$${FINAL_PRICE} USD`} {product.isSubscription && product.price > 0 ? "lifetime" : ""}
                     </div>
                 </Button.GenericButton>
                 {product.isSubscription && (

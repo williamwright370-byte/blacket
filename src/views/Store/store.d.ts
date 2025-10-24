@@ -7,6 +7,14 @@ export interface CategoryProps {
     children?: ReactNode;
 }
 
+export interface PriceProps {
+    price: number;
+    discount?: number;
+    isSubPrice?: boolean;
+    isPriceUsingCrystals: boolean;
+    strikethrough?: boolean;
+}
+
 export interface ProductProps extends HTMLAttributes<HTMLDivElement> {
     product: StripeProductEntity;
 }

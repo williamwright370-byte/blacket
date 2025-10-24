@@ -71,6 +71,11 @@ function SuccessModal({ product, quantity, subscription }: ProductSuccessModalPr
     const { closeModal } = useModal();
     const { resourceIdToPath } = useResource();
 
+    const PRICE = Math.round((product.price * Number(quantity)) * (product.isPriceUsingCrystals ? 1 : 100));
+    const FINAL_PRICE_STRING = !product.discount ? PRICE :
+        (PRICE * (1 - (product.discount / 100))).toFixed(product.isPriceUsingCrystals ? 0 : 2);
+    const FINAL_PRICE = product.isPriceUsingCrystals ? Math.floor(Number(FINAL_PRICE_STRING)) : Number(FINAL_PRICE_STRING) / 100;
+
     return (
         <>
             <Modal.ModalHeader>🎉 Purchase Successful!</Modal.ModalHeader>
@@ -94,9 +99,9 @@ function SuccessModal({ product, quantity, subscription }: ProductSuccessModalPr
                         <span className={styles.productPrice}>
                             {product.isPriceUsingCrystals ? <>
                                 <img className={styles.productCurrencyImage} src={window.constructCDNUrl("/content/crystal.png")} />
-                                {((subscription ? (product.subscriptionPrice ?? 0) : product.price) * quantity)} Crystals
+                                {((subscription ? (product.subscriptionPrice ?? 0) : FINAL_PRICE))} Crystals
                             </> : <>
-                                ${((subscription ? (product.subscriptionPrice ?? 0) : product.price) * quantity).toFixed(2)} USD
+                                ${((subscription ? (product.subscriptionPrice ?? 0) : FINAL_PRICE))} USD
                             </>}
                         </span>
                     </div>
@@ -126,13 +131,23 @@ function TheModal({ product, subscription = false }: ProductPurchaseModalProps) 
     );
     const [quantity, setQuantity] = useState<string>("1");
     const [accepted, setAccepted] = useState<boolean>(false);
-
-    if (!stripe || !user) return null;
+    const [finalPrice, setFinalPrice] = useState<number>(product.price);
 
     const showSuccessModal = () => {
         createModal(<SuccessModal product={product} quantity={parseInt(quantity)} subscription={subscription} />, <SuccessModalOutside />);
         closeModal();
     };
+
+    useEffect(() => {
+        const PRICE = Math.round((product.price * Number(quantity)) * (product.isPriceUsingCrystals ? 1 : 100));
+        const FINAL_PRICE_STRING = !product.discount ? PRICE :
+            (PRICE * (1 - (product.discount / 100))).toFixed(product.isPriceUsingCrystals ? 0 : 2);
+        const FINAL_PRICE = product.isPriceUsingCrystals ? Math.floor(Number(FINAL_PRICE_STRING)) : Number(FINAL_PRICE_STRING) / 100;
+
+        setFinalPrice(FINAL_PRICE);
+    }, [product, quantity]);
+
+    if (!stripe || !user) return null;
 
     return (
         <>
@@ -160,7 +175,7 @@ function TheModal({ product, subscription = false }: ProductPurchaseModalProps) 
 
                                     if (value.match(/[^0-9]/)) return;
                                     if (parsedValue < 1 && value !== "") return;
-                                    if (parsedValue > 100) return setQuantity("100"); // Limit to 100 for practical reasons
+                                    if (parsedValue > 100) return setQuantity("100");
 
                                     if (value === "") return setQuantity("");
                                     setQuantity(parsedValue.toString());
@@ -174,9 +189,9 @@ function TheModal({ product, subscription = false }: ProductPurchaseModalProps) 
                         <span className={styles.productPrice}>
                             {product.isPriceUsingCrystals ? <>
                                 <img className={styles.productCurrencyImage} src={window.constructCDNUrl("/content/crystal.png")} />
-                                {((subscription ? (product.subscriptionPrice ?? 0) : product.price) * parseInt(quantity !== "" ? quantity : "1"))} Crystals
+                                {(subscription ? (product.subscriptionPrice ?? 0) : finalPrice)} Crystals
                             </> : <>
-                                ${((subscription ? (product.subscriptionPrice ?? 0) : product.price) * parseInt(quantity !== "" ? quantity : "1")).toFixed(2)} USD
+                                ${((subscription ? (product.subscriptionPrice ?? 0) : (finalPrice)).toFixed(2))}
                             </>}
                         </span>
                     </div>
@@ -229,7 +244,7 @@ function TheModal({ product, subscription = false }: ProductPurchaseModalProps) 
                         if (quantity === "" || parseInt(quantity) < 1) return setError("You must select a quantity of at least 1.");
 
                         if (product.isPriceUsingCrystals) {
-                            if (user.crystals < ((subscription ? (product.subscriptionPrice ?? 0) : product.price) * parseInt(quantity))) return setError(Forbidden.STRIPE_NOT_ENOUGH_CRYSTALS);
+                            if (user.crystals < ((subscription ? (product.subscriptionPrice ?? 0) : finalPrice))) return setError(Forbidden.STRIPE_NOT_ENOUGH_CRYSTALS);
 
                             setLoading(true);
 
