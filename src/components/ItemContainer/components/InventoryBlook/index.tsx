@@ -44,7 +44,8 @@ export default function InventoryBlook({ blook, shiny = false, big = false, lock
                         maskImage: rarity.imageId ? `url(${resourceIdToPath(rarity.imageId)})` : undefined,
                         maskSize: "cover",
                         width: useVhStyles ? "2vh" : 20,
-                        height: useVhStyles ? "2vh" : 20
+                        height: useVhStyles ? "2vh" : 20,
+                        zIndex: 1
                     }}
                 />}
                 {rarity.imageId && <img

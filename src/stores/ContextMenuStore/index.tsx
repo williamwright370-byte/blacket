@@ -4,26 +4,11 @@ import { subscribeWithSelector } from "zustand/middleware";
 
 import { ContextMenuStore, ContextMenu } from "./contextMenu.d";
 
-// Debounce utility to prevent excessive updates
-function debounce<T extends (...args: any[]) => void>(func: T, wait: number): T {
-    let timeout: NodeJS.Timeout;
-    return ((...args: any[]) => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), wait);
-    }) as T;
-}
-
-// Throttle utility for mouse move events
-function throttle<T extends (...args: any[]) => void>(func: T, limit: number): T {
-    let inThrottle: boolean;
-    return ((...args: any[]) => {
-        if (!inThrottle) {
-            func.apply(this, args);
-            inThrottle = true;
-            setTimeout(() => inThrottle = false, limit);
-        }
-    }) as T;
-}
+const MOBILE_BREAKPOINT = 768;
+const CONTEXT_MENU_PADDING = 10;
+const CLOSE_ANIMATION_DELAY = 150;
+const MOUSE_MOVE_THROTTLE = 16; // ~60fps
+const DEBOUNCE_DELAY = 100;
 
 export const useContextMenu = create<ContextMenuStore>()(
     subscribeWithSelector((set, get) => {
@@ -32,10 +17,11 @@ export const useContextMenu = create<ContextMenuStore>()(
         const setContextMenu = (contextMenu: ContextMenu) => set({ contextMenu });
 
         const openContextMenu = (items: ContextMenu["items"]) => {
-            // Early return for empty items
             if (!items || items.length === 0) return;
 
-            if (window.innerWidth <= 768) {
+            const isMobile = typeof window !== "undefined" && window.innerWidth <= MOBILE_BREAKPOINT;
+
+            if (isMobile) {
                 set({
                     visible: true,
                     contextMenu: { items }
@@ -43,21 +29,18 @@ export const useContextMenu = create<ContextMenuStore>()(
                 return;
             }
 
-            const cursor = get().cursorPosition || { x: 0, y: 0 };
-
-            // Set initial position immediately
+            const cursor = get().cursorPosition;
             setContextMenu({ items, x: cursor.x, y: cursor.y });
             set({ visible: true });
 
-            // Use requestAnimationFrame for better performance
             requestAnimationFrame(() => {
-                if (!contextMenuRef.current) return;
+                const menuElement = contextMenuRef.current;
+                if (!menuElement) return;
 
-                const rect = contextMenuRef.current.getBoundingClientRect();
-                const x = Math.min(cursor.x, window.innerWidth - rect.width - 10);
-                const y = Math.min(cursor.y, window.innerHeight - rect.height - 10);
+                const rect = menuElement.getBoundingClientRect();
+                const x = Math.min(cursor.x, window.innerWidth - rect.width - CONTEXT_MENU_PADDING);
+                const y = Math.min(cursor.y, window.innerHeight - rect.height - CONTEXT_MENU_PADDING);
 
-                // Only update if position actually changed
                 const currentMenu = get().contextMenu;
                 if (currentMenu && (currentMenu.x !== x || currentMenu.y !== y)) {
                     setContextMenu({ items, x, y });
@@ -67,11 +50,18 @@ export const useContextMenu = create<ContextMenuStore>()(
 
         const closeContextMenu = () => {
             set({ visible: false });
-            // Delay clearing contextMenu to allow for animations
-            setTimeout(() => set({ contextMenu: null }), 150);
+            setTimeout(() => {
+                if (!get().visible) {
+                    set({ contextMenu: null });
+                }
+            }, CLOSE_ANIMATION_DELAY);
         };
 
-        const setVisible = (v: boolean) => set({ visible: v });
+        const setVisible = (visible: boolean) => set({ visible });
+
+        const updateCursorPosition = (x: number, y: number) => {
+            set({ cursorPosition: { x, y } });
+        };
 
         return {
             contextMenu: null,
@@ -81,65 +71,112 @@ export const useContextMenu = create<ContextMenuStore>()(
             visible: false,
             setVisible,
             contextMenuRef,
-            cursorPosition: { x: 0, y: 0 }
+            cursorPosition: { x: 0, y: 0 },
+            updateCursorPosition
         };
     })
 );
 
-// Optimized event listeners with proper cleanup
-let isListenersSetup = false;
+// Event listener management - should be initialized by a component
+class ContextMenuEventManager {
+    private static instance: ContextMenuEventManager | null = null;
+    private cleanupFunctions: Array<() => void> = [];
+    private lastMouseDownTime = 0;
+    private throttleTimeout: number | null = null;
 
-if (typeof window !== "undefined" && !isListenersSetup) {
-    const store = useContextMenu;
+    private constructor() {
+        this.setupEventListeners();
+    }
 
-    // Throttle mouse move to prevent excessive updates
-    const throttledMouseMove = throttle((e: MouseEvent) => {
-        // Only update if context menu is visible or might be opened soon
-        const state = store.getState();
-        if (state.visible || Date.now() - lastMouseDown < 1000) {
-            store.setState({ cursorPosition: { x: e.clientX, y: e.clientY } });
+    static initialize(): () => void {
+        if (!ContextMenuEventManager.instance) {
+            ContextMenuEventManager.instance = new ContextMenuEventManager();
         }
-    }, 16); // ~60fps
+        return () => ContextMenuEventManager.cleanup();
+    }
 
-    let lastMouseDown = 0;
+    static cleanup(): void {
+        if (ContextMenuEventManager.instance) {
+            ContextMenuEventManager.instance.destroy();
+            ContextMenuEventManager.instance = null;
+        }
+    }
 
-    const handleMouseDown = (e: MouseEvent) => {
-        lastMouseDown = Date.now();
-        const state = store.getState();
+    private setupEventListeners(): void {
+        if (typeof window === "undefined") return;
 
-        if (state.visible && state.contextMenuRef?.current) {
-            if (!state.contextMenuRef.current.contains(e.target as Node)) {
-                state.closeContextMenu();
+        const handleMouseMove = (e: MouseEvent) => {
+            if (this.throttleTimeout) return;
+
+            this.throttleTimeout = window.setTimeout(() => {
+                this.throttleTimeout = null;
+            }, MOUSE_MOVE_THROTTLE);
+
+            const state = useContextMenu.getState();
+            const timeSinceMouseDown = Date.now() - this.lastMouseDownTime;
+
+            if (state.visible || timeSinceMouseDown < 1000) {
+                state.updateCursorPosition(e.clientX, e.clientY);
             }
-        }
-    };
+        };
 
-    // Debounced context menu close on window events
-    const debouncedClose = debounce(() => {
-        const state = store.getState();
-        if (state.visible) {
-            state.closeContextMenu();
-        }
-    }, 100);
+        const handleMouseDown = (e: MouseEvent) => {
+            this.lastMouseDownTime = Date.now();
+            const state = useContextMenu.getState();
 
-    const handleScroll = () => debouncedClose();
-    const handleResize = () => debouncedClose();
-
-    // Add event listeners
-    window.addEventListener("mousemove", throttledMouseMove, { passive: true });
-    window.addEventListener("mousedown", handleMouseDown, { passive: true });
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("resize", handleResize, { passive: true });
-
-    // Handle escape key
-    window.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-            const state = store.getState();
-            if (state.visible) {
-                state.closeContextMenu();
+            if (state.visible && state.contextMenuRef?.current) {
+                const menuElement = state.contextMenuRef.current;
+                if (!menuElement.contains(e.target as Node)) {
+                    state.closeContextMenu();
+                }
             }
-        }
-    });
+        };
 
-    isListenersSetup = true;
+        let debounceTimeout: NodeJS.Timeout | null = null;
+        const handleScrollOrResize = () => {
+            if (debounceTimeout) clearTimeout(debounceTimeout);
+
+            debounceTimeout = setTimeout(() => {
+                const state = useContextMenu.getState();
+                if (state.visible) {
+                    state.closeContextMenu();
+                }
+            }, DEBOUNCE_DELAY);
+        };
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                const state = useContextMenu.getState();
+                if (state.visible) {
+                    state.closeContextMenu();
+                }
+            }
+        };
+
+        window.addEventListener("mousemove", handleMouseMove, { passive: true });
+        window.addEventListener("mousedown", handleMouseDown, { passive: true });
+        window.addEventListener("scroll", handleScrollOrResize, { passive: true });
+        window.addEventListener("resize", handleScrollOrResize, { passive: true });
+        window.addEventListener("keydown", handleKeyDown);
+
+        this.cleanupFunctions.push(
+            () => window.removeEventListener("mousemove", handleMouseMove),
+            () => window.removeEventListener("mousedown", handleMouseDown),
+            () => window.removeEventListener("scroll", handleScrollOrResize),
+            () => window.removeEventListener("resize", handleScrollOrResize),
+            () => window.removeEventListener("keydown", handleKeyDown),
+            () => {
+                if (debounceTimeout) clearTimeout(debounceTimeout);
+                if (this.throttleTimeout) clearTimeout(this.throttleTimeout);
+            }
+        );
+    }
+
+    private destroy(): void {
+        this.cleanupFunctions.forEach(cleanup => cleanup());
+        this.cleanupFunctions = [];
+    }
 }
+
+// Export initialization function for use in a component (e.g., App.tsx)
+export const initializeContextMenuEvents = ContextMenuEventManager.initialize;

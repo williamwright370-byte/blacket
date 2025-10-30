@@ -585,6 +585,7 @@
     background-color: var(--primary-color);
     line-height: 1;
     padding: 0.5vh 2vh 1.5vh 2vh;
+    flex-grow: 1;
 
     @media screen and (max-width: 475px) {
         padding: 5px 20px 15px 20px;
