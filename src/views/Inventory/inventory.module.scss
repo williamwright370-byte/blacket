@@ -240,7 +240,8 @@
 }
 
 .itemImage {
-    width: 45%;
+    // width: 45%;
+    height: 50%;
 }
 
 .itemImageM {
@@ -387,6 +388,11 @@
     display: flex;
     flex-direction: column;
     gap: 7px;
+
+    @media screen and (max-width: 768px) {
+        justify-content: center;
+        align-items: center;
+    }
 }
 
 .sellBlooksContainer {
@@ -484,4 +490,18 @@
     flex-direction: column;
     text-align: left;
     font-weight: 700;
+}
+
+.sellBlooksQuantityContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 20rem;
+    text-align: left;
+
+    @media only screen and (max-width: 685px) {
+        width: unset;
+        align-items: center;
+        text-align: center;
+    }
 }

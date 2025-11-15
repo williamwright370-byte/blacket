@@ -14,7 +14,7 @@ export default function InsanePullUI() {
     const { socket, connected } = useSocket();
     const { user } = useUser();
     const { stopAllSounds, playSound } = useSound();
-    const { video, setVideo } = useInsanePull();
+    const { video, setVideo, setIsPlaying } = useInsanePull();
 
     if (!user) return null;
 
@@ -37,10 +37,8 @@ export default function InsanePullUI() {
     const onInsanePull = (data: SocketMarketInsanePullEntity) => {
         if (user.id === data.userId) return;
 
-        setVideo(null);
-        setTimeout(() => {
-            setVideo(resourceIdToPath(data.videoId));
-        }, 1);
+        navigate("/chat");
+        setVideo(resourceIdToPath(data.videoId));
     };
 
     useEffect(() => {
@@ -50,24 +48,24 @@ export default function InsanePullUI() {
         const vid = videoRef.current;
         if (!flash || !vid) return;
 
-        // weird workaround for autoplay issues - xotic
+        // weird workaround for autoplay issues
         vid.pause();
 
         stopAllSounds();
         playSound("bass-drop");
-        navigate("/chat");
 
         setTimeout(() => {
             flash.style.backgroundColor = "black";
-        }, 250);
+        }, 200);
 
         const handleCanPlayThrough = () => {
             setTimeout(() => {
+                setIsPlaying(true);
                 fullscreen();
 
                 vid.style.opacity = String(1);
                 vid.play();
-            }, 4000);
+            }, 3000);
 
             vid.removeEventListener("canplaythrough", handleCanPlayThrough);
         };
@@ -98,10 +96,12 @@ export default function InsanePullUI() {
             muted={false}
             playsInline
             onEnded={() => {
+                setIsPlaying(false);
+
                 videoRef.current!.onpause = null;
 
-                flashRef.current!.style.opacity = "0";
-                videoRef.current!.style.opacity = "0";
+                flashRef.current!.style.opacity = String(0);
+                videoRef.current!.style.opacity = String(0);
 
                 setTimeout(() => {
                     document.exitFullscreen();

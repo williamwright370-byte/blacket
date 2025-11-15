@@ -61,7 +61,6 @@ export default function ItemContainer({ user, options, onClick, ...props }: Item
         isBlookVisible
     ]);
 
-    /** Build one or two visual cells (normal + shiny) for a blook */
     const buildCellsForBlook = useCallback((blook: Blook): FlatCell[] => {
         if (!isBlookVisible(blook)) return [];
 

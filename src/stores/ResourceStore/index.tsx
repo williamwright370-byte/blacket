@@ -7,6 +7,10 @@ export const useResource = create<ResourceStore>((set, get) => ({
 
     setResources: (resources) => set({ resources }),
 
+    getResourceById(id) {
+        return get().resources.find((r) => r.id === id);
+    },
+
     resourceIdToPath: (id) => {
         const resource = get().resources.find((r) => r.id === id);
 

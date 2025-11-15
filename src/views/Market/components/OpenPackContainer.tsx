@@ -35,9 +35,9 @@ export default function OpenPackContainer({ opening, image, video, animationType
 
         const ps = async () => {
             const sound = await getSound("pack-tear");
-            if (!sound) throw new Error("something terribly went wrong, pack-tear sound not found");
+            if (!sound) throw new Error("something went wrong, pack-tear sound not found");
 
-            sound.playbackRate = 1 + (Math.random() * 0.2 - 0.1);
+            sound.playbackRate = 1 + (Math.random() * 0.3 - 0.1);
 
             playSound("pack-tear");
         };

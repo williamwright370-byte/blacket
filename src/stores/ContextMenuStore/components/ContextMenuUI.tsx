@@ -1,16 +1,27 @@
-import { memo } from "react";
+import { memo, useLayoutEffect, useRef } from "react";
 import { useContextMenu } from "../index";
 import { Container, Divider, Item } from "./index";
 
-export default memo(function ContextMenuRenderer() {
-    const { contextMenu, visible, contextMenuRef, closeContextMenu } = useContextMenu();
+export default memo(function ContextMenuUI() {
+    const { contextMenu, closeContextMenu } = useContextMenu();
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useLayoutEffect(() => {
+        if (!contextMenu || !containerRef.current) return;
+
+        const rect = containerRef.current.getBoundingClientRect();
+        const x = Math.min(contextMenu.x, window.innerWidth - rect.width);
+        const y = Math.min(contextMenu.y, window.innerHeight - rect.height);
+
+        containerRef.current.style.left = `${x}px`;
+        containerRef.current.style.top = `${y}px`;
+    }, [contextMenu]);
 
     if (!contextMenu) return null;
 
     return (
         <Container
-            ref={contextMenuRef}
-            visible={visible}
+            ref={containerRef}
             top={contextMenu.y}
             left={contextMenu.x}
         >

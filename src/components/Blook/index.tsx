@@ -7,7 +7,7 @@ import { BlookProps } from "./blook.d";
 const ERROR_IMAGE = window.constructCDNUrl("/content/icons/error.png");
 const _cache = new Map<string, string>();
 
-export default function Blook({ custom = false, shiny = false, big = false, src, alt, draggable, className, ...props }: BlookProps) {
+export default function Blook({ custom = false, shiny = false, big = false, src, alt, draggable, className, objectFit, ...props }: BlookProps) {
     const [image, setImage] = useState<string | null>(null);
     const { isLowPerformance } = useUser();
 
@@ -69,6 +69,10 @@ export default function Blook({ custom = false, shiny = false, big = false, src,
 
                     <img
                         className={styles.image}
+                        style={objectFit ? {
+                            objectFit: objectFit,
+                            borderRadius: objectFit === "cover" ? "10%" : undefined
+                        } : {}}
                         src={image}
                         alt={alt}
                         draggable={draggable}

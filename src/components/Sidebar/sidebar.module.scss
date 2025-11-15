@@ -88,6 +88,10 @@
             color: var(--primary-color);
         }
     }
+
+    @media only screen and (max-width: 850px) {
+        width: 85%;
+    }
 }
 
 .pageIcon {
@@ -211,7 +215,7 @@
 .mobileCloseIcon {
     position: absolute;
     top: 15px;
-    right: 25px;
+    right: 0;
     color: var(--accent-color);
     font-size: 30px;
     user-select: none;

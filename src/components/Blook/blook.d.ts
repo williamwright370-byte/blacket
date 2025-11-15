@@ -8,4 +8,5 @@ export interface BlookProps extends HTMLAttributes<HTMLDivElement> {
     alt?: string;
     draggable?: boolean;
     className?: string;
+    objectFit?: "contain" | "cover";
 }

@@ -48,7 +48,7 @@ export default function BuyItNowModal({ auction }: ModalProps) {
                 auction.type === AuctionTypeEnum.BLOOK
                     ? "blook"
                     : "item"
-            } for <img className={styles.tokenPrice} src={window.constructCDNUrl("/content/token.png")} /> {auction.price.toLocaleString()} tokens?</Modal.ModalBody>
+            } for <img className={styles.diamondPrice} src={window.constructCDNUrl("/content/diamond.png")} /> {auction.price.toLocaleString()} diamonds?</Modal.ModalBody>
 
             <Turnstile
                 sitekey={import.meta.env.VITE_TURNSTILE_SITE_KEY}

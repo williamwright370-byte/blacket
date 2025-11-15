@@ -26,6 +26,7 @@ export default function LittlePlacement({ type, placement, user }: LittlePlaceme
                             src={getUserAvatarPath(user)}
                             shiny={user.avatar?.shiny}
                             draggable={false}
+                            objectFit="cover"
                         />
                     </div>
 

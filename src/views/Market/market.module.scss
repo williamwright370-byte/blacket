@@ -578,9 +578,11 @@
     display: flex;
     justify-content: flex-end;
     position: absolute;
-    bottom: 85px;
-    left: 105px;
-    width: 190px;
+    // bottom: 85px;
+    // left: 105px;
+    // width: 190px;
+    bottom: 75px;
+    height: 50%;
 
     &>img {
         width: 100%;
@@ -597,9 +599,11 @@
     }
 
     @media only screen and (max-width: 650px) {
-        bottom: 64px;
-        left: 90.5px;
-        width: 120px;
+        // bottom: 64px;
+        // left: 90.5px;
+        // width: 120px;
+        bottom: 60px;
+        height: 45%;
     }
 }
 
@@ -872,7 +876,7 @@
     width: 100%;
     height: 100%;
     position: absolute;
-    top: 0;
+    top: 10%;
     left: 0;
     z-index: 0;
     opacity: 0.8;

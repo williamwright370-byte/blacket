@@ -7,6 +7,7 @@ import { useResource } from "@stores/ResourceStore";
 import { useModal } from "@stores/ModalStore/index";
 import { useSound } from "@stores/SoundStore/index";
 import { useData } from "@stores/DataStore/index";
+import { useInsanePull } from "@stores/InsanePullStore/index";
 import { useSettings } from "@controllers/settings/useSettings";
 import { useOpenPack } from "@controllers/market/useOpenPack";
 import { useBoosters } from "@controllers/data/useBoosters";
@@ -18,15 +19,14 @@ import styles from "./market.module.scss";
 import { DataBoostersEntity, MarketOpenPackDto, Pack as PackType, RarityAnimationTypeEnum, UserBlook } from "@blacket/types";
 import { BigButtonClickType, LittleButton, SearchOptions } from "./market.d";
 
-// TODO: can't hear so i will see if this is right
-
 export default function Market() {
     const { setLoading } = useLoading();
     const { createModal } = useModal();
     const { user } = useUser();
-    const { resourceIdToPath } = useResource();
-    const { playSound, stopSounds, defineSounds, setVolume, getSound } = useSound();
+    const { resourceIdToPath, getResourceById } = useResource();
+    const { playSound, stopSounds, defineSounds, setVolume } = useSound();
     const { packs, rarities, blooks, itemShop } = useData();
+    const { isPlaying } = useInsanePull();
 
     if (!user) return <Navigate to="/login" />;
 
@@ -139,6 +139,11 @@ export default function Market() {
                 await new Promise((r) => {
                     let waitTime = 700;
 
+                    if (blook.videoId) {
+                        const resource = getResourceById(blook.videoId);
+                        if (resource) waitTime += (resource.length ?? 0);
+                    }
+
                     setTimeout(() => {
                         playRaritySound(rarity.animationType as RarityAnimationTypeEnum);
                     }, 500);
@@ -148,7 +153,7 @@ export default function Market() {
                     if (rarity.animationType === RarityAnimationTypeEnum.MYTHICAL) particleDelay = 8800;
 
                     setTimeout(() => {
-                        particleCanvasRef.current?.start();
+                        if (!blook.videoId) particleCanvasRef.current?.start();
                     }, particleDelay);
 
                     if (rarity.animationType === RarityAnimationTypeEnum.LEGENDARY) waitTime += 1300;
@@ -157,6 +162,13 @@ export default function Market() {
                     if (unlockedBlook.shiny) waitTime += 2000;
 
                     if (rarity.animationType === RarityAnimationTypeEnum.MYTHICAL) {
+                        let timeoutTime = 11000;
+
+                        if (blook.videoId) {
+                            const resource = getResourceById(blook.videoId);
+                            if (resource) timeoutTime += (resource.length ?? 0) + 4000;
+                        }
+
                         const spotlightDimmer = spotlightDimmerRef.current;
                         if (spotlightDimmer) setTimeout(() => {
                             playSound("angelic-chords");
@@ -166,7 +178,7 @@ export default function Market() {
                             setTimeout(() => {
                                 spotlightDimmer.style.opacity = String(0);
                             }, 10000);
-                        }, 11000);
+                        }, timeoutTime);
                     }
 
                     setTimeout(() => {
@@ -333,7 +345,10 @@ export default function Market() {
             {currentPack && <>
                 <style>{"body{overflow:hidden}"}</style>
 
-                <div className={styles.openModal}>
+                <div
+                    className={styles.openModal}
+                    style={isPlaying ? { display: "none" } : {}}
+                >
                     <div
                         ref={spotlightDimmerRef}
                         className={styles.spotlightDimmer}

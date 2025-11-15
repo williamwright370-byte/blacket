@@ -30,6 +30,7 @@ export default function InventoryBlook({ blook, shiny = false, big = false, lock
                 draggable={false}
                 shiny={shiny}
                 big={big}
+                objectFit="cover"
             />
 
             {!locked && amount > 0 && <div

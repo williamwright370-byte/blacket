@@ -116,7 +116,7 @@ export default function AuctionModal({ auctionId }: AuctionModalProps) {
                             closeModal();
                         }}>
                             <Username user={auction.bids[0].user} /> <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 5 }}>
-                                {auction.bids[0].amount.toLocaleString()} <img className={styles.tokenPrice} src={window.constructCDNUrl("/content/token.png")} />
+                                {auction.bids[0].amount.toLocaleString()} <img className={styles.diamondPrice} src={window.constructCDNUrl("/content/diamond.png")} />
                             </div>
                         </div>
                     </div>
@@ -129,7 +129,7 @@ export default function AuctionModal({ auctionId }: AuctionModalProps) {
                                 closeModal();
                             }}>
                                 <Username user={bid.user} /> <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 5 }}>
-                                    {bid.amount.toLocaleString()} <img className={styles.tokenPrice} src={window.constructCDNUrl("/content/token.png")} />
+                                    {bid.amount.toLocaleString()} <img className={styles.diamondPrice} src={window.constructCDNUrl("/content/diamond.png")} />
                                 </div>
                             </div>
                         ))}
@@ -159,7 +159,7 @@ export default function AuctionModal({ auctionId }: AuctionModalProps) {
                             `Current Bid: ${(auction.bids[0].amount).toLocaleString()}`
                             :
                             `Starting Bid: ${auction.price.toLocaleString()}`
-                    } <img className={styles.tokenPrice} src={window.constructCDNUrl("/content/token.png")} />
+                    } <img className={styles.diamondPrice} src={window.constructCDNUrl("/content/diamond.png")} />
                 </div>
             </Modal.ModalBody >
 

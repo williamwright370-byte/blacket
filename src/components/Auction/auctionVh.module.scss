@@ -51,20 +51,21 @@
 
 .auctionUsesLeft {
     margin-top: 1vh;
-    font-size: 1.6vh; // Converted from 16px to 1.6vh
+    font-size: 1.6vh;
     font-weight: 700;
 }
 
 .auctionInfo {
     display: flex;
     flex-direction: column;
-    font-size: 2vh; // Converted from 19.2px to 1.92vh
+    font-size: 1.8vh;
     gap: 0.5vh;
     font-weight: 700;
     line-height: 2.2vh;
 
     @media (max-width: 768px) {
-        font-size: 1.5vh; // Converted from 14.4px to 1.44vh
+        margin-top: 1vh;
+        font-size: 1.5vh;
     }
 
     &>div>span {
@@ -89,8 +90,9 @@
     top: 0.5vh;
     position: absolute;
     right: 0.5vh;
-    padding: 0.5vh;
-    background: rgba(0, 0, 0, .15);
+    padding: 0.4vh 1vh;
+    background: var(--primary-color);
+    box-shadow: inset 0 0 0 0.2vh rgba(0, 0, 0, 0.4);
     border-radius: 0.7vh;
     user-select: none;
     font-weight: 700;
@@ -117,4 +119,17 @@
     &>i {
         margin-left: 0.2vh;
     }
+}
+
+.auctionSellerName {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5vh;
+}
+
+.auctionName {
+    font-size: 2.4vh;
+    font-family: "Titan One", sans-serif;
+    font-weight: normal;
+    margin-bottom: 1vh;
 }

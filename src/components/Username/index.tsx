@@ -1,6 +1,20 @@
 import { useData } from "@stores/DataStore/index";
+import styles from "./username.module.scss";
 
-import { UsernameProps } from "./username.d";
+import { RoleColor, UsernameProps } from "./username.d";
+
+const ROLE_COLORS: RoleColor[] = [
+    {
+        key: "isSytem",
+        color: "var(--system-color)",
+        text: "SYSTEM"
+    },
+    {
+        key: "isAi",
+        color: "linear-gradient(45deg, blue, blueviolet, violet)",
+        text: "AI"
+    }
+];
 
 export default function Username({ user, className, style = {}, ...props }: UsernameProps) {
     const { fontIdToName } = useData();
@@ -23,19 +37,38 @@ export default function Username({ user, className, style = {}, ...props }: User
         };
     }
 
+    const role = ROLE_COLORS.find((role) => (user as any)[role.key]);
+
     return <span
         className={`
             ${className ? `${className}` : ""}
             ${user.color === "rainbow" ? "rainbow" : ""}
         `}
         style={{
-            color: user.color,
-            fontFamily: fontIdToName(user.fontId!),
-            ...style,
-            ...gradientStyle
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            ...style
         }}
         {...props}
     >
-        {user.username}
-    </span>;
+        <span style={{
+            color: user.color,
+            fontFamily: fontIdToName(user.fontId!),
+            ...gradientStyle
+        }}>
+            {user.username}
+        </span>
+
+        {role && <span
+            className={styles.badge}
+            style={{
+                background: role.color
+            }}
+        >
+            <span>
+                {role.text}
+            </span>
+        </span>}
+    </span >;
 }

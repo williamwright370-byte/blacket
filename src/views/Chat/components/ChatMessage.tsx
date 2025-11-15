@@ -84,6 +84,7 @@ export default memo(function ChatMessage({ message, newUser, mentionsMe, isSendi
                         src={getUserAvatarPath(replyingToAuthor)}
                         shiny={replyingToAuthor.avatar?.shiny}
                         draggable={false}
+                        objectFit="cover"
                     />
 
                     <Username user={replyingToAuthor} className={styles.replyingToUsername} />
@@ -113,6 +114,7 @@ export default memo(function ChatMessage({ message, newUser, mentionsMe, isSendi
                             src={getUserAvatarPath(author)}
                             shiny={author.avatar?.shiny}
                             draggable={false}
+                            objectFit="cover"
                         />
                     </Link>}
 

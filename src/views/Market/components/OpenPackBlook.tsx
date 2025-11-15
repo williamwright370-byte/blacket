@@ -10,7 +10,7 @@ import { OpenPackBlookProps } from "../market.d";
 import { RarityAnimationTypeEnum } from "@blacket/types";
 
 export default function OpenPackBlook({ userBlook, animate = false, isNew }: OpenPackBlookProps) {
-    const { resourceIdToPath } = useResource();
+    const { resourceIdToPath, getResourceById } = useResource();
     const { blooks, rarities } = useData();
     const { playSound } = useSound();
 
@@ -24,6 +24,10 @@ export default function OpenPackBlook({ userBlook, animate = false, isNew }: Ope
 
     if (rarity.animationType === RarityAnimationTypeEnum.CHROMA) delay = 4600;
     if (rarity.animationType === RarityAnimationTypeEnum.MYTHICAL) delay = 8400;
+    if (blook.videoId) {
+        const resource = getResourceById(blook.videoId);
+        if (resource) delay += (resource.length ?? 0) + 4000;
+    }
 
     const [show, setShow] = useState(delay === 0);
 
@@ -63,6 +67,7 @@ export default function OpenPackBlook({ userBlook, animate = false, isNew }: Ope
                 <Blook
                     shiny={userBlook.shiny}
                     src={resourceIdToPath(blook.imageId)}
+                    big={blook.isBig}
                 />
             </div>
             <div className={styles.openPackBlookTopText}>
@@ -84,7 +89,7 @@ export default function OpenPackBlook({ userBlook, animate = false, isNew }: Ope
                 </div>
             </div>
             <div className={styles.openPackBlookBottomText}>
-                {blook.chance / (userBlook.shiny ? 100 : 1)}%{isNew ? " - NEW!" : ""}
+                {(blook.chance / (userBlook.shiny ? 100 : 1))}%{isNew ? " - NEW!" : ""}
             </div>
             <div className={styles.openPackBlookShadow} />
         </div >
