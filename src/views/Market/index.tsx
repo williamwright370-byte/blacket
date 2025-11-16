@@ -23,7 +23,7 @@ export default function Market() {
     const { setLoading } = useLoading();
     const { createModal } = useModal();
     const { user } = useUser();
-    const { resourceIdToPath, getResourceById } = useResource();
+    const { resourceIdToPath } = useResource();
     const { playSound, stopSounds, defineSounds, setVolume } = useSound();
     const { packs, rarities, blooks, itemShop } = useData();
     const { isPlaying } = useInsanePull();
@@ -139,10 +139,7 @@ export default function Market() {
                 await new Promise((r) => {
                     let waitTime = 700;
 
-                    if (blook.videoId) {
-                        const resource = getResourceById(blook.videoId);
-                        if (resource) waitTime += (resource.length ?? 0);
-                    }
+                    if (blook.video) waitTime += blook.video.length;
 
                     setTimeout(() => {
                         playRaritySound(rarity.animationType as RarityAnimationTypeEnum);
@@ -153,7 +150,7 @@ export default function Market() {
                     if (rarity.animationType === RarityAnimationTypeEnum.MYTHICAL) particleDelay = 8800;
 
                     setTimeout(() => {
-                        if (!blook.videoId) particleCanvasRef.current?.start();
+                        if (!blook.video) particleCanvasRef.current?.start();
                     }, particleDelay);
 
                     if (rarity.animationType === RarityAnimationTypeEnum.LEGENDARY) waitTime += 1300;
@@ -164,10 +161,7 @@ export default function Market() {
                     if (rarity.animationType === RarityAnimationTypeEnum.MYTHICAL) {
                         let timeoutTime = 11000;
 
-                        if (blook.videoId) {
-                            const resource = getResourceById(blook.videoId);
-                            if (resource) timeoutTime += (resource.length ?? 0) + 4000;
-                        }
+                        if (blook.video) timeoutTime += blook.video.length + 4000;
 
                         const spotlightDimmer = spotlightDimmerRef.current;
                         if (spotlightDimmer) setTimeout(() => {
@@ -384,8 +378,8 @@ export default function Market() {
                             opening={openingPack}
                             image={resourceIdToPath(currentPack.imageId)}
                             video={
-                                blooks.find((blook) => blook.id === unlockedBlook.blookId)!.videoId
-                                    ? resourceIdToPath(blooks.find((blook) => blook.id === unlockedBlook.blookId)!.videoId!)
+                                blooks.find((blook) => blook.id === unlockedBlook.blookId)!.video
+                                    ? resourceIdToPath(blooks.find((blook) => blook.id === unlockedBlook.blookId)!.video?.resourceId)
                                     : undefined
                             }
                             animationType={rarities.find((rarity) => rarity.id === blooks.find((blook) => blook.id === unlockedBlook.blookId)!.rarityId)!.animationType}
