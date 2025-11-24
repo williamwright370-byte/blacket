@@ -7,10 +7,10 @@ export const useModal = create<ModalStore>((set, get) => ({
 
     setModals: (modals) => set({ modals }),
 
-    createModal: (modal, outsideModal) => {
+    createModal: (modal, props) => {
         const id = Math.random().toString(36).slice(2);
 
-        set((s) => ({ modals: [...s.modals, { id, modal, outsideModal }] }));
+        set((s) => ({ modals: [...s.modals, { id, modal, props }] }));
 
         return id;
     },

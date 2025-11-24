@@ -1,102 +1,89 @@
-import { useState } from "react";
-import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
+import { useEffect, useState } from "react";
+import { useStripe, useElements, PaymentElement } from "@stripe/react-stripe-js";
 import { useModal } from "@stores/ModalStore/index";
 import { useCreateSetupIntent } from "@controllers/stripe/setup-intent/useCreateSetupIntent/index";
 import { useCreate } from "@controllers/stripe/payment-methods/useCreate/index";
-import { Modal, ErrorContainer, Button, StripeElementsWrapper } from "@components/index";
-import styles from "./addPaymentMethodModal.module.scss";
+import {
+    Modal,
+    ErrorContainer,
+    Button,
+    StripeElementsWrapper
+} from "@components/index";
 
-function TheModal() {
+import { TheModalProps } from "./addPaymentMethodModal.d";
+import { StripeCreateSetupIntentEntity } from "@blacket/types";
+
+function TheModal({ setupIntent }: TheModalProps) {
     const stripe = useStripe();
     const elements = useElements();
 
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string>("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
     const { closeModal } = useModal();
-    const { createSetupIntent } = useCreateSetupIntent();
     const { createPaymentMethod } = useCreate();
 
-    const accentColor = getComputedStyle(document.documentElement).getPropertyValue("--accent-color");
-
-    if (!stripe || !elements) return;
+    if (!stripe || !elements) return null;
 
     return (
         <>
-            <Modal.ModalHeader>Add Payment Method</Modal.ModalHeader>
-
             <Modal.ModalBody>
-                Please enter your card information below.
-            </Modal.ModalBody>
+                <PaymentElement
+                    options={{
+                        layout: {
+                            type: "auto"
+                        },
 
-            <Modal.ModalBody>
-                <div className={styles.cardContainer}>
-                    <CardElement
-                        options={{
-                            disableLink: true,
-                            style: {
-                                base: {
-                                    iconColor: accentColor,
-                                    color: accentColor,
-                                    fontSize: "18px",
-                                    fontFamily: "Nunito, sans-serif"
-                                },
-                                invalid: {
-                                    color: "#ff0000"
-                                }
-                            }
-                        }}
-                        onChange={(e) => {
-                            if (e.error) setError(e.error.message);
-                            else setError("");
-                        }}
-                    />
-                </div>
-            </Modal.ModalBody>
-
-            <Modal.ModalBody style={{ fontSize: "0.8rem", opacity: 0.5 }}>
-                We use Stripe to handle all of our payment processing.
-                <br />
-                None of your payment information is stored on our servers.
-            </Modal.ModalBody>
+                        terms: {
+                            cashapp: "never",
+                            applePay: "never",
+                            googlePay: "never"
+                        }
+                    }}
+                />
+            </Modal.ModalBody >
 
             {error !== "" && <ErrorContainer>{error}</ErrorContainer>}
 
             <Modal.ModalButtonContainer loading={loading}>
                 <Button.GenericButton
                     onClick={async () => {
-                        const cardElement = elements.getElement(CardElement);
-                        if (!cardElement) return;
+                        if (!stripe || !elements) return;
 
                         setLoading(true);
+                        setError("");
 
-                        const result = await stripe.createPaymentMethod({
-                            type: "card",
-                            card: cardElement
-                        })
-                            .catch((error) => {
-                                setError(error.message);
-                                setLoading(false);
-                            });
+                        const { error: submitError } = await elements.submit();
 
-                        if (!result) return setLoading(false);
-                        if (result.error) return setError(result?.error?.message ?? "Something went wrong."), setLoading(false);
+                        if (submitError) {
+                            setError(submitError.message ?? "Something went wrong.");
+                            setLoading(false);
+                            return;
+                        }
 
-                        const setupIntent = await createSetupIntent({ paymentMethodId: result.paymentMethod.id })
-                            .catch((error: Fetch2Response) => {
-                                setError(error?.data?.message ?? "Something went wrong.");
-                                setLoading(false);
-                            });
-                        if (!setupIntent) return setLoading(false);
+                        const { error, setupIntent: si } = await stripe.confirmSetup({
+                            elements,
+                            redirect: "if_required"
+                        });
 
-                        const { error: verifyError } = await stripe.confirmCardSetup(setupIntent.clientSecret, { payment_method: { card: cardElement } });
-                        if (verifyError) return setError(verifyError?.message ?? "Something went wrong."), setLoading(false);
+                        if (error) {
+                            setError(error.message ?? "Something went wrong.");
+                            setLoading(false);
+                            return;
+                        }
+
+                        const finalSetupIntentId =
+                            si?.id ?? setupIntent.id;
 
                         await createPaymentMethod({
-                            setupIntentId: setupIntent.id
+                            setupIntentId: finalSetupIntentId
                         })
                             .then(() => closeModal())
-                            .catch((err) => err?.data?.message ? setError(err.data.message) : setError("Something went wrong."))
+                            .catch((err: any) =>
+                                err?.data?.message
+                                    ? setError(err.data.message)
+                                    : setError("Something went wrong.")
+                            )
                             .finally(() => setLoading(false));
                     }}
                 >
@@ -110,9 +97,36 @@ function TheModal() {
 }
 
 export default function AddPaymentMethodModal() {
+    const { createSetupIntent } = useCreateSetupIntent();
+    const { closeModal } = useModal();
+
+    const [setupIntent, setSetupIntent] = useState<StripeCreateSetupIntentEntity | null>(null);
+    const [error, setError] = useState<string>("");
+
+    useEffect(() => {
+        createSetupIntent()
+            .then((res) => setSetupIntent(res))
+            .catch((err) => setError(err?.data?.message ?? "Something went wrong."));
+    }, []);
+
+    if (!setupIntent || error) return (
+        <>
+            <Modal.ModalHeader>Add Payment Method</Modal.ModalHeader>
+
+            {error ? <ErrorContainer style={{ marginTop: 20 }}>{error}</ErrorContainer> : <Modal.ModalBody>Loading payment options...</Modal.ModalBody>}
+
+            <Modal.ModalButtonContainer>
+                {!error && <Button.GenericButton>Add</Button.GenericButton>}
+                <Button.GenericButton onClick={closeModal}>Cancel</Button.GenericButton>
+            </Modal.ModalButtonContainer>
+        </>
+    );
+
     return (
-        <StripeElementsWrapper>
-            <TheModal />
+        <StripeElementsWrapper clientSecret={setupIntent.clientSecret}>
+            <Modal.ModalHeader>Add Payment Method</Modal.ModalHeader>
+
+            <TheModal setupIntent={setupIntent} />
         </StripeElementsWrapper>
     );
 }

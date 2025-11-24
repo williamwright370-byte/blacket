@@ -134,7 +134,7 @@ function TheModal({ product, subscription = false }: ProductPurchaseModalProps) 
     const [finalPrice, setFinalPrice] = useState<number>(product.price);
 
     const showSuccessModal = () => {
-        createModal(<SuccessModal product={product} quantity={parseInt(quantity)} subscription={subscription} />, <SuccessModalOutside />);
+        createModal(<SuccessModal product={product} quantity={parseInt(quantity)} subscription={subscription} />, { outsideModal: <SuccessModalOutside /> });
         closeModal();
     };
 
@@ -208,7 +208,7 @@ function TheModal({ product, subscription = false }: ProductPurchaseModalProps) 
                         if (value === null) {
                             closeModal();
 
-                            createModal(<Modal.AddPaymentMethodModal />);
+                            createModal(<Modal.AddPaymentMethodModal />, { fullscreen: true });
                         } else {
                             setSelectedPaymentMethod(user.paymentMethods.find((method) => method.id === value) ?? null);
                         }

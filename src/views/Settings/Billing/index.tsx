@@ -101,7 +101,7 @@ export default function SettingsBilling() {
                 <div className={styles.card}>
                     <div className={styles.cardHeader}>Payment Method</div>
 
-                    <Button.ClearButton className={styles.paymentMethodButton} onClick={() => createModal(paymentMethodString ? <Modal.PaymentMethodsModal /> : <Modal.AddPaymentMethodModal />)}>
+                    <Button.ClearButton className={styles.paymentMethodButton} onClick={() => createModal(paymentMethodString ? <Modal.PaymentMethodsModal /> : <Modal.AddPaymentMethodModal />, { fullscreen: true })}>
                         {paymentMethodString && <i className="fa-solid fa-credit-card" />}
                         {paymentMethodString ?? "Add Payment Method"}
                     </Button.ClearButton>

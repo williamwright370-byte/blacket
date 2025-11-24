@@ -1,13 +1,11 @@
 import { useEffect } from "react";
 import { useUser } from "@stores/UserStore";
 import { useSocket } from "@stores/SocketStore";
-import { useNavigate } from "react-router-dom";
 import { SocketMessageType } from "@blacket/types";
 
 export function SocketDefiner() {
     const { user, setUser } = useUser();
     const { socket, initializeSocket } = useSocket();
-    const navigate = useNavigate();
 
     useEffect(() => {
         initializeSocket();
@@ -42,21 +40,17 @@ export function SocketDefiner() {
                     ...user.banners,
                     ...(data.banners || [])
                 ],
-                permissions: [
-                    ...user.permissions,
-                    ...(data.permissions || [])
-                ],
+
+                permissions: data.permissions ?? user.permissions,
 
                 crystals: user.crystals + (data.crystals ?? 0),
                 diamonds: user.diamonds + (data.diamonds ?? 0),
                 tokens: user.tokens + (data.tokens ?? 0),
 
-                subscription: data.subscription || user.subscription
+                subscription: data.subscription ?? user.subscription
             };
 
             setUser(newUser);
-
-            navigate("/settings/billing");
         };
 
         socket.on(SocketMessageType.PURCHASE_SUCCEEDED, onPurchase);

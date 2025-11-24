@@ -151,4 +151,9 @@
             }
         }
     }
+
+    &[data-fullscreen="true"] {
+        min-width: 90%;
+        min-height: 90%;
+    }
 }

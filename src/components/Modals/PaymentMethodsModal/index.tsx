@@ -40,7 +40,7 @@ export default function PaymentMethodsModal() {
                     if (value === null) {
                         closeModal();
 
-                        createModal(<Modal.AddPaymentMethodModal />);
+                        createModal(<Modal.AddPaymentMethodModal />, { fullscreen: true });
                     } else setSelectedPaymentMethod(user.paymentMethods.find((method) => method.id === value) ?? null);
                 }}
             >

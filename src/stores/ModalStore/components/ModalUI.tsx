@@ -27,7 +27,8 @@ export function ModalUI() {
         <Modal.GenericModal
             closing={closing}
             noAnimation={localStorage.getItem("DISABLE_MODAL_ANIMATION") === "true"}
-            outside={modals[0].outsideModal}
+            outside={modals[0].props?.outsideModal}
+            fullscreen={modals[0].props?.fullscreen}
         >
             {modals[0].modal}
         </Modal.GenericModal>

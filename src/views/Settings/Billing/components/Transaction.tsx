@@ -14,14 +14,14 @@ export default function Transaction({ transaction, selected, ...props }: Transac
     const product = products.find((p) => p.id === transaction.productId);
     if (!product) return null;
 
-    const getCurrencyString = () => {
+    const getCurrencyString = (amount: number = transaction.amount) => {
         switch (transaction.currency) {
             case CurrencyTypeEnum.USD:
-                return <>${transaction.amount} USD</>;
+                return <>${amount} USD</>;
             case CurrencyTypeEnum.CRYSTAL:
-                return <>{transaction.amount}</>;
+                return <>{amount}</>;
             default:
-                return <>{transaction.amount} {transaction.currency}</>;
+                return <>{amount} {transaction.currency}</>;
         }
     };
 
@@ -64,7 +64,8 @@ export default function Transaction({ transaction, selected, ...props }: Transac
 
             <div className={styles.transactionAmountContainer}>
                 <Textfit className={styles.transactionAmount} mode="single" min={0} max={16}>
-                    {getCurrencyString()}
+                    {transaction.refundAmount ? "-" : ""}
+                    {getCurrencyString(transaction.refundAmount ?? transaction.amount)}
                 </Textfit>
 
                 {transaction.currency === CurrencyTypeEnum.CRYSTAL && (
