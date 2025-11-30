@@ -10,12 +10,20 @@
     box-shadow: inset 0 0 0 5px rgba(0, 0, 0, 0.1);
     box-sizing: border-box;
 
+    &[data-fill="true"] {
+        width: calc(99% - 10px);
+    }
+
     @media only screen and (max-width: 768px) {
         top: unset;
         left: 2.5%;
         height: calc(45% - 10px);
         width: 95%;
-        bottom: 5px
+        bottom: 5px;
+
+        &[data-fill="true"] {
+            width: 95%;
+        }
     }
 }
 

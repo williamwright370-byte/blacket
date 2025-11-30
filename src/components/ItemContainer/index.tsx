@@ -12,7 +12,7 @@ import {
 import { useData } from "@stores/DataStore/index";
 import { useResource } from "@stores/ResourceStore/index";
 import { useUser } from "@stores/UserStore/index";
-import { InventoryBlook /* , InventoryItem */ } from "./components";
+import { InventoryItem } from "./components";
 import { DEFAULT_OPTIONS, PACK_HEADER_H } from "./constants";
 import { flowLayout, sizeOf } from "./utils";
 import styles from "./itemContainer.module.scss";
@@ -22,12 +22,12 @@ import {
     SelectedTypeEnum,
     FlatCell
 } from "./itemContainer.d";
-import { Blook } from "@blacket/types";
+import { Blook, Item } from "@blacket/types";
 
 export default function ItemContainer({ user, options, onClick, ...props }: ItemContainerProps) {
-    const { packs, blooks } = useData();
+    const { packs, blooks, items } = useData();
     const { resourceIdToPath } = useResource();
-    const { getBlookAmount } = useUser();
+    const { getBlookAmount, getItemAmount } = useUser();
 
     const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
 
@@ -51,13 +51,38 @@ export default function ItemContainer({ user, options, onClick, ...props }: Item
         ]
     );
 
-    const visiblePacks = useMemo(() => {
-        if (!mergedOptions.showBlooks || !mergedOptions.showPacks) return [];
+    const isItemVisible = useCallback((item: Item) => {
+        const amount = getItemAmount(item.id, user);
 
-        return packs.filter((pack) => blooks.some((b) => b.packId === pack.id && isBlookVisible(b)));
+        if (mergedOptions.searchQuery && !item.name.toLowerCase().includes(mergedOptions.searchQuery.toLowerCase())) return false;
+        if (amount > 0 || (amount <= 0 && mergedOptions.showLocked)) return true;
+
+        return false;
+    },
+        [
+            getItemAmount,
+            mergedOptions.searchQuery, mergedOptions.showLocked,
+            user
+        ]
+    );
+
+    const visiblePacks = useMemo(() => {
+        if (!mergedOptions.showPacks) return [];
+
+        const visiblePacksList = [];
+
+        if (mergedOptions.showItems && items.length > 0) {
+            visiblePacksList.push(...items.some((item) => isItemVisible(item)) ? [{ id: -1, name: "", iconId: null }] : []);
+        }
+
+        if (mergedOptions.showBlooks) {
+            visiblePacksList.push(...packs.filter((pack) => blooks.some((b) => b.packId === pack.id && isBlookVisible(b))));
+        }
+
+        return visiblePacksList;
     }, [
-        mergedOptions.showBlooks, mergedOptions.showPacks,
-        packs, blooks,
+        mergedOptions.showBlooks, mergedOptions.showItems, mergedOptions.showPacks,
+        packs, blooks, items,
         isBlookVisible
     ]);
 
@@ -102,20 +127,55 @@ export default function ItemContainer({ user, options, onClick, ...props }: Item
         [getBlookAmount, isBlookVisible, mergedOptions.showLocked, mergedOptions.showShiny, user]
     );
 
+    const buildCellsForItem = useCallback((item: Item): FlatCell[] => {
+        const userItems = user.items.filter((ui) => ui.itemId === item.id);
+        const amount = userItems.length;
+        const locked = amount <= 0;
+
+        if (mergedOptions.searchQuery && !item.name.toLowerCase().includes(mergedOptions.searchQuery.toLowerCase())) return [];
+        if (locked && !mergedOptions.showLocked) return [];
+
+        const { w, h } = sizeOf(item);
+
+        return [{
+            key: `item-${item.id}`,
+            item,
+            shiny: false,
+            amount,
+            locked,
+            userItem: userItems[0] || null,
+            w,
+            h
+        }];
+    },
+        [mergedOptions.searchQuery, mergedOptions.showLocked, user]
+    );
+
     // FLAT MODE
     const flatCells = useMemo<FlatCell[]>(() => {
-        if (!mergedOptions.showBlooks || mergedOptions.showPacks) return [];
+        if (mergedOptions.showPacks) return [];
 
         const arr: FlatCell[] = [];
-        for (const blook of blooks) arr.push(...buildCellsForBlook(blook));
 
-        arr.sort((a, b) =>
-            a.blook.priority - b.blook.priority ||
-            (a.shiny ? 1 : 0) - (b.shiny ? 1 : 0)
-        );
+        if (mergedOptions.showItems) {
+            for (const item of items) arr.push(...buildCellsForItem(item));
+        }
+
+        if (mergedOptions.showBlooks) {
+            for (const blook of blooks) arr.push(...buildCellsForBlook(blook));
+        }
+
+        arr.sort((a, b) => {
+            if (a.item && !b.item) return -1;
+            if (!a.item && b.item) return 1;
+
+            if (a.blook && b.blook) return a.blook.priority - b.blook.priority || (a.shiny ? 1 : 0) - (b.shiny ? 1 : 0);
+
+            return 0;
+        });
 
         return arr;
-    }, [blooks, buildCellsForBlook, mergedOptions.showBlooks, mergedOptions.showPacks]);
+    }, [blooks, items, buildCellsForBlook, buildCellsForItem, mergedOptions.showBlooks, mergedOptions.showItems, mergedOptions.showPacks]);
 
     // PACK MODE
     const packCellsMap = useMemo(() => {
@@ -124,38 +184,52 @@ export default function ItemContainer({ user, options, onClick, ...props }: Item
         for (const pack of visiblePacks) {
             const cells: FlatCell[] = [];
 
-            for (const blook of blooks) {
-                if (blook.packId !== pack.id) continue;
+            if (pack.id === -1) {
+                for (const item of items) {
+                    cells.push(...buildCellsForItem(item));
+                }
+            } else {
+                for (const blook of blooks) {
+                    if (blook.packId !== pack.id) continue;
 
-                cells.push(...buildCellsForBlook(blook));
+                    cells.push(...buildCellsForBlook(blook));
+                }
+
+                cells.sort((a, b) =>
+                    a.blook.priority - b.blook.priority ||
+                    (a.shiny ? 1 : 0) - (b.shiny ? 1 : 0)
+                );
             }
-
-            cells.sort((a, b) =>
-                a.blook.priority - b.blook.priority ||
-                (a.shiny ? 1 : 0) - (b.shiny ? 1 : 0)
-            );
 
             map.set(pack.id, cells);
         }
 
         return map;
-    }, [visiblePacks, blooks, buildCellsForBlook]);
+    }, [visiblePacks, blooks, items, buildCellsForBlook, buildCellsForItem]);
 
     const handleClick = useCallback((cell: FlatCell) => {
         if (!onClick || cell.amount <= 0) return;
 
-        onClick({ type: SelectedTypeEnum.BLOOK, item: cell.userBlook });
+        if (cell.userItem) {
+            onClick({ type: SelectedTypeEnum.ITEM, item: cell.userItem });
+        } else if (cell.userBlook) {
+            onClick({ type: SelectedTypeEnum.BLOOK, item: cell.userBlook });
+        }
     }, [onClick]);
 
-    const renderTile = useCallback((cell: FlatCell) => <InventoryBlook
-        key={cell.key}
-        blook={cell.blook}
-        shiny={cell.shiny}
-        big={cell.blook.isBig}
-        locked={cell.locked}
-        amount={cell.amount}
-        onClick={() => handleClick(cell)}
-    />, [handleClick]);
+    const renderTile = useCallback((cell: FlatCell) => {
+        return <InventoryItem
+            key={cell.key}
+            blook={cell?.userBlook}
+            item={cell?.userItem}
+            shiny={cell.shiny}
+            big={cell?.blook?.isBig}
+            locked={cell.locked}
+            amount={cell.amount}
+            useVhStyles={mergedOptions.useVhStyles}
+            onClick={() => handleClick(cell)}
+        />;
+    }, [handleClick, mergedOptions.useVhStyles]);
 
     // DO NOT REMOVE THIS
     const flatRef = useRef<CollectionType | null>(null);
@@ -188,10 +262,12 @@ export default function ItemContainer({ user, options, onClick, ...props }: Item
         {({ width, height }) => {
             if (width !== flatWidth) setFlatWidth(width);
 
-            const { pos, totalH } = flowLayout(flatCells, width);
+            const { pos } = flowLayout(flatCells, width);
+
             // collection wants absolute positions, do not add margins/gaps in the wrapper
             const cellSizeAndPositionGetter: CollectionCellSizeAndPositionGetter = ({ index }) => {
                 const p = pos[index];
+
                 return { width: p.w, height: p.h, x: p.x, y: p.y };
             };
 
@@ -233,14 +309,14 @@ export default function ItemContainer({ user, options, onClick, ...props }: Item
                         <div
                             className={styles.setTopTile}
                             style={{
-                                backgroundImage: `url(${pack.iconId
+                                backgroundImage: `url(${pack?.iconId
                                     ? resourceIdToPath(pack.iconId)
-                                    : (window as any).constructCDNUrl("/content/packs/icons/DefaultTiled.png")
+                                    : window.constructCDNUrl("/content/packs/icons/DefaultTiled.png")
                                     })`
                             }}
                         />
                         <div className={styles.setTopText}>
-                            {pack.name} Pack
+                            {pack.id !== -1 ? `${pack.name} Pack` : "My Items"}
                             <div className={styles.setGradient} />
                         </div>
                     </div>
@@ -302,7 +378,7 @@ export default function ItemContainer({ user, options, onClick, ...props }: Item
 
     return (
         <div className={`${props.className ?? ""} ${styles.itemsContainer}`} style={props.style}>
-            {mergedOptions.showBlooks ? (
+            {(mergedOptions.showItems || mergedOptions.showBlooks) ? (
                 mergedOptions.showPacks ? renderPacksList() : renderFlatCollection()
             ) : null}
         </div>

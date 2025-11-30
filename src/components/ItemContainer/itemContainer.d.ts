@@ -1,13 +1,15 @@
 import { HTMLAttributes } from "react";
-import { PrivateUser, UserBlook, UserItem } from "@blacket/types";
+import { Item, PrivateUser, UserBlook, UserItem } from "@blacket/types";
 
 export type FlatCell = {
     key: string; // stable key for the visual cell
-    blook: Blook;
+    blook?: Blook;
+    item?: Item;
     shiny: boolean;
     amount: number;
     locked: boolean;
-    userBlook: UserBlook | null;
+    userBlook?: UserBlook | null;
+    userItem?: UserItem | null;
     w: number;
     h: number;
 };
@@ -23,6 +25,8 @@ export interface ItemContainerOptions {
 
     rarities?: number[];
     searchQuery?: string;
+
+    useVhStyles?: boolean;
 }
 
 export enum SelectedTypeEnum {

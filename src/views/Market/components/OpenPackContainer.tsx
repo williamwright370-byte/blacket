@@ -5,6 +5,7 @@ import styles from "../market.module.scss";
 
 import { OpenPackContainerProps } from "../market.d";
 import { RarityAnimationTypeEnum } from "@blacket/types";
+import { gainToDb } from "tone";
 
 export default function OpenPackContainer({ opening, image, video, animationType }: OpenPackContainerProps) {
     const { defineSounds, getSound, playSound, playSounds } = useSound();
@@ -18,14 +19,26 @@ export default function OpenPackContainer({ opening, image, video, animationType
 
     const chromaImageRef = useRef<HTMLImageElement>(null);
 
+    const noGrow = false;
+
     // define sounds
     useEffect(() => {
         defineSounds([
             { id: "pack-tear", url: window.constructCDNUrl("/content/audio/sound/pack/pack-tear.mp3") },
             { id: "chroma-grow", url: window.constructCDNUrl("/content/audio/sound/pack/chroma-grow.mp3") },
             { id: "chroma-explode", url: window.constructCDNUrl("/content/audio/sound/pack/chroma-explode.mp3") },
-            { id: "mythical-grow", url: window.constructCDNUrl("/content/audio/sound/pack/mythical-grow.mp3") },
-            { id: "mythical-explode", url: window.constructCDNUrl("/content/audio/sound/pack/mythical-explode.mp3") }
+            {
+                id: "mythical-grow", url: window.constructCDNUrl("/content/audio/sound/pack/mythical-grow.mp3"),
+                options: {
+                    volume: gainToDb(Number.MAX_SAFE_INTEGER)
+                }
+            },
+            {
+                id: "mythical-explode", url: window.constructCDNUrl("/content/audio/sound/pack/mythical-explode.mp3"),
+                options: {
+                    volume: gainToDb(Number.MAX_SAFE_INTEGER)
+                }
+            }
         ]);
     }, []);
 
@@ -125,14 +138,14 @@ export default function OpenPackContainer({ opening, image, video, animationType
         const img = chromaImageRef.current;
         if (!img) return;
 
-        playSound(isMythical ? "mythical-grow" : "chroma-grow");
+        if (!noGrow) playSound(isMythical ? "mythical-grow" : "chroma-grow");
 
         let scale = 1;
         let elapsed = 0;
         let last = performance.now();
         let shakePhase = 0;
 
-        const growDuration = isMythical ? 8800 : 5000;
+        const growDuration = (!noGrow ? (isMythical ? 8800 : 5000) : 10);
         const maxScale = isMythical ? 4 : 2;
         const shineStart = growDuration - 3000;
 

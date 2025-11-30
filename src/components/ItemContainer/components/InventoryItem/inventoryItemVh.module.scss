@@ -1,6 +1,6 @@
-.item {
-    width: 6vh;
-    height: 7vh;
+.blook {
+    min-width: 6vh;
+    min-height: 7vh;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -15,13 +15,43 @@
     will-change: transform;
     transition: transform .2s;
 
-    &[data-selectable="false"] {
-        cursor: unset;
+    .blookLock {
+        position: absolute;
+        font-size: 2.4vh;
+        // opacity: .7;
+        opacity: .5;
+        top: 55%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
 
-        &:hover,
-        &:active {
-            transform: scale(1);
-        }
+    .blookQuantity {
+        position: absolute;
+        font-family: "Titan One", sans-serif;
+        font-size: 1.2vh;
+        -webkit-text-stroke: #000000 0.1vh;
+        border-radius: 0.7vh;
+        padding: 0 0.5vh;
+        height: 1.5vh;
+        line-height: 1.5vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        bottom: 0.2vh;
+        left: -0.2vh;
+    }
+
+    .blookQuantityImage {
+        position: absolute;
+        width: 2vh;
+        height: 2vh;
+        object-fit: contain;
+        z-index: 0;
+    }
+
+    .blookQuantityText {
+        position: absolute;
+        z-index: 1;
     }
 
     &:hover {
@@ -32,17 +62,60 @@
         transform: scale(0.9);
     }
 
-    &>img {
-        width: 5.5vh;
-        object-fit: contain;
-        -o-object-fit: contain;
+    &[data-locked="true"] {
+        cursor: not-allowed;
+
+        &:hover,
+        &:active {
+            transform: scale(1);
+        }
     }
 
-    &>video {
-        width: 5.5vh;
-        object-fit: contain;
-        -o-object-fit: contain;
+    &[data-selectable="false"] {
+        cursor: unset;
+
+        &:hover,
+        &:active {
+            transform: scale(1);
+        }
     }
+}
+
+.blookImage {
+    height: 6.5vh;
+
+    &[data-locked="true"] {
+        filter: brightness(0.1) grayscale(1);
+        -webkit-filter: brightness(0.1) grayscale(1);
+    }
+}
+
+.itemImage {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(-0.1vh 0.2vh 0 rgba(0, 0, 0, 0.5));
+    object-fit: contain;
+    -o-object-fit: contain;
+}
+
+.itemBackground {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0.5;
+    z-index: -1;
+}
+
+.itemBackgroundOverlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    mask-size: cover;
+    -webkit-mask-size: cover;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
 }
 
 .itemQuantity {
@@ -50,7 +123,7 @@
     font-family: "Titan One", sans-serif;
     font-size: 1.2vh;
     -webkit-text-stroke: #000000 0.1vh;
-    border-radius: 0.7vh;
+    border-radius: var(--border-radius);
     padding: 0 0.5vh;
     height: 1.5vh;
     line-height: 1.5vh;
@@ -59,17 +132,4 @@
     align-items: center;
     bottom: 0.2vh;
     left: -0.2vh;
-}
-
-.itemQuantityImage {
-    position: absolute;
-    width: 2vh;
-    height: 2vh;
-    object-fit: contain;
-    z-index: 0;
-}
-
-.itemQuantityText {
-    position: absolute;
-    z-index: 1;
 }

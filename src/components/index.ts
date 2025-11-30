@@ -11,7 +11,7 @@ import Form from "./Form";
 import Header from "./Header";
 import HeaderBody from "./HeaderBody";
 import ImageOrVideo from "./ImageOrVideo";
-import InventoryBlook from "./ItemContainer/components/InventoryBlook";
+import InventoryBlook from "./ItemContainer/components/InventoryItem";
 import InventoryItem from "./ItemContainer/components/InventoryItem";
 import Input from "./Input";
 import ItemContainer from "./ItemContainer";

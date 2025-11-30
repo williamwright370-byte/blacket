@@ -32,17 +32,29 @@ export default function Inventory() {
     useEffect(() => {
         switch (selectedType) {
             case SelectedTypeEnum.BLOOK:
-                const blook = blooks.find((b) => b.id === (selected as UserBlook).blookId);
+                const blook = blooks.find((b) => b.id === (selected as UserBlook)?.blookId);
+                if (!blook) return setBlook(null);
 
-                setBlook(blook || null);
-                setRarity(rarities.find((r) => r.id === blook?.rarityId) || null);
+                const rarityOfBlook = rarities.find((r) => r.id === blook?.rarityId) || null;
+                if (!rarityOfBlook) return setBlook(null);
+
+                console.log("Selected Blook:", blook);
+
+                setBlook(blook);
+                setRarity(rarityOfBlook);
                 setDescription(blook?.description || "No description available for this Blook.");
                 break;
             case SelectedTypeEnum.ITEM:
-                const item = items.find((i) => i.id === (selected as UserItem).itemId);
+                const item = items.find((i) => i.id === (selected as UserItem)?.itemId);
+                if (!item) return setItem(null);
 
-                setItem(item || null);
-                setRarity(rarities.find((r) => r.id === item?.rarityId) || null);
+                const rarityOfItem = rarities.find((r) => r.id === item?.rarityId) || null;
+                if (!rarityOfItem) return setItem(null);
+
+                console.log("Selected Item:", item);
+
+                setItem(item);
+                setRarity(rarityOfItem);
                 setDescription(item?.description || "No description available for this Item.");
                 break;
             default:
@@ -75,7 +87,9 @@ export default function Inventory() {
         <>
             {window.innerWidth > 768 && <PageHeader>Inventory</PageHeader>}
 
-            <div className={styles.leftSide}>
+            <div
+                className={styles.leftSide}
+            >
                 <SearchBox
                     noPadding={true}
                     placeholder="Search for an item..."
@@ -95,13 +109,20 @@ export default function Inventory() {
                         searchQuery: search
                     }}
                     onClick={(item) => {
+                        if (item.type !== selectedType) {
+                            setBlook(null);
+                            setItem(null);
+                            setRarity(null);
+                            setDescription("");
+                        }
+
                         setSelectedType(item.type);
                         setSelected(item.item || null);
                     }}
                 />
             </div>
 
-            {selected && rarity && <div className={styles.rightSide}>
+            {selected && (blook || item) && rarity && <div className={styles.rightSide}>
                 <div className={styles.backgroundImageM}>
                     <img
                         src={
@@ -135,7 +156,9 @@ export default function Inventory() {
                             </Textfit>
 
                             <Textfit className={styles.itemDescriptionM} mode="multi" min={0} max={20}>
-                                {description}
+                                <Markdown user={user}>
+                                    {description}
+                                </Markdown>
                             </Textfit>
                         </div>
 
@@ -149,7 +172,7 @@ export default function Inventory() {
                                 }
                                 className={styles.itemImageM}
                                 shiny={selectedType === SelectedTypeEnum.BLOOK && (selected as UserBlook).shiny}
-                                big={blook!.isBig}
+                                big={selectedType === SelectedTypeEnum.BLOOK ? blook!.isBig : false}
                             />
                         </div>
                     </div>
@@ -164,7 +187,7 @@ export default function Inventory() {
                                 }
                                 className={styles.itemImage}
                                 shiny={selectedType === SelectedTypeEnum.BLOOK && (selected as UserBlook).shiny}
-                                big={blook!.isBig}
+                                big={selectedType === SelectedTypeEnum.BLOOK ? blook!.isBig : false}
                             />
                         </div>
 
@@ -200,49 +223,80 @@ export default function Inventory() {
                     </Textfit>
 
                     <div className={styles.infoContainer}>
-                        <Info
+
+                        {blook && selectedType === SelectedTypeEnum.BLOOK ? <Info
                             name="Amount"
                             icon="fas fa-hashtag"
                         >
-                            {selectedType === SelectedTypeEnum.BLOOK
-                                ? getBlookAmount(blook!.id, (selected as UserBlook).shiny)
-                                : (selected as UserItem).usesLeft}
-                        </Info>
-                        {selectedType === SelectedTypeEnum.BLOOK && <Info
+                            {getBlookAmount(blook.id, (selected as UserBlook).shiny)}
+                        </Info> : item && <Info
+                            name="Uses Left"
+                            icon="fas fa-hashtag"
+                        >
+                            {(selected as UserItem).usesLeft}
+                        </Info>}
+
+                        {item && selectedType === SelectedTypeEnum.ITEM && <>
+                            <Info
+                                name="Usable"
+                                icon="fas fa-hand-pointer"
+                            >
+                                {item.canUse ? "Yes" : "No"}
+                            </Info>
+
+                            <Info
+                                name="Tradable"
+                                icon="fas fa-scale-balanced"
+                            >
+                                {item.canTrade ? "Yes" : "No"}
+                            </Info>
+
+                            <Info
+                                name="Auctionable"
+                                icon="fas fa-building-columns"
+                            >
+                                {item.canAuction ? "Yes" : "No"}
+                            </Info>
+                        </>}
+
+                        {blook && selectedType === SelectedTypeEnum.BLOOK && <Info
                             name="Chance"
                             icon="fas fa-percentage"
                         >
-                            {blook!.chance / ((selected as UserBlook).shiny ? 100 : 1)}%
+                            {blook.chance / ((selected as UserBlook).shiny ? 100 : 1)}%
                         </Info>}
-                        {selectedType === SelectedTypeEnum.BLOOK && <Info
+
+                        {blook && selectedType === SelectedTypeEnum.BLOOK && <Info
                             name="Sell Price"
                             icon="fas fa-dollar-sign"
                         >
-                            {blook!.price * ((selected as UserBlook).shiny ? 10 : 1)}
+                            {blook.price * ((selected as UserBlook).shiny ? 10 : 1)}
                         </Info>}
-                        {selectedType === SelectedTypeEnum.BLOOK && <Info
+
+                        {blook && selectedType === SelectedTypeEnum.BLOOK && <Info
                             name="Lowest Serial"
                             icon="fas fa-arrow-down-1-9"
                         >
                             {
-                                getLowestSerialBlook(blook!.id, (selected as UserBlook).shiny) !== null
-                                    ? `#${getLowestSerialBlook(blook!.id, (selected as UserBlook).shiny)}`
+                                getLowestSerialBlook(blook.id, (selected as UserBlook).shiny) !== null
+                                    ? `#${getLowestSerialBlook(blook.id, (selected as UserBlook).shiny)}`
                                     : "V2 Blook (N/A)"
                             }
                         </Info>}
-                        <Info
+                        {blook && selectedType === SelectedTypeEnum.BLOOK && <Info
                             name="Highest Serial"
                             icon="fas fa-arrow-up-1-9"
                         >
                             {
-                                getHighestSerialBlook(blook!.id, (selected as UserBlook).shiny) !== null
-                                    ? `#${getHighestSerialBlook(blook!.id, (selected as UserBlook).shiny)}`
+                                getHighestSerialBlook(blook.id, (selected as UserBlook).shiny) !== null
+                                    ? `#${getHighestSerialBlook(blook.id, (selected as UserBlook).shiny)}`
                                     : "V2 Blook (N/A)"
                             }
-                        </Info>
+                        </Info>}
+
                         <Info
                             name="Recent Average Price"
-                            icon="fas fa-dollar-sign"
+                            icon="fas fa-gem"
                         >
                             TODO
                         </Info>
@@ -252,11 +306,12 @@ export default function Inventory() {
                         >
                             TODO
                         </Info>
+
                     </div>
 
                     <div className={styles.actionsContainer}>
                         <div className={styles.actions}>
-                            <Button.GenericButton onClick={() => {
+                            {selectedType === SelectedTypeEnum.BLOOK && <Button.GenericButton onClick={() => {
                                 if (selectedType === SelectedTypeEnum.BLOOK) {
                                     createModal(<SellBlooksModal blook={blook!} shiny={(selected as UserBlook).shiny} />);
                                 }
@@ -264,7 +319,7 @@ export default function Inventory() {
                                 icon="fas fa-gem"
                             >
                                 Sell
-                            </Button.GenericButton>
+                            </Button.GenericButton>}
 
                             <Button.GenericButton onClick={() => {
                                 if (selectedType === SelectedTypeEnum.BLOOK) {

@@ -67,12 +67,20 @@ export const useUserStore = create<UserStore>((set, get) => {
 
             const blooks = user.blooks.filter((b) => b.blookId === blookId && b.shiny === shiny);
             return blooks.length;
+        },
+
+        getItemAmount: (itemId: number, usr?: PrivateUser) => {
+            const user = usr || get().user;
+            if (!user) return 0;
+
+            const items = user.items.filter((i) => i.itemId === itemId);
+            return items.length;
         }
     };
 });
 
 export function useUser() {
-    const { user, setUser, getBlookAmount } = useUserStore();
+    const { user, setUser, getBlookAmount, getItemAmount } = useUserStore();
 
     const { blooks } = useData();
     const { resourceIdToPath } = useResource();
@@ -144,6 +152,7 @@ export function useUser() {
         user,
         setUser,
         getBlookAmount,
+        getItemAmount,
         getUserAvatarPath,
         getUserBannerPath,
         isAvatarBig,

@@ -7,5 +7,6 @@ export const DEFAULT_OPTIONS: ItemContainerOptions = {
     showLocked: true,
     showPacks: true,
     rarities: undefined,
-    searchQuery: undefined
+    searchQuery: undefined,
+    useVhStyles: false
 };
