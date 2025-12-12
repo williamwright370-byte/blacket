@@ -1,4 +1,4 @@
-import { ItemContainerOptions } from "../itemContainer.d";
+import { ItemContainerOptions, SortField, SortDirection } from "../itemContainer.d";
 
 export const DEFAULT_OPTIONS: ItemContainerOptions = {
     showItems: true,
@@ -8,5 +8,7 @@ export const DEFAULT_OPTIONS: ItemContainerOptions = {
     showPacks: true,
     rarities: undefined,
     searchQuery: undefined,
+    sortBy: SortField.PRIORITY,
+    sortDirection: SortDirection.ASCENDING,
     useVhStyles: false
 };

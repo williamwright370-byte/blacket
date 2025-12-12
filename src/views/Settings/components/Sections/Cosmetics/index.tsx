@@ -4,6 +4,7 @@ import { useUser } from "@stores/UserStore/index";
 import { useLoading } from "@stores/LoadingStore/index";
 import { useModal } from "@stores/ModalStore/index";
 import { useSettings } from "@controllers/settings/useSettings/index";
+import { useLocalStorageState } from "@functions/core/hooks/useLocalStorageState";
 import { Button, Modal } from "@components/index";
 import { SettingsContainer } from "..";
 
@@ -15,17 +16,7 @@ export default function Cosmetics() {
     const { createModal } = useModal();
     const { changeSetting } = useSettings();
 
-    const [modalAnimation, setModalAnimation] = useState<boolean>(localStorage.getItem("DISABLE_MODAL_ANIMATION") ? false : true);
-
-    const modalAnimationButton = () => {
-        if (localStorage.getItem("DISABLE_MODAL_ANIMATION")) {
-            localStorage.removeItem("DISABLE_MODAL_ANIMATION");
-            setModalAnimation(true);
-        } else {
-            localStorage.setItem("DISABLE_MODAL_ANIMATION", "true");
-            setModalAnimation(false);
-        }
-    };
+    const [modalAnimation, setModalAnimation] = useLocalStorageState<boolean>("settings:modalAnimation", true);
 
     const onlyRareSoundsButton = () => {
         setLoading("Changing settings");
@@ -41,7 +32,7 @@ export default function Cosmetics() {
     return (
         <SettingsContainer header={{ icon: "fas fa-palette", text: "Cosmetics" }}>
             <Tooltip id="modalAnimation" place="right">This will disable the zoom in out animation on popups.</Tooltip>
-            <Button.ClearButton data-tooltip-id="modalAnimation" onClick={modalAnimationButton}>Modal Animation: {modalAnimation ? "On" : "Off"}</Button.ClearButton>
+            <Button.ClearButton data-tooltip-id="modalAnimation" onClick={() => setModalAnimation(!modalAnimation)}>Modal Animation: {modalAnimation ? "On" : "Off"}</Button.ClearButton>
 
             <Tooltip id="onlyRareSounds" place="right">This will disable sounds for common blooks such as epic and below.</Tooltip>
             <Button.ClearButton data-tooltip-id="onlyRareSounds" onClick={onlyRareSoundsButton}>Only Rare Sounds: {user.settings.onlyRareSounds ? "On" : "Off"}</Button.ClearButton>

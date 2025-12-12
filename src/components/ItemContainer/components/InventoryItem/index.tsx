@@ -6,7 +6,7 @@ import stylesVh from "./inventoryItemVh.module.scss";
 
 import { InventoryItemProps } from "./inventoryItem.d";
 
-export default function InventoryItem({ blook, item, shiny = false, big = false, locked = false, amount = 0, selectable = true, useVhStyles = false, ...props }: InventoryItemProps) {
+export default function InventoryItem({ blook, item, shiny = false, locked = false, amount = 0, selectable = true, useVhStyles = false, ...props }: InventoryItemProps) {
     const { resourceIdToPath } = useResource();
     const { blooks, items, rarities } = useData();
 

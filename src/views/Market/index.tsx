@@ -11,6 +11,7 @@ import { useInsanePull } from "@stores/InsanePullStore/index";
 import { useSettings } from "@controllers/settings/useSettings";
 import { useOpenPack } from "@controllers/market/useOpenPack";
 import { useBoosters } from "@controllers/data/useBoosters";
+import { useLocalStorageState } from "@functions/core/hooks/useLocalStorageState";
 import { SidebarBody, PageHeader, Modal, Button, SearchBox, ParticleCanvas } from "@components/index";
 import type { ParticleCanvasRef } from "@components/ParticleCanvas/particleCanvas.d";
 import { OpenPackModal, Category, Pack, OpenPackContainer, OpenPackBlook, Item, BoosterContainer } from "./components";
@@ -38,7 +39,7 @@ export default function Market() {
     const [openingPack, setOpeningPack] = useState<boolean>(false);
     const [unlockedBlook, setUnlockedBlook] = useState<UserBlook | null>(null);
     const [bigButtonEvent, setBigButtonEvent] = useState<BigButtonClickType>(BigButtonClickType.CLOSE);
-    const [search, setSearch] = useState<SearchOptions>({ query: localStorage.getItem("MARKET_SEARCH_QUERY") ?? "", onlyPurchasable: localStorage.getItem("MARKET_SEARCH_ONLY_PURCHASABLE") ? true : false });
+    const [search, setSearch] = useLocalStorageState<SearchOptions>("MARKET_SEARCH_OPTIONS", { query: "", onlyPurchasable: false });
     const [boosters, setBoosters] = useState<DataBoostersEntity | null>(null);
 
     const particleCanvasRef = useRef<ParticleCanvasRef>(null);
@@ -161,7 +162,7 @@ export default function Market() {
                     if (rarity.animationType === RarityAnimationTypeEnum.MYTHICAL) {
                         let timeoutTime = 11000;
 
-                        if (blook.video) timeoutTime += blook.video.length + 4000;
+                        if (blook.video) timeoutTime = blook.video.length + 4000;
 
                         const spotlightDimmer = spotlightDimmerRef.current;
                         if (spotlightDimmer) setTimeout(() => {
@@ -266,15 +267,12 @@ export default function Market() {
                             { icon: !search.onlyPurchasable ? "fas fa-eye" : "fas fa-eye-slash", tooltip: "Only Purchasable", onClick: () => setSearch({ ...search, onlyPurchasable: !search.onlyPurchasable }) },
                             {
                                 icon: "fas fa-times", tooltip: "Reset Search", onClick: () => {
-                                    localStorage.removeItem("MARKET_SEARCH_QUERY");
                                     setSearch({ ...search, query: "" });
                                 }
                             }
                         ]}
                         value={search.query}
                         onChange={(e) => {
-                            localStorage.setItem("MARKET_SEARCH_QUERY", e.target.value);
-
                             setSearch({
                                 ...search,
                                 query: e.target.value

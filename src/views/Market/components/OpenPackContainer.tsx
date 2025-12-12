@@ -5,7 +5,6 @@ import styles from "../market.module.scss";
 
 import { OpenPackContainerProps } from "../market.d";
 import { RarityAnimationTypeEnum } from "@blacket/types";
-import { gainToDb } from "tone";
 
 export default function OpenPackContainer({ opening, image, video, animationType }: OpenPackContainerProps) {
     const { defineSounds, getSound, playSound, playSounds } = useSound();
@@ -27,18 +26,8 @@ export default function OpenPackContainer({ opening, image, video, animationType
             { id: "pack-tear", url: window.constructCDNUrl("/content/audio/sound/pack/pack-tear.mp3") },
             { id: "chroma-grow", url: window.constructCDNUrl("/content/audio/sound/pack/chroma-grow.mp3") },
             { id: "chroma-explode", url: window.constructCDNUrl("/content/audio/sound/pack/chroma-explode.mp3") },
-            {
-                id: "mythical-grow", url: window.constructCDNUrl("/content/audio/sound/pack/mythical-grow.mp3"),
-                options: {
-                    volume: gainToDb(Number.MAX_SAFE_INTEGER)
-                }
-            },
-            {
-                id: "mythical-explode", url: window.constructCDNUrl("/content/audio/sound/pack/mythical-explode.mp3"),
-                options: {
-                    volume: gainToDb(Number.MAX_SAFE_INTEGER)
-                }
-            }
+            { id: "mythical-grow", url: window.constructCDNUrl("/content/audio/sound/pack/mythical-grow.mp3") },
+            { id: "mythical-explode", url: window.constructCDNUrl("/content/audio/sound/pack/mythical-explode.mp3") }
         ]);
     }, []);
 
@@ -94,6 +83,7 @@ export default function OpenPackContainer({ opening, image, video, animationType
         const animate = (timestamp: number) => {
             if (!running) return;
             if (lastTimestamp === null) lastTimestamp = timestamp;
+            if (top >= window.innerHeight) return img.style.display = "none";
 
             const elapsed = timestamp - lastTimestamp;
             lastTimestamp = timestamp;
@@ -129,9 +119,14 @@ export default function OpenPackContainer({ opening, image, video, animationType
         };
     }, [ended]);
 
-    // pack animation for chromas / mythicals
+    // pack animation for chromas+
     useEffect(() => {
         if (!opening) return;
+
+        if (video) setTimeout(() => {
+            setVideo(video);
+        }, 350);
+
         if (![RarityAnimationTypeEnum.CHROMA, RarityAnimationTypeEnum.MYTHICAL].includes(animationType as RarityAnimationTypeEnum)) return;
         const isMythical = animationType === RarityAnimationTypeEnum.MYTHICAL;
 
@@ -200,10 +195,6 @@ export default function OpenPackContainer({ opening, image, video, animationType
                     img.style.transform =
                         `translate(calc(-50% - ${shakeX}px), calc(-50% - ${shakeY}px)) ` +
                         `scale(${scale + (isMythical ? 2 : 1)}) rotateZ(${shakeZ}deg)`;
-                } else {
-                    img.style.display = "none";
-
-                    setVideo(video);
                 }
             }
         };
@@ -217,10 +208,10 @@ export default function OpenPackContainer({ opening, image, video, animationType
 
     return (
         <>
-            {![
+            {(![
                 RarityAnimationTypeEnum.CHROMA,
                 RarityAnimationTypeEnum.MYTHICAL
-            ].includes(animationType as RarityAnimationTypeEnum) ? <>
+            ].includes(animationType as RarityAnimationTypeEnum) || video) ? <>
                 <div className={styles.openPackContainer} data-opening={opening}>
                     {!ended && <video
                         ref={videoRef}

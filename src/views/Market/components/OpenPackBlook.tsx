@@ -24,7 +24,6 @@ export default function OpenPackBlook({ userBlook, animate = false, isNew }: Ope
 
     if (rarity.animationType === RarityAnimationTypeEnum.CHROMA) delay = 4600;
     if (rarity.animationType === RarityAnimationTypeEnum.MYTHICAL) delay = 8400;
-    if (blook.video) delay += (blook.video.length + 4000);
 
     const [show, setShow] = useState(delay === 0);
 

@@ -5,7 +5,6 @@ export interface InventoryItemProps extends HTMLAttributes<HTMLDivElement> {
     blook?: UserBlook | null;
     item?: UserItem | null;
     shiny?: boolean;
-    big?: boolean;
     locked?: boolean;
     amount?: number;
     selectable?: boolean;

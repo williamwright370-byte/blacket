@@ -47,7 +47,7 @@ export default function BoosterContainer({ boosters }: BoosterContainerProps) {
 
     return (
         <div className={styles.boosterContainer}>
-            {boosters && <img className={styles.boosterIcon} src={window.constructCDNUrl("/content/icons/boost.png")} alt="Boost Icon" />}
+            {/* {boossters && <img className={styles.boosterIcon} src={window.constructCDNUrl("/content/icons/boost.png")} alt="Boost Icon" />} */}
 
             <div className={styles.boosterText}>
                 {!boosters && <Loader noModal style={{ transform: "scale(0.8)", marginLeft: "25px" }} />}
@@ -55,9 +55,9 @@ export default function BoosterContainer({ boosters }: BoosterContainerProps) {
                 {boosters && <>
                     <div>
                         {boosters.personal.chance && <>You have {boosters.personal.chance.multiplier}x better odds to find rares! This booster expires in {timeRemainingStrings.personal.chance}. <br /></>}
-                        {boosters.global.chance ? <>
+                        {boosters.global.chance ? <div style={{ display: "flex", flexDirection: "row", gap: 5 }}>
                             <Username user={boosters.global.chance.user!} /> is boosting your odds by {boosters.global.chance.multiplier}x to find rares! This booster expires in {timeRemainingStrings.global.chance}.
-                        </> : "No ongoing global chance booster."}
+                        </div> : "No ongoing global chance booster."}
                     </div>
 
                     <div>
