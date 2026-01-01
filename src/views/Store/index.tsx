@@ -22,18 +22,15 @@ export default function Store() {
     const { getStores } = useStores();
 
     useEffect(() => {
-        if (stores.length) return;
+        if (stores) return;
 
         setLoading(true);
 
         getStores()
-            .then((res) => {
-                if (res.length) setStores(res);
-                else return;
-            })
+            .then((res) => setStores(res))
             .catch(() => setStores([]))
             .finally(() => setLoading(false));
-    }, [stores]);
+    }, []);
 
     const getGreeting = () => {
         const hour = new Date().getHours();
@@ -64,7 +61,7 @@ export default function Store() {
                         </div>
                     </div>
 
-                    {stores
+                    {stores && stores
                         .sort((a, b) => a.priority - b.priority)
                         .map((store, i) => (
                             <Category key={i} title={store.name} subTitle={store.description}>

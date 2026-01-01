@@ -3,7 +3,7 @@ import styles from "../market.module.scss";
 
 import { BoosterContainerProps, TimeRemainingStrings } from "../market.d";
 import { useEffect, useState } from "react";
-import { formatTimeRemaining } from "@functions/blacket/formatTimeRemaining";
+import { formatTimeRemaining } from "@functions/blacket/formatTime";
 
 export default function BoosterContainer({ boosters }: BoosterContainerProps) {
     const [timeRemainingStrings, setTimeRemainingStrings] = useState<TimeRemainingStrings>({

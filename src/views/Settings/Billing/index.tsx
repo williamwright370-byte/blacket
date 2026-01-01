@@ -1,38 +1,30 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@stores/UserStore/index";
-import { useModal } from "@stores/ModalStore/index";
 import { useData } from "@stores/DataStore/index";
 import { useResource } from "@stores/ResourceStore/index";
-import { Button, Modal } from "@components/index";
+import { useLoading } from "@stores/LoadingStore/index";
+import { Button, PaymentMethodText } from "@components/index";
 import { Transaction } from "./components";
+import { usePortal } from "@controllers/stripe/portal";
 import { useTransactions } from "@controllers/users/useTransactions";
 import { StripeProductEntity, Transaction as TransactionType } from "@blacket/types";
 import styles from "./billing.module.scss";
-
 
 export default function SettingsBilling() {
     const { user } = useUser();
     if (!user) return null;
 
-    const { createModal } = useModal();
     const { products } = useData();
     const { resourceIdToPath } = useResource();
+    const { setLoading } = useLoading();
+    const { createPortal } = usePortal();
     const { getTransactions } = useTransactions();
 
-    const [paymentMethodString, setPaymentMethodString] = useState<string | null>(null);
     const [transactions, setTransactions] = useState<TransactionType[]>([]);
     const [selectedTransaction, setSelectedTransaction] = useState<TransactionType | null>(null);
     const [planProduct, setPlanProduct] = useState<StripeProductEntity | null>(null);
 
     useEffect(() => {
-        const primaryPaymentMethod = user.paymentMethods.find((method) => method.primary);
-
-        if (primaryPaymentMethod) {
-            setPaymentMethodString(`${primaryPaymentMethod.cardBrand} ${primaryPaymentMethod.lastFour}`);
-        } else {
-            setPaymentMethodString(null);
-        }
-
         if (user.subscription) {
             const product = products.find((p) => p.id === user.subscription!.productId);
             if (!product) return;
@@ -43,6 +35,36 @@ export default function SettingsBilling() {
         getTransactions()
             .then((res) => setTransactions(res.data));
     }, [user]);
+
+    const openPortal = async () => {
+        setLoading(true);
+
+        createPortal()
+            .then((res) => {
+                const width = 1000;
+                const height = 700;
+                const left = window.screenX + (window.outerWidth - width) / 2;
+                const top = window.screenY + (window.outerHeight - height) / 2;
+
+                const popup = window.open(
+                    res.url,
+                    "stripe-portal",
+                    `width=${width},height=${height},left=${left},top=${top},popup=yes,scrollbars=yes`
+                );
+
+                if (!popup) {
+                    setLoading(false);
+                    window.open(res.url, "_blank");
+                    return;
+                }
+
+                setTimeout(function check() {
+                    if (popup.closed) setLoading(false);
+                    else setTimeout(check, 500);
+                }, 1000);
+            })
+            .catch(() => setLoading(false));
+    };
 
     return (
         <div className={styles.container}>
@@ -101,9 +123,9 @@ export default function SettingsBilling() {
                 <div className={styles.card}>
                     <div className={styles.cardHeader}>Payment Method</div>
 
-                    <Button.ClearButton className={styles.paymentMethodButton} onClick={() => createModal(paymentMethodString ? <Modal.PaymentMethodsModal /> : <Modal.AddPaymentMethodModal />, { fullscreen: true })}>
-                        {paymentMethodString && <i className="fa-solid fa-credit-card" />}
-                        {paymentMethodString ?? "Add Payment Method"}
+                    {/* todo */}
+                    <Button.ClearButton className={styles.paymentMethodButton} onClick={openPortal}>
+                        <PaymentMethodText paymentMethod={user.paymentMethods.find((method) => method.primary)} />
                     </Button.ClearButton>
                 </div>
             </div>

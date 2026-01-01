@@ -21,6 +21,7 @@ import Markdown from "./Markdown";
 import * as Modal from "./Modals";
 import PageHeader from "./PageHeader";
 import ParticleCanvas from "./ParticleCanvas";
+import PaymentMethodText from "./PaymentMethodText";
 import RarityLabel from "./RarityLabel";
 import SearchBox from "./SearchBox";
 import Sidebar from "./Sidebar";
@@ -59,6 +60,7 @@ export {
     Modal,
     PageHeader,
     ParticleCanvas,
+    PaymentMethodText,
     RarityLabel,
     SearchBox,
     Sidebar,

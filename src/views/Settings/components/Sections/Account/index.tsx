@@ -5,7 +5,7 @@ import { useData } from "@stores/DataStore/index";
 import { useModal } from "@stores/ModalStore/index";
 import { useLoading } from "@stores/LoadingStore/index";
 import { useSettings } from "@controllers/settings/useSettings/index";
-import { Button, Modal } from "@components/index";
+import { Button, Modal, PaymentMethodText } from "@components/index";
 import { SettingsContainer, Divider } from "..";
 import { PlanText, UpgradeButton, ChangeUsernameModal } from "./components/index";
 
@@ -83,12 +83,11 @@ export default function Account() {
 
             <div>
                 <b>Payment Method:</b> {user.paymentMethods.length > 0 ? <>
-                    <i className="fas fa-credit-card" style={{ marginLeft: 5, marginRight: 3 }} /> {user.paymentMethods.find((method) => method.primary)?.cardBrand} {user.paymentMethods.find((method) => method.primary)?.lastFour}
+                    <PaymentMethodText paymentMethod={user.paymentMethods.find((method) => method.primary)} />
                 </> : "None"}
             </div>
             <div style={{ marginTop: 5 }}>
-                {user.paymentMethods.length < 1 && <Button.ClearButton onClick={() => navigate("/settings/billing")}>Add Payment Method</Button.ClearButton>}
-                {user.paymentMethods.length > 0 && <Button.ClearButton onClick={() => navigate("/settings/billing")}>Manage Payment Methods</Button.ClearButton>}
+                <Button.ClearButton onClick={() => navigate("/settings/billing")}>Manage Payment Methods</Button.ClearButton>
             </div>
         </SettingsContainer>
 

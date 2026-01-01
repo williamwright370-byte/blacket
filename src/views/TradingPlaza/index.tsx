@@ -483,8 +483,8 @@ export default function TradingPlaza() {
                 y: 0,
                 z: 0,
                 image: (await brender.urlToImage(window.constructCDNUrl("/content/trading-plaza/spawn.png"))),
-                width: 500,
-                height: 500,
+                width: 750,
+                height: 750,
                 hasCollision: false
             });
 
