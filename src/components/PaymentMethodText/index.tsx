@@ -18,9 +18,6 @@ export default function PaymentMethodText({ paymentMethod }: PaymentMethodTextPr
         case PaymentMethodTypeEnum.PAYPAL:
             icon = "fab fa-paypal";
             break;
-        case PaymentMethodTypeEnum.AMAZON_PAY:
-            icon = "fab fa-amazon-pay";
-            break;
         default:
             icon = "fas fa-question-circle";
             break;

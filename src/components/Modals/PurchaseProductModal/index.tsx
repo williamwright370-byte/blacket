@@ -10,7 +10,7 @@ import { ParticleCanvasRef } from "@components/ParticleCanvas/particleCanvas";
 import styles from "./purchaseProductModal.module.scss";
 
 import { ProductPurchaseModalProps, ProductSuccessModalProps } from "./productPurchaseModal.d";
-import { Forbidden, RarityAnimationTypeEnum, UserPaymentMethod } from "@blacket/types";
+import { Forbidden, PaymentMethodTypeEnum, RarityAnimationTypeEnum, UserPaymentMethod } from "@blacket/types";
 
 const MUST_SELECT_PAYMENT_METHOD = "You must select a payment method.";
 
@@ -138,6 +138,11 @@ function TheModal({ product }: ProductPurchaseModalProps) {
         closeModal();
     };
 
+    const setErrorAndStopLoading = (message: string) => {
+        setError(message);
+        setLoading(false);
+    };
+
     useEffect(() => {
         const PRICE = Math.round((product.price * Number(quantity)) * (product.isPriceUsingCrystals ? 1 : 100));
         const FINAL_PRICE_STRING = !product.discount ? PRICE :
@@ -248,7 +253,7 @@ function TheModal({ product }: ProductPurchaseModalProps) {
 
                             setLoading(true);
 
-                            window.fetch2.post(`/api/stripe/payment-intent/${product.id}`, {
+                            window.fetch2.post(`/api/stripe/purchase-with-crystals/${product.id}`, {
                                 quantity: parseInt(quantity)
                             })
                                 .then(() => {
@@ -258,6 +263,7 @@ function TheModal({ product }: ProductPurchaseModalProps) {
                                     setError(err?.data?.message ?? "Something went wrong.");
                                     setLoading(false);
                                 });
+                            // TODO: crystals purchase endpoint
                         } else {
                             if (!selectedPaymentMethod) return setError(MUST_SELECT_PAYMENT_METHOD);
 
@@ -265,22 +271,18 @@ function TheModal({ product }: ProductPurchaseModalProps) {
 
                             window.fetch2.post(`/api/stripe/payment-intent/${product.id}`, {
                                 quantity: parseInt(quantity),
-                                paymentMethodId: selectedPaymentMethod.id
+                                paymentMethodId: selectedPaymentMethod.paymentMethodId
                             })
                                 .then(async (res) => {
-                                    // const { error: verifyError } = await stripe.confirmCardPayment(res.data.client_secret);
-                                    // TODO: make this work
-                                    switch (res.data.paymentMethodType) {
-                                        case "card": {
+                                    switch (selectedPaymentMethod?.type) {
+                                        case PaymentMethodTypeEnum.CARD: {
                                             const { error: verifyError } = await stripe.confirmCardPayment(res.data.client_secret);
-                                            if (verifyError) return setError(verifyError?.message ?? "Something went wrong.");
+                                            if (verifyError) return setErrorAndStopLoading(verifyError?.message ?? "Something went wrong.");
                                             break;
                                         }
-                                        case "cashapp": {
-                                            const { error: verifyError } = await stripe.confirmCashappPayment(res.data.client_secret);
-                                            if (verifyError) return setError(verifyError?.message ?? "Something went wrong.");
-                                            break;
-                                        }
+                                        default:
+                                            // TODO: implement other payment method types
+                                            return setErrorAndStopLoading(MUST_SELECT_PAYMENT_METHOD);
                                     }
 
                                     showSuccessModal();

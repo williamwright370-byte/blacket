@@ -20,43 +20,9 @@ export function SocketDefiner() {
     useEffect(() => {
         if (!socket) return;
 
-        const onPurchase = (data: any) => {
-            if (!user) return;
-
-            const newUser = {
-                ...user,
-
-                blooks: [
-                    ...user.blooks,
-                    ...(data.blooks || [])
-                ],
-                items: [
-                    ...user.items,
-                    ...(data.items || [])
-                ],
-                fonts: [
-                    ...user.fonts,
-                    ...(data.fonts || [])
-                ],
-                titles: [
-                    ...user.titles,
-                    ...(data.titles || [])
-                ],
-                banners: [
-                    ...user.banners,
-                    ...(data.banners || [])
-                ],
-
-                permissions: data.permissions ?? user.permissions,
-
-                crystals: user.crystals + (data.crystals ?? 0),
-                diamonds: user.diamonds + (data.diamonds ?? 0),
-                tokens: user.tokens + (data.tokens ?? 0),
-
-                subscription: data.subscription ?? user.subscription
-            };
-
-            setUser(newUser);
+        const onUserRefetchMe = () => {
+            window.fetch2.get("/api/users/me")
+                .then((res) => res.ok && res.data && setUser(res.data));
         };
 
         const onPaymentMethod = (data: SocketPaymentMethodEntity) => {
@@ -105,11 +71,11 @@ export function SocketDefiner() {
             setUser(newUser);
         };
 
-        socket.on(SocketMessageType.STRIPE_PURCHASE_SUCCEEDED, onPurchase);
+        socket.on(SocketMessageType.USER_REFETCH_ME, onUserRefetchMe);
         socket.on(SocketMessageType.STRIPE_PAYMENT_METHOD, onPaymentMethod);
 
         return () => {
-            socket.off(SocketMessageType.STRIPE_PURCHASE_SUCCEEDED, onPurchase);
+            socket.off(SocketMessageType.USER_REFETCH_ME, onUserRefetchMe);
             socket.off(SocketMessageType.STRIPE_PAYMENT_METHOD, onPaymentMethod);
         };
     }, [socket, user]);
