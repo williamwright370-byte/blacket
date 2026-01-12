@@ -1,8 +1,8 @@
 .rightSide {
     position: fixed;
-    right: 2.5%;
+    right: 0;
     top: 0;
-    width: 325px;
+    width: calc(3.5% + 330px);
     height: 100vh;
     user-select: none;
     display: flex;
@@ -33,7 +33,7 @@
 .container {
     display: flex;
     margin: 0 0 35px 1%;
-    width: calc(95.5% - 330px);
+    width: calc(95% - 330px);
     padding-bottom: 20px;
     gap: 20px;
     flex-direction: column;

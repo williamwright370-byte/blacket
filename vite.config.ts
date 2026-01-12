@@ -7,7 +7,11 @@ dotenv.config({ path: "../.env" });
 export default defineConfig({
     plugins: [react()],
     define: {
-        "import.meta.env": Object.fromEntries(Object.entries(process.env).map(([key, value]) => [`VITE_${key}`, value]))
+        "import.meta.env": Object.fromEntries(
+            Object.entries(process.env)
+                .filter(([key]) => key.startsWith("VITE_"))
+                .map(([key, value]) => [key, value])
+        )
     },
     resolve: {
         alias: {

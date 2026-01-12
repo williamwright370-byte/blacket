@@ -5,8 +5,8 @@ import { RoleColor, UsernameProps } from "./username.d";
 
 const ROLE_COLORS: RoleColor[] = [
     {
-        key: "isSytem",
-        color: "var(--system-color)",
+        key: "isSystem",
+        color: "var(--secondary-color)",
         text: "SYSTEM"
     },
     {

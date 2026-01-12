@@ -157,7 +157,7 @@ export default function Market() {
                     if (rarity.animationType === RarityAnimationTypeEnum.LEGENDARY) waitTime += 1300;
                     if (rarity.animationType === RarityAnimationTypeEnum.CHROMA) waitTime += 8000;
                     if (rarity.animationType === RarityAnimationTypeEnum.MYTHICAL) waitTime += 20000;
-                    if (unlockedBlook.shiny) waitTime += 2000;
+                    if (unlockedBlook.shiny) waitTime += 1000;
 
                     if (rarity.animationType === RarityAnimationTypeEnum.MYTHICAL) {
                         let timeoutTime = 11000;

@@ -35,8 +35,8 @@ const PAGES: { left: Page[]; bottom: Page[] } = {
         },
         {
             icon: "fas fa-swords",
-            text: "Guilds",
-            link: "/guilds"
+            text: "Clans",
+            link: "/clans"
         },
         {
             icon: "fas fa-store",
@@ -55,14 +55,14 @@ const PAGES: { left: Page[]; bottom: Page[] } = {
             textSizeOverride: 17
         },
         {
-            icon: "fas fa-cog",
-            text: "Settings",
-            link: "/settings"
-        },
-        {
             icon: "fas fa-newspaper",
             text: "News",
             link: "/news"
+        },
+        {
+            icon: "fas fa-cog",
+            text: "Settings",
+            link: "/settings"
         }
     ],
     bottom: [
