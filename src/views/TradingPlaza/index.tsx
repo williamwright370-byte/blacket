@@ -175,7 +175,7 @@ export default function TradingPlaza() {
 
         let active = true;
 
-        const PLAYER_SPEED = (window.innerWidth < 1024 ? 8 : 10);
+        const PLAYER_SPEED = 10;
         const FOOTSTEP_INTERVAL = 350 / (PLAYER_SPEED / 10);
 
         // TODO: delete this
