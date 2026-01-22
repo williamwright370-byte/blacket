@@ -77,9 +77,9 @@ const PAGES: { left: Page[]; bottom: Page[] } = {
             link: "/discord"
         },
         {
-            icon: "fab fa-github",
-            text: "GitHub",
-            link: "/github"
+            icon: "fab fa-git-alt",
+            text: "Codeberg",
+            link: "/codeberg"
         },
         {
             icon: "fab fa-youtube",
