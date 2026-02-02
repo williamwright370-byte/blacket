@@ -158,13 +158,35 @@ export default function TradingPlaza() {
     }, [debugMinute]);
 
     useEffect(() => {
-        if (useSystemTime) {
+        if (!useSystemTime) return;
+
+        let interval: number | undefined;
+        let timeout: number | undefined;
+
+        const syncTime = () => {
             const m = Math.floor(minutesSinceMidnightLocal());
 
             setDebugMinute(m);
-
             overlayRef.current = getTimeColor(m);
-        }
+        };
+
+        const scheduleMinuteSync = () => {
+            const now = new Date();
+            const msToNextMinute = Math.max(0, ((60 - now.getSeconds()) * 1000) - now.getMilliseconds());
+
+            timeout = window.setTimeout(() => {
+                syncTime();
+                interval = window.setInterval(syncTime, 60_000);
+            }, msToNextMinute);
+        };
+
+        syncTime();
+        scheduleMinuteSync();
+
+        return () => {
+            if (timeout !== undefined) window.clearTimeout(timeout);
+            if (interval !== undefined) window.clearInterval(interval);
+        };
     }, [useSystemTime]);
 
     useLayoutEffect(() => {
@@ -569,7 +591,7 @@ export default function TradingPlaza() {
                         checked={useSystemTime}
                         onChange={(e) => setUseSystemTime(e.target.checked)}
                     />
-                    <label htmlFor="useSystemTime">system time (snapshot at open)</label>
+                    <label htmlFor="useSystemTime">system time</label>
                 </div>
 
                 <div style={{ opacity: useSystemTime ? 0.5 : 1, pointerEvents: useSystemTime ? "none" : "auto" }}>
@@ -630,3 +652,6 @@ export default function TradingPlaza() {
         </div >
     );
 }
+
+// vienna was here!!
+// hello lurker
