@@ -11,9 +11,24 @@ export default function Test() {
         const mount = mountRef.current;
         if (!mount) return;
 
-        // Renderer
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        // Get mount size
+        const width = mount.clientWidth || window.innerWidth;
+        const height = mount.clientHeight || window.innerHeight;
+
+        // Check for WebGL support
+        if (!window.WebGLRenderingContext) {
+            console.error("WebGL not supported in this browser.");
+            return;
+        }
+
+        let renderer: THREE.WebGLRenderer;
+        try {
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+        } catch (e) {
+            console.error("Failed to create WebGLRenderer:", e);
+            return;
+        }
+        renderer.setSize(width, height);
         mount.appendChild(renderer.domElement);
 
         // Scene
@@ -23,11 +38,21 @@ export default function Test() {
         // Camera
         const camera = new THREE.PerspectiveCamera(
             100,
-            window.innerWidth / window.innerHeight,
+            width / height,
             0.1,
             1000
         );
         camera.position.set(0, 2, 5);
+
+        // Handle resize
+        const handleResize = () => {
+            const newWidth = mount.clientWidth || window.innerWidth;
+            const newHeight = mount.clientHeight || window.innerHeight;
+            renderer.setSize(newWidth, newHeight);
+            camera.aspect = newWidth / newHeight;
+            camera.updateProjectionMatrix();
+        };
+        window.addEventListener("resize", handleResize);
 
 
         // Load textures
@@ -234,14 +259,18 @@ export default function Test() {
             mount.removeEventListener("wheel", onWheel);
             window.removeEventListener("keydown", onKeyDown);
             window.removeEventListener("keyup", onKeyUp);
+            window.removeEventListener("resize", handleResize);
             renderer.dispose();
-            mount.removeChild(renderer.domElement);
+            if (renderer.domElement.parentNode === mount) {
+                mount.removeChild(renderer.domElement);
+            }
         };
     }, []);
 
     return (
         <div
             ref={mountRef}
+            style={{ width: "100vw", height: "100vh", display: "block" }}
         />
     );
 }

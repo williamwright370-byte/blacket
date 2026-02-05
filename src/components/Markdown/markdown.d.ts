@@ -1,6 +1,8 @@
+import { ReactNode } from "react";
+
 import { PrivateUser } from "@blacket/types";
 
 export interface MarkdownProps {
-    user: PrivateUser;
+    userOverride?: PrivateUser;
     children: string;
 }

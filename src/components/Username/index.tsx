@@ -45,7 +45,7 @@ export default function Username({ user, className, style = {}, ...props }: User
             ${user.color === "rainbow" ? "rainbow" : ""}
         `}
         style={{
-            display: "flex",
+            display: "inline-flex",
             justifyContent: "center",
             alignItems: "center",
             ...style

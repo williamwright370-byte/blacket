@@ -12,14 +12,14 @@ export default function DataLoader({ children }: { children: ReactNode }) {
     const { setResources, resourceIdToPath } = useResource();
     const {
         setBadges, setBanners, setBlooks, setEmojis, setFonts, setItems, setItemShop,
-        setPacks, setRarities, setTitles, setProducts, setSpinnyWheels
+        setPacks, setRarities, setTitles, setProducts, setSubscriptions, setSpinnyWheels
     } = useData();
 
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<any>(null);
     const [completed, setCompleted] = useState<number>(0);
 
-    const max = 12 + (localStorage.getItem("token") ? 2 : 0);
+    const max = 13 + (localStorage.getItem("token") ? 2 : 0);
 
     useEffect(() => {
         if (completed >= max) return setLoading(false);
@@ -46,17 +46,10 @@ export default function DataLoader({ children }: { children: ReactNode }) {
             ["rarities", setRarities],
             ["titles", setTitles],
             ["products", setProducts],
+            ["subscriptions", setSubscriptions],
             ["spinny-wheels", setSpinnyWheels]
         ] as const;
 
-        // endpoints.forEach(([key, setter]) => {
-        //     window.fetch2.get(`/api/data/${key}`)
-        //         .then((res) => {
-        //             setter(res.data);
-        //             setCompleted((c) => c + 1);
-        //         })
-        //         .catch(setError);
-        // });
         Promise.all(endpoints.map(([key, setter]) =>
             window.fetch2.get(`/api/data/${key}`)
                 .then((res) => {

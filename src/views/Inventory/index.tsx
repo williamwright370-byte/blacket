@@ -24,8 +24,8 @@ export default function Inventory() {
     const [selectedType, setSelectedType] = useState<SelectedTypeEnum | null>(null);
     const [selected, setSelected] = useState<UserBlook | UserItem | null>(null);
 
-    const [showLocked, setShowLocked] = useLocalStorageState<boolean>("INVENTORY_SHOW_LOCKED", false);
-    const [searchQuery, setSearchQuery] = useLocalStorageState<string>("INVENTORY_SEARCH_QUERY", "");
+    const [showLocked, setShowLocked] = useLocalStorageState<boolean>("inventory:showLocked", false);
+    const [searchQuery, setSearchQuery] = useLocalStorageState<string>("inventory:searchQuery", "");
 
     const [blook, setBlook] = useState<BlookType | null>(null);
     const [item, setItem] = useState<ItemType | null>(null);
@@ -169,7 +169,7 @@ export default function Inventory() {
                             </Textfit>
 
                             <Textfit className={styles.itemDescriptionM} mode="multi" min={0} max={20}>
-                                <Markdown user={user}>
+                                <Markdown>
                                     {description}
                                 </Markdown>
                             </Textfit>
@@ -229,7 +229,7 @@ export default function Inventory() {
 
                 <div className={styles.bottom}>
                     <Textfit className={styles.description} mode="multi" min={0} max={1000}>
-                        <Markdown user={user}>
+                        <Markdown>
                             {description}
                         </Markdown>
                     </Textfit>

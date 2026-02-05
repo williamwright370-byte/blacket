@@ -18,6 +18,7 @@
     background-position: -100px -100px;
     opacity: var(--background-opacity);
     transform: translate(-50%, -50%) rotate(15deg);
+    filter: brightness(100);
 }
 
 .backgroundGradient {

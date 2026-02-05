@@ -3,7 +3,7 @@ import { useModal } from "@stores/ModalStore/index";
 import { useResource } from "@stores/ResourceStore/index";
 import { useData } from "@stores/DataStore/index";
 import { useUser } from "@stores/UserStore/index";
-import { Modal, Button, Markdown, ErrorContainer } from "@components/index";
+import { Modal, Button, Markdown, ErrorContainer, ImageOrVideo } from "@components/index";
 import styles from "./productModal.module.scss";
 
 import { ProductModalProps } from "../../store.d";
@@ -37,7 +37,7 @@ export default function ProductModal({ product }: ProductModalProps) {
             <Modal.ModalBody>
                 <div className={styles.productInformationContainer}>
                     <div className={styles.productLeft}>
-                        <Markdown user={{
+                        <Markdown userOverride={{
                             ...user,
                             fontId: product.fontId ?? user.fontId
                         }}>
@@ -47,7 +47,7 @@ export default function ProductModal({ product }: ProductModalProps) {
 
                     <div className={styles.productRight}>
                         <div className={styles.productImageContainer}>
-                            <img className={styles.productImage} src={resourceIdToPath(product.imageId)} alt={product.name} />
+                            <ImageOrVideo className={styles.productImage} src={resourceIdToPath(product.imageId)} draggable={false} />
                         </div>
                     </div>
                 </div>

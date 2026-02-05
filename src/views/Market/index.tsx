@@ -39,7 +39,7 @@ export default function Market() {
     const [openingPack, setOpeningPack] = useState<boolean>(false);
     const [unlockedBlook, setUnlockedBlook] = useState<UserBlook | null>(null);
     const [bigButtonEvent, setBigButtonEvent] = useState<BigButtonClickType>(BigButtonClickType.CLOSE);
-    const [search, setSearch] = useLocalStorageState<SearchOptions>("MARKET_SEARCH_OPTIONS", { query: "", onlyPurchasable: false });
+    const [search, setSearch] = useLocalStorageState<SearchOptions>("market:search", { query: "", onlyPurchasable: false });
     const [boosters, setBoosters] = useState<DataBoostersEntity | null>(null);
 
     const particleCanvasRef = useRef<ParticleCanvasRef>(null);

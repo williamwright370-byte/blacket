@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
 import Textfit from "react-textfit";
 import { SidebarBody } from "@components/index";
-import { Category, Product, ProductModal } from "./components/index";
+import { Category, Product, ProductModal, Subscription } from "./components/index";
 import { useUser } from "@stores/UserStore/index";
 import { useLoading } from "@stores/LoadingStore/index";
 import { useModal } from "@stores/ModalStore/index";
@@ -17,7 +17,7 @@ export default function Store() {
 
     const { setLoading } = useLoading();
     const { createModal } = useModal();
-    const { stores, setStores, products } = useData();
+    const { stores, setStores, products, subscriptions } = useData();
 
     const { getStores } = useStores();
 
@@ -60,6 +60,16 @@ export default function Store() {
                             Purchase plans, items, and more to stand out from the crowd to enhance your {import.meta.env.VITE_INFORMATION_NAME} experience!
                         </div>
                     </div>
+
+                    {subscriptions && <Category
+                        title="Plans"
+                        subTitle={`The best way to enchance your ${import.meta.env.VITE_INFORMATION_NAME} experience with exclusive perks and benefits!`}
+                        spaceEvenly={true}
+                    >
+                        {subscriptions
+                            .sort((a, b) => a.priority - b.priority)
+                            .map((subscription, i) => <Subscription key={i} subscription={subscription} />)}
+                    </Category>}
 
                     {stores && stores
                         .sort((a, b) => a.priority - b.priority)

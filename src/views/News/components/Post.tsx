@@ -34,7 +34,7 @@ export default function Post({ post, ...props }: PostProps) {
 
             <div className={styles.postBottomContainer}>
                 <div className={styles.postContent}>
-                    <Markdown user={user}>
+                    <Markdown>
                         {post.content}
                     </Markdown>
                 </div>

@@ -1,10 +1,13 @@
 .rightSide {
     position: fixed;
-    right: 2%;
+    right: 0;
     top: 0;
-    width: 325px;
+    width: calc(3.5% + 330px);
     height: 100vh;
     user-select: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     overflow: hidden;
 
     @media screen and (max-width: 1010px) {
@@ -18,7 +21,7 @@
 
 .leftSide {
     margin: 0 0 0 1%;
-    width: calc(95.5% - 260px);
+    width: calc(95% - 330px);
     padding-bottom: 15px;
 
     @media screen and (max-width: 1010px) {

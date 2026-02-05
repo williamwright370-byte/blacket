@@ -1,11 +1,11 @@
 import Category from "./Category";
-import Price from "./Price";
 import Product from "./Product";
 import ProductModal from "./ProductModal";
+import Subscription from "./Subscription";
 
 export {
     Category,
-    Price,
     Product,
-    ProductModal
+    ProductModal,
+    Subscription
 };

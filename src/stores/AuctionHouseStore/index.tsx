@@ -17,7 +17,7 @@ import { AuctionHouseStore } from "./auctionHouse.d";
 const useAuctionHouseStore = create<AuctionHouseStore>((set, get) => ({
     loading: false,
     auctions: [],
-    search: localStorage.get<AuctionsSearchAuctionDto>("AUCTION_HOUSE_SEARCH", {}) || {},
+    search: localStorage.get<AuctionsSearchAuctionDto>("auctionHouse:search", {}) || {},
     setLoading: (loading) => set({ loading }),
     setAuctions: (auctions) => {
         if (typeof auctions === "function") {
@@ -27,7 +27,7 @@ const useAuctionHouseStore = create<AuctionHouseStore>((set, get) => ({
         }
     },
     setSearch: (search) => {
-        localStorage.set<AuctionsSearchAuctionDto>("AUCTION_HOUSE_SEARCH", search);
+        localStorage.set<AuctionsSearchAuctionDto>("auctionHouse:search", search);
 
         set({ search });
     },
@@ -39,7 +39,7 @@ const useAuctionHouseStore = create<AuctionHouseStore>((set, get) => ({
 
         searchAuction(search)
             .then((res) => {
-                localStorage.set<AuctionsSearchAuctionDto>("AUCTION_HOUSE_SEARCH", search);
+                localStorage.set<AuctionsSearchAuctionDto>("auctionHouse:search", search);
 
                 set({ auctions: res.data, loading: false });
             })

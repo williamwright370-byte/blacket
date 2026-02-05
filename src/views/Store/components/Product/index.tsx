@@ -2,10 +2,10 @@ import { ImageOrVideo } from "@components/index";
 import { useResource } from "@stores/ResourceStore/index";
 import { useData } from "@stores/DataStore/index";
 import Textfit from "react-textfit";
-import styles from "../store.module.scss";
-
-import { ProductProps } from "../store.d";
 import Price from "./Price";
+import styles from "./product.module.scss";
+
+import { ProductProps } from "../../store.d";
 
 export default function Product({ product, ...props }: ProductProps) {
     const { resourceIdToPath } = useResource();
@@ -58,34 +58,20 @@ export default function Product({ product, ...props }: ProductProps) {
             <div className={styles.productImageContainer}>
                 <ImageOrVideo className={styles.productImage} src={resourceIdToPath(product.imageId)} draggable={false} />
                 <div className={styles.productShadow} />
-                {/* <ImageOrVideo className={styles.productShadow} src={resourceIdToPath(product.imageId)} draggable={false} /> */}
             </div>
 
             <div className={styles.productBottom}>
-                {!product.isSubscription
-                    ? <>
-                        {product.discount ? <>
-                            <Price price={product.price} isSubPrice={true} isPriceUsingCrystals={product.isPriceUsingCrystals} strikethrough />
-                            <Price price={product.price} discount={product.discount} isPriceUsingCrystals={product.isPriceUsingCrystals} />
-                        </> : <Price price={product.price} isPriceUsingCrystals={product.isPriceUsingCrystals} />}
+                {product.discount ? <>
+                    <Price price={product.price} isSubPrice={true} isPriceUsingCrystals={product.isPriceUsingCrystals} strikethrough />
+                    <Price price={product.price} discount={product.discount} isPriceUsingCrystals={product.isPriceUsingCrystals} />
+                </> : <Price price={product.price} isPriceUsingCrystals={product.isPriceUsingCrystals} />}
 
-                        {product.subtag && <div className={styles.productSubTag}>
-                            <i className="fa-solid fa-sparkle" />
-                            {product.subtag}
-                        </div>}
-                    </>
-                    : <>
-                        <div className={styles.productPrice}>
-                            ${product.subscriptionPrice} USD monthly
-                        </div>
-                        {(product.price > 0) && <div className={styles.productSubPrice}>
-                            ${product.price} USD lifetime
-                        </div>}
-                    </>
-                }
+                {product.subtag && <div className={styles.productSubTag}>
+                    <i className="fa-solid fa-sparkle" />
+                    {product.subtag}
+                </div>}
             </div>
 
-            {Array.from({ length: 3 }, (_, i) => <div key={i} className={styles.shine} />)}
-        </div >
+        </div>
     );
 }

@@ -1,6 +1,6 @@
-import styles from "../store.module.scss";
+import styles from "./product.module.scss";
 
-import { PriceProps } from "../store.d";
+import { PriceProps } from "../../store.d";
 
 export default function Price({ price, discount, isPriceUsingCrystals, isSubPrice, strikethrough }: PriceProps) {
     const FINAL_PRICE = !discount ? price :

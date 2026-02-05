@@ -40,8 +40,14 @@ export default function Blook({ custom = false, shiny = false, big = false, src,
             <div
                 className={`${className ? `${className} ` : ""}${styles.blook}`}
                 style={{
-                    filter: shiny ? "drop-shadow(0px 0px 4px #fff)" : undefined,
-                    transform: big ? "scale(1.4)" : undefined,
+                    filter: shiny ? `
+                        ${!isLowPerformance()
+                            ? "drop-shadow(0px 0px 4px #fff)"
+                            : "drop-shadow(2px 0px 0 white) drop-shadow(0px 2px 0 white) drop-shadow(-2px -0px 0 white) drop-shadow(-0px -2px 0 white)"
+                        }
+                        hue-rotate(90deg)
+                    ` : undefined,
+                    transform: big ? "scale(1.5)" : undefined,
                     marginLeft: big ? "15px" : undefined,
                     marginRight: big ? "15px" : undefined,
                     ...props.style

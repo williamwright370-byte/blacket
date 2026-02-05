@@ -36,6 +36,9 @@ export const useData = create<DataStore>((set, get) => ({
     products: [],
     setProducts: (products) => set({ products }),
 
+    subscriptions: [],
+    setSubscriptions: (subscriptions) => set({ subscriptions }),
+
     stores: undefined,
     setStores: (stores) => set({ stores }),
 

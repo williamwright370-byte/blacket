@@ -53,7 +53,7 @@
         background: white;
         animation: shimmer 3s linear infinite;
         transform: skewX(-45deg);
-        filter: blur(8px);
+        filter: blur(4px);
 
         @keyframes shimmer {
             0% {
