@@ -25,6 +25,3 @@ config.json
 *.njsproj
 *.sln
 *.sw?
-
-public/**/*
-!public/favicon.ico

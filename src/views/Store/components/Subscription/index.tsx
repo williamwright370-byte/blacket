@@ -47,7 +47,10 @@ export default function Subscription({ subscription }: SubscriptionProps) {
                 <Button.ClearButton
                     className={styles.subscribeButton}
                 >
-                    $9.99 / month
+                    {
+                        // TODO: add yearly price if you switch to a thing, ALSO lifetime price
+                    }
+                    {subscription.monthlyPrice ? `$${subscription.monthlyPrice} / month` : "N/A"}
                 </Button.ClearButton>
             </div>
 
