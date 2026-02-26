@@ -10,7 +10,7 @@ import {
     SpinnyWheel,
     StripeProductEntity,
     StripeStoreEntity,
-    Subscription,
+    StripeSubscriptionEntity,
     Title
 } from "@blacket/types";
 
@@ -37,8 +37,8 @@ export interface DataStore {
     setTitles: (titles: Title[]) => void;
     products: StripeProductEntity[];
     setProducts: (products: StripeProductEntity[]) => void;
-    subscriptions: Subscription[];
-    setSubscriptions: (subscriptions: Subscription[]) => void;
+    subscriptions: StripeSubscriptionEntity[];
+    setSubscriptions: (subscriptions: StripeSubscriptionEntity[]) => void;
     stores?: StripeStoreEntity[];
     setStores: (stores?: StripeStoreEntity[]) => void;
     spinnyWheels: SpinnyWheel[];

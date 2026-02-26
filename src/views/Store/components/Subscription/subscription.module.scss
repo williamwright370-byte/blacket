@@ -106,3 +106,21 @@
     transform: rotate(15deg) scale(1.5);
     filter: brightness(0)
 }
+
+.categoryRight {
+    position: absolute;
+    top: 0;
+    right: -100%;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.lifetimeText {
+    font-size: 12px;
+    font-style: italic;
+}

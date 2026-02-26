@@ -1,8 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
 import Textfit from "react-textfit";
-import { SidebarBody } from "@components/index";
+import { Button, SidebarBody } from "@components/index";
 import { Category, Product, ProductModal, Subscription } from "./components/index";
 import { useUser } from "@stores/UserStore/index";
 import { useLoading } from "@stores/LoadingStore/index";
@@ -10,6 +10,8 @@ import { useModal } from "@stores/ModalStore/index";
 import { useData } from "@stores/DataStore/index";
 import { useStores } from "@controllers/stripe/useProducts/index";
 import styles from "./store.module.scss";
+
+import { BillingIntervalEnum } from "@blacket/types";
 
 export default function Store() {
     const { user } = useUser();
@@ -50,6 +52,8 @@ export default function Store() {
         }
     };
 
+    const [subscriptionInterval, setSubscriptionInterval] = useState<BillingIntervalEnum>(BillingIntervalEnum.MONTHLY);
+
     return (
         <>
             <SidebarBody pushOnMobile={false}>
@@ -65,10 +69,22 @@ export default function Store() {
                         title="Plans"
                         subTitle={`The best way to enchance your ${import.meta.env.VITE_INFORMATION_NAME} experience with exclusive perks and benefits!`}
                         spaceEvenly={true}
+                        rightChildren={<>
+                            <Button.ClearButton
+                                onClick={() => setSubscriptionInterval(BillingIntervalEnum.MONTHLY)}
+                            >
+                                Monthly
+                            </Button.ClearButton>
+                            <Button.ClearButton
+                                onClick={() => setSubscriptionInterval(BillingIntervalEnum.YEARLY)}
+                            >
+                                Yearly
+                            </Button.ClearButton>
+                        </>}
                     >
                         {subscriptions
                             .sort((a, b) => a.priority - b.priority)
-                            .map((subscription, i) => <Subscription key={i} subscription={subscription} />)}
+                            .map((subscription, i) => <Subscription key={i} subscription={subscription} interval={subscriptionInterval} />)}
                     </Category>}
 
                     {stores && stores

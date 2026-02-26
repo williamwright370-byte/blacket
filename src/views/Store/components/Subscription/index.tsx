@@ -1,20 +1,28 @@
 import { useResource } from "@stores/ResourceStore/index";
 import { useUser } from "@stores/UserStore/index";
+import { Button, Markdown, Textfit } from "@components/index";
 import styles from "./subscription.module.scss";
 
+import { BillingIntervalEnum } from "@blacket/types";
 import { SubscriptionProps } from "../../store.d";
-import { Button, Markdown, Textfit } from "@components/index";
 
-export default function Subscription({ subscription }: SubscriptionProps) {
+export default function Subscription({ subscription, interval = BillingIntervalEnum.MONTHLY }: SubscriptionProps) {
     const { resourceIdToPath } = useResource();
     const { user } = useUser();
-
-    if (!user) return null;
 
     const GRADIENT = {
         normal: `linear-gradient(${subscription.color1} 0%, ${subscription.color2} 100%)`,
         reverse: `linear-gradient(${subscription.color2} 0%, ${subscription.color1} 100%)`
     };
+
+    const PRICE_TEXT = {
+        [BillingIntervalEnum.MONTHLY]: subscription.monthlyPrice ? `$${subscription.monthlyPrice} / month` : null,
+        [BillingIntervalEnum.YEARLY]: subscription.yearlyPrice ? `$${subscription.yearlyPrice} / year` : null,
+        [BillingIntervalEnum.LIFETIME]: subscription.lifetimePrice ? `$${subscription.lifetimePrice} one time` :  null
+    };
+    if (!PRICE_TEXT[interval]) return null;
+
+    if (!user) return null;
 
     return (
         <div className={styles.subscription}>
@@ -47,10 +55,10 @@ export default function Subscription({ subscription }: SubscriptionProps) {
                 <Button.ClearButton
                     className={styles.subscribeButton}
                 >
-                    {
-                        // TODO: add yearly price if you switch to a thing, ALSO lifetime price
-                    }
-                    {subscription.monthlyPrice ? `$${subscription.monthlyPrice} / month` : "N/A"}
+                    {PRICE_TEXT[interval]}
+                    <div className={styles.lifetimeText}>
+                        {subscription.lifetimePrice && PRICE_TEXT[BillingIntervalEnum.LIFETIME]}
+                    </div>
                 </Button.ClearButton>
             </div>
 

@@ -7,14 +7,14 @@ import { Button, PaymentMethodText } from "@components/index";
 import { Transaction } from "./components";
 import { usePortal } from "@controllers/stripe/portal";
 import { useTransactions } from "@controllers/users/useTransactions";
-import { StripeProductEntity, Transaction as TransactionType } from "@blacket/types";
+import { StripeProductEntity, StripeSubscriptionEntity, Transaction as TransactionType } from "@blacket/types";
 import styles from "./billing.module.scss";
 
 export default function SettingsBilling() {
     const { user } = useUser();
     if (!user) return null;
 
-    const { products } = useData();
+    const { products, subscriptions } = useData();
     const { resourceIdToPath } = useResource();
     const { setLoading } = useLoading();
     const { createPortal } = usePortal();
@@ -22,16 +22,29 @@ export default function SettingsBilling() {
 
     const [transactions, setTransactions] = useState<TransactionType[]>([]);
     const [selectedTransaction, setSelectedTransaction] = useState<TransactionType | null>(null);
-    const [planProduct, setPlanProduct] = useState<StripeProductEntity | null>(null);
+    const [subscription, setSubscription] = useState<StripeSubscriptionEntity | null>(() => {
+        if (user.subscriptions.length > 0) {
+            for (const sub of user.subscriptions) {
+                const subscription = subscriptions.find((s) => s.id === sub.subscriptionId);
+                if (!subscription) continue;
 
-    useEffect(() => {
-        if (user.subscription) {
-            const product = products.find((p) => p.id === user.subscription!.productId);
-            if (!product) return;
-
-            if (product) setPlanProduct(product);
+                if (sub.expiresAt) return subscription;
+            }
         }
 
+        return null;
+    });
+    const [userSubscription, setUserSubscription] = useState(() => {
+        if (user.subscriptions.length > 0) {
+            for (const sub of user.subscriptions) {
+                if (sub.expiresAt) return sub;
+            }
+        }
+
+        return null;
+    });
+
+    useEffect(() => {
         getTransactions()
             .then((res) => setTransactions(res.data));
     }, [user]);
@@ -69,22 +82,22 @@ export default function SettingsBilling() {
     return (
         <div className={styles.container}>
             <div className={styles.planContainer} style={{
-                background: planProduct ? `
-                    linear-gradient(135deg, ${planProduct.color1} 0%, ${planProduct.color2} 100%)`
+                background: subscription ? `
+                    linear-gradient(135deg, ${subscription.color1} 0%, ${subscription.color2} 100%)`
                     : undefined
             }}>
                 <div className={styles.planDetailsContainer}>
                     {/* <img src={window.constructCDNUrl("/content/logo.png")} className={styles.planLogo} /> */}
-                    <img src={planProduct ? resourceIdToPath(planProduct.imageId) : window.constructCDNUrl("/content/logo.png")} className={styles.planLogo} />
+                    <img src={subscription ? resourceIdToPath(subscription.imageId) : window.constructCDNUrl("/content/logo.png")} className={styles.planLogo} />
 
                     <div className={styles.planDetails}>
                         <div className={styles.planName}>
-                            {planProduct ? planProduct.name : `${import.meta.env.VITE_INFORMATION_NAME} Basic`}
+                            {subscription ? subscription.name : `${import.meta.env.VITE_INFORMATION_NAME} Basic`}
                         </div>
 
                         <div className={styles.planDescription}>
                             {/* You are currently not subscribed to any plan. */}
-                            {planProduct ? planProduct.description : "You are currently not subscribed to any plan."}
+                            {subscription ? subscription.shortDescription : "You are currently not subscribed to any plan."}
                         </div>
                     </div>
                 </div>
@@ -112,10 +125,10 @@ export default function SettingsBilling() {
 
                     {/* <div>Your plan will automatically renew on 06/08/2025 and you will be charged $99.99 USD</div> */}
                     <div>
-                        {user.subscription ? <>
-                            {!user.subscription.expiresAt ? <>
+                        {userSubscription ? <>
+                            {!userSubscription.expiresAt ? <>
                                 You will not be charged again, as your subscription never expires!
-                            </> : <>Your plan will automatically renew on {new Date(user.subscription.expiresAt!).toLocaleDateString()} and you will be charged ${planProduct?.subscriptionPrice} USD.</>}
+                            </> : <>Your plan will automatically renew on {new Date(userSubscription.expiresAt!).toLocaleDateString()} and you will be charged ${1} USD.</>}
                         </> : <>You are currently not subscribed to any plan.</>}
                     </div>
                 </div>
