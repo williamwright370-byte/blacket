@@ -18,6 +18,7 @@ import ItemContainer from "./ItemContainer";
 import Joystick from "./Joystick";
 import Loader from "./Loader";
 import Markdown from "./Markdown";
+import MiniNavbar from "./MiniNavbar";
 import * as Modal from "./Modals";
 import PageHeader from "./PageHeader";
 import ParticleCanvas from "./ParticleCanvas";
@@ -57,6 +58,7 @@ export {
     Joystick,
     Loader,
     Markdown,
+    MiniNavbar,
     Modal,
     PageHeader,
     ParticleCanvas,

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
 import Textfit from "react-textfit";
-import { Button, SidebarBody } from "@components/index";
+import { Button, MiniNavbar, SidebarBody } from "@components/index";
 import { Category, Product, ProductModal, Subscription } from "./components/index";
 import { useUser } from "@stores/UserStore/index";
 import { useLoading } from "@stores/LoadingStore/index";
@@ -69,18 +69,18 @@ export default function Store() {
                         title="Plans"
                         subTitle={`The best way to enchance your ${import.meta.env.VITE_INFORMATION_NAME} experience with exclusive perks and benefits!`}
                         spaceEvenly={true}
-                        rightChildren={<>
-                            <Button.ClearButton
-                                onClick={() => setSubscriptionInterval(BillingIntervalEnum.MONTHLY)}
-                            >
-                                Monthly
-                            </Button.ClearButton>
-                            <Button.ClearButton
-                                onClick={() => setSubscriptionInterval(BillingIntervalEnum.YEARLY)}
-                            >
-                                Yearly
-                            </Button.ClearButton>
-                        </>}
+                        rightChildren={<MiniNavbar items={[
+                            {
+                                text: "Monthly",
+                                active: subscriptionInterval === BillingIntervalEnum.MONTHLY,
+                                onClick: () => setSubscriptionInterval(BillingIntervalEnum.MONTHLY)
+                            },
+                            {
+                                text: "Yearly",
+                                active: subscriptionInterval === BillingIntervalEnum.YEARLY,
+                                onClick: () => setSubscriptionInterval(BillingIntervalEnum.YEARLY)
+                            }
+                        ]} />}
                     >
                         {subscriptions
                             .sort((a, b) => a.priority - b.priority)
