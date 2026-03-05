@@ -22,7 +22,7 @@
 .headerLeft {
     color: var(--accent-color);
     cursor: pointer;
-    font-family: "Titan One", sans-serif;
+    font-family: var(--heading-font);
     font-size: 40px;
     line-height: 49px;
     margin-left: 40px;
@@ -40,7 +40,7 @@
 .headerRight {
     color: var(--accent-color);
     cursor: pointer;
-    font-family: "Nunito", sans-serif;
+    font-family: var(--paragraph-font);
     font-size: 24px;
     font-weight: 700;
     line-height: 49px;

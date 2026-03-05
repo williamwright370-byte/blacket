@@ -73,7 +73,8 @@ export default function RarityLabel({
                 <text
                     ref={textRef}
                     fontSize={fontSize}
-                    fontFamily="'Titan One', sans-serif"
+                    // fontFamily="'Titan One', sans-serif"
+                    fontFamily="var(--heading-font)"
                     style={{ textTransform: "uppercase" }}
                 >
                     {text}
@@ -101,7 +102,7 @@ export default function RarityLabel({
                             textAnchor="middle"
                             dominantBaseline="middle"
                             fontSize={fontSize}
-                            fontFamily="'Titan One', sans-serif"
+                            fontFamily="var(--heading-font)"
                             fill="black"
                             style={{ textTransform: "uppercase" }}
                         >

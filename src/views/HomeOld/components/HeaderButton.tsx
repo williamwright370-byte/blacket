@@ -1,7 +1,7 @@
 import { Button } from "@components/index";
 import styles from "../home.module.scss";
 
-import { HeaderButtonProps } from "../home.d";
+import { HeaderButtonProps } from "../home";
 
 export default function HeaderButton({ icon, to, scrolled, children }: HeaderButtonProps) {
     return (

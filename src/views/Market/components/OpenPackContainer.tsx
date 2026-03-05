@@ -8,17 +8,21 @@ import { RarityAnimationTypeEnum } from "@blacket/types";
 
 export default function OpenPackContainer({ opening, image, video, animationType }: OpenPackContainerProps) {
     const { defineSounds, getSound, playSound, playSounds } = useSound();
-    const { setVideo } = useInsanePull();
+    const { setVideo, isPlaying, setIsPlaying } = useInsanePull();
 
     const [ended, setEnded] = useState<boolean>(false);
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const endImageRef = useRef<HTMLImageElement>(null);
     const animationFrameRef = useRef<number | null>(null);
-
     const chromaImageRef = useRef<HTMLImageElement>(null);
+    const isPlayingRef = useRef(isPlaying);
 
     const noGrow = false;
+
+    useEffect(() => {
+        isPlayingRef.current = isPlaying;
+    }, [isPlaying]);
 
     // define sounds
     useEffect(() => {
@@ -123,11 +127,11 @@ export default function OpenPackContainer({ opening, image, video, animationType
     useEffect(() => {
         if (!opening) return;
 
-        if (video) setTimeout(() => {
-            setVideo(video);
-        }, 350);
-
-        if (![RarityAnimationTypeEnum.CHROMA, RarityAnimationTypeEnum.MYTHICAL].includes(animationType as RarityAnimationTypeEnum)) return;
+        if (![
+            RarityAnimationTypeEnum.CHROMA,
+            RarityAnimationTypeEnum.MYTHICAL,
+            RarityAnimationTypeEnum.IRIDESCENT
+        ].includes(animationType as RarityAnimationTypeEnum)) return;
         const isMythical = animationType === RarityAnimationTypeEnum.MYTHICAL;
 
         const img = chromaImageRef.current;
@@ -184,17 +188,30 @@ export default function OpenPackContainer({ opening, image, video, animationType
             img.style.zIndex = "9999";
             img.style.filter = `brightness(${brightness}) drop-shadow(0 0 ${glow}px rgba(255, 255, 255, 1))`;
 
+            const explode = () => {
+                playSounds(["chroma-explode", isMythical ? "mythical-explode" : ""]);
+
+                img.style.opacity = "0";
+                img.style.transition = "opacity 0.3s ease-out, transform 0.3s ease-out, filter 0.3s ease-out, border-radius 0.3s ease-out, background-color 0.3s ease-out";
+                img.style.transform =
+                    `translate(calc(-50% - ${shakeX}px), calc(-50% - ${shakeY}px)) ` +
+                    `scale(${scale + (isMythical ? 2 : 1)}) rotateZ(${shakeZ}deg)`;
+            };
+
             if (elapsed < growDuration) {
                 animationFrameId = requestAnimationFrame(animate);
             } else {
-                if (!video) {
-                    playSounds(["chroma-explode", isMythical ? "mythical-explode" : ""]);
+                if (!video) explode();
+                else {
+                    setIsPlaying(true);
+                    setVideo(video);
 
-                    img.style.opacity = "0";
-                    img.style.transition = "opacity 0.3s ease-out, transform 0.3s ease-out, filter 0.3s ease-out, border-radius 0.3s ease-out, background-color 0.3s ease-out";
-                    img.style.transform =
-                        `translate(calc(-50% - ${shakeX}px), calc(-50% - ${shakeY}px)) ` +
-                        `scale(${scale + (isMythical ? 2 : 1)}) rotateZ(${shakeZ}deg)`;
+                    const checkVideo = () => {
+                        if (!isPlayingRef.current) setTimeout(explode, 1000);
+                        else setTimeout(checkVideo, 100);
+                    };
+
+                    setTimeout(checkVideo, 100);
                 }
             }
         };
@@ -210,8 +227,9 @@ export default function OpenPackContainer({ opening, image, video, animationType
         <>
             {(![
                 RarityAnimationTypeEnum.CHROMA,
-                RarityAnimationTypeEnum.MYTHICAL
-            ].includes(animationType as RarityAnimationTypeEnum) || video) ? <>
+                RarityAnimationTypeEnum.MYTHICAL,
+                RarityAnimationTypeEnum.IRIDESCENT
+            ].includes(animationType as RarityAnimationTypeEnum)) ? <>
                 <div className={styles.openPackContainer} data-opening={opening}>
                     {!ended && <video
                         ref={videoRef}

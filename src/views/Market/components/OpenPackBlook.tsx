@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Blook, ImageOrVideo, RarityLabel } from "@components/index";
 import { useResource } from "@stores/ResourceStore/index";
 import { useData } from "@stores/DataStore/index";
 import { useSound } from "@stores/SoundStore/index";
+import { useInsanePull } from "@stores/InsanePullStore/index";
 import Textfit from "react-textfit";
 import styles from "../market.module.scss";
 
@@ -10,9 +11,10 @@ import { OpenPackBlookProps } from "../market.d";
 import { RarityAnimationTypeEnum } from "@blacket/types";
 
 export default function OpenPackBlook({ userBlook, animate = false, isNew }: OpenPackBlookProps) {
-    const { resourceIdToPath, getResourceById } = useResource();
+    const { resourceIdToPath } = useResource();
     const { blooks, rarities } = useData();
     const { playSound } = useSound();
+    const { isPlaying } = useInsanePull();
 
     const blook = blooks.find((b) => b.id === userBlook.blookId);
     if (!blook) return null;
@@ -24,17 +26,15 @@ export default function OpenPackBlook({ userBlook, animate = false, isNew }: Ope
 
     if (rarity.animationType === RarityAnimationTypeEnum.CHROMA) delay = 4600;
     if (rarity.animationType === RarityAnimationTypeEnum.MYTHICAL) delay = 8400;
+    if (rarity.animationType === RarityAnimationTypeEnum.IRIDESCENT) delay = 10000;
 
     const [show, setShow] = useState(delay === 0);
 
-    useEffect(() => {
-        if (!animate) return;
-        if (!userBlook.shiny) return;
+    const isPlayingRef = useRef(isPlaying);
 
-        setTimeout(() => {
-            playSound("shiny");
-        }, 500 + (delay ? (delay + 250) : 0));
-    }, [animate, userBlook.shiny]);
+    useEffect(() => {
+        isPlayingRef.current = isPlaying;
+    }, [isPlaying]);
 
     useEffect(() => {
         setShow(false);
@@ -42,7 +42,26 @@ export default function OpenPackBlook({ userBlook, animate = false, isNew }: Ope
         if (delay > 0) {
             setShow(false);
 
-            const timeout = setTimeout(() => setShow(true), delay);
+            const show = () => {
+                setShow(true);
+
+                if (userBlook.shiny) setTimeout(() => {
+                    playSound("shiny");
+                }, 500);
+            };
+
+            const timeout = setTimeout(() => {
+                if (!isPlayingRef.current) show();
+                else {
+                    const checkPlaying = () => {
+
+                        if (!isPlayingRef.current) setTimeout(show, 700);
+                        else setTimeout(checkPlaying, 100);
+                    };
+
+                    checkPlaying();
+                }
+            }, delay);
 
             return () => clearTimeout(timeout);
         } else {

@@ -120,7 +120,7 @@
 
 .placeText {
     position: absolute;
-    font-family: "Titan One", sans-serif;
+    font-family: var(--heading-font);
     display: flex;
     justify-content: center;
     flex-direction: column;
@@ -133,7 +133,7 @@
 
 .placeSuffix {
     position: absolute;
-    font-family: "Titan One", sans-serif;
+    font-family: var(--heading-font);
     overflow: hidden;
     display: flex;
     justify-content: center;
@@ -160,7 +160,7 @@
 
 .score1 {
     top: 12vh;
-    font-family: "Nunito", sans-serif;
+    font-family: var(--paragraph-font);
     font-weight: 700;
 
     &>img {
@@ -228,7 +228,7 @@
     left: 50%;
     transform: translateX(-50%);
     top: 12vh;
-    font-family: "Nunito", sans-serif;
+    font-family: var(--paragraph-font);
     font-weight: 700;
     text-align: center;
 
@@ -290,7 +290,7 @@
     left: 50%;
     transform: translateX(-50%);
     top: 12vh;
-    font-family: "Nunito", sans-serif;
+    font-family: var(--paragraph-font);
     font-weight: 700;
     text-align: center;
 
@@ -464,7 +464,7 @@
 }
 
 .otherStandingPlace {
-    font-family: "Titan One", sans-serif;
+    font-family: var(--heading-font);
     padding-left: 10px;
     min-width: 60px;
     line-height: 70px;
@@ -477,7 +477,7 @@
 }
 
 .otherStandingSuffix {
-    font-family: "Titan One", sans-serif;
+    font-family: var(--heading-font);
     text-align: left;
     width: 22px;
     font-size: 22px;

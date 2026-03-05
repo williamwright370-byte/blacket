@@ -39,7 +39,7 @@
         color: var(--accent-color);
         display: flex;
         flex-direction: row;
-        font-family: "Nunito", sans-serif;
+        font-family: var(--paragraph-font);
         font-size: 17px;
         height: 35px;
         margin: 5px 2px 5px 11px;

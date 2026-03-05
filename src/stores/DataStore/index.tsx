@@ -52,6 +52,6 @@ export const useData = create<DataStore>((set, get) => ({
 
     fontIdToName: (id) => {
         const match = get().fonts.find((f) => f.id === id);
-        return match ? match.name : "Nunito";
+        return match ? match.name : "sans-serif";
     }
 }));

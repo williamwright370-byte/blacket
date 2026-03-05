@@ -47,7 +47,7 @@
     display: flex;
     align-items: center;
     background: var(--primary-color);
-    font-family: "Titan One", sans-serif;
+    font-family: var(--heading-font);
     font-size: 40px;
     width: fit-content;
     z-index: 1;

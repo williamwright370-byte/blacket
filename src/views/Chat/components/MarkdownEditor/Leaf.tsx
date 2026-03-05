@@ -7,9 +7,11 @@ import AreYouSureLinkModal from "../AreYouSureLinkModal";
 import { LeafProps } from "../../chat.d";
 
 const stripMarkdown = (text: string) => {
-    return text
-        .replace(/[*_~`]/g, "");
+    // return text.replace(/[*_~`]/g, "");
+    return text;
 };
+
+const BAD_MENTION = "@Unknown User";
 
 export default function Leaf({ attributes, children, leaf, readOnly }: LeafProps) {
     const { addCachedUser } = useCachedUser();
@@ -29,7 +31,11 @@ export default function Leaf({ attributes, children, leaf, readOnly }: LeafProps
 
     useEffect(() => {
         if (leaf.mention && leaf.content)
-            addCachedUser(leaf.content.text).then((user) => setMentionUsername(user ? `@${user.username}` : `<@${cleanChildren}>`));
+            addCachedUser(leaf.content.text)
+                .then((user) => {
+                    if (user) setMentionUsername(user ? `@${user.username}` : `<@${cleanChildren}>`);
+                    else setMentionUsername(BAD_MENTION);
+                });
     }, []);
 
     if (leaf.link && leaf.content) {
@@ -43,7 +49,9 @@ export default function Leaf({ attributes, children, leaf, readOnly }: LeafProps
     }
 
     if (leaf.mention && leaf.content) {
-        if (readOnly) return <span {...attributes} data-mention className="mention" onClick={() => navigate(`/dashboard?name=${leaf.content!.text}`)}>{mentionUsername}</span>;
+        if (readOnly) return <span {...attributes} data-mention className="mention" onClick={() => {
+            if (mentionUsername !== BAD_MENTION) navigate(`/dashboard?name=${leaf.content!.text}`);
+        }}>{mentionUsername}</span>;
 
         return <span {...attributes} className="mention">{cleanChildren}</span>;
     }

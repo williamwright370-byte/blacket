@@ -1,14 +1,19 @@
-@import url("https://fonts.googleapis.com/css?family=Nunito:400,700|Titan+One|Creepster|Satisfy|Eczar:700");
-@import url("https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DynaPuff:wdth,wght@75..100,700&display=swap');
 
 :root {
     --background-opacity: 0.05;
     --background-color: #2f2f2f;
+
     --primary-color: #1f1f1f;
     --secondary-color: #3f3f3f;
     --tertiary-color: #0f0f0f;
     --accent-color: #ffffff;
+
     --border-radius: 8px;
+
+    --paragraph-font: "Quicksand", sans-serif;
+    --heading-font: "DynaPuff", sans-serif;
 }
 
 * {
@@ -54,7 +59,7 @@
 body {
     background-color: var(--background-color);
     color: var(--accent-color);
-    font-family: "Nunito", sans-serif;
+    font-family: var(--paragraph-font);
     margin: 0;
     padding: 0;
     max-width: 100%;

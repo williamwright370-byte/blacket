@@ -272,7 +272,7 @@ export default function TradingPlaza() {
                 y: entity.y + (entity?.height ?? 345 / 6) + 20,
                 z,
                 style: {
-                    fontFamily: fontIdToName(entity.user.fontId) ?? "Nunito Bold",
+                    fontFamily: fontIdToName(entity.user.fontId) ?? "sans-serif",
                     fontSize: 20,
                     textAlign: "center",
                     color: entity.user.color

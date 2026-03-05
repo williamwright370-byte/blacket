@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import styles from "../home.module.scss";
 
-import { FooterSection } from "../home.d";
+import { FooterSection } from "../home";
 
 const SECTIONS: FooterSection[] = [
     {

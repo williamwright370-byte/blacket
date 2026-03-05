@@ -9,7 +9,7 @@
     }
 
     &>div:nth-child(1) {
-        font-family: "Titan One", sans-serif;
+    font-family: var(--heading-font);
         margin-right: 5px;
         padding-bottom: 3px;
     }

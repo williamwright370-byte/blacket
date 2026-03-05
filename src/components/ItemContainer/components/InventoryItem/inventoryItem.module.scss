@@ -29,9 +29,9 @@
 
     .blookQuantity {
         position: absolute;
-        font-family: "Titan One", sans-serif;
+        font-family: var(--heading-font);
         font-size: 12px;
-        -webkit-text-stroke: #000000 1px;
+        -webkit-text-stroke: #000000 0.67px;
         border-radius: var(--border-radius);
         padding: 0 5px;
         height: 15px;
@@ -122,7 +122,7 @@
 
 .itemQuantity {
     position: absolute;
-    font-family: "Titan One", sans-serif;
+    font-family: var(--heading-font);
     font-size: 12px;
     -webkit-text-stroke: #000000 1px;
     border-radius: var(--border-radius);

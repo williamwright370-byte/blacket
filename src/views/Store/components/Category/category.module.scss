@@ -16,7 +16,7 @@
 
 .title {
     font-size: 2.7rem;
-    font-family: "Titan One";
+    font-family: var(--heading-font);
     width: 100%;
 
     @media screen and (max-width: 768px) {

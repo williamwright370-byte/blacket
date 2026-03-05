@@ -103,7 +103,7 @@
     align-items: center;
     width: 200px;
     height: 25px;
-    font-family: "Titan One", sans-serif;
+    font-family: var(--heading-font);
     text-shadow: 0 2px 0 rgba(0, 0, 0, .2);
     user-select: none;
     margin-top: -5px;

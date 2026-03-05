@@ -1,6 +1,6 @@
 import styles from "../home.module.scss";
 
-import { SectionProps } from "../home.d";
+import { SectionProps } from "../home";
 
 export default function Section({ header, image, reverse, children }: SectionProps) {
     return (

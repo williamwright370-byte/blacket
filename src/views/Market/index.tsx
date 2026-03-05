@@ -21,15 +21,15 @@ import { DataBoostersEntity, MarketOpenPackDto, Pack as PackType, RarityAnimatio
 import { BigButtonClickType, LittleButton, SearchOptions } from "./market.d";
 
 export default function Market() {
+    const { user } = useUser();
+    if (!user) return <Navigate to="/login" />;
+
     const { setLoading } = useLoading();
     const { createModal } = useModal();
-    const { user } = useUser();
     const { resourceIdToPath } = useResource();
     const { playSound, stopSounds, defineSounds, setVolume } = useSound();
     const { packs, rarities, blooks, itemShop } = useData();
     const { isPlaying } = useInsanePull();
-
-    if (!user) return <Navigate to="/login" />;
 
     const { changeSetting } = useSettings();
     const { openPack } = useOpenPack();
@@ -44,6 +44,7 @@ export default function Market() {
 
     const particleCanvasRef = useRef<ParticleCanvasRef>(null);
     const spotlightDimmerRef = useRef<HTMLDivElement>(null);
+    const isPlayingRef = useRef(isPlaying);
 
     const playRaritySound = async (r: RarityAnimationTypeEnum) => {
         if (!user.settings) return;
@@ -159,21 +160,34 @@ export default function Market() {
                     if (rarity.animationType === RarityAnimationTypeEnum.MYTHICAL) waitTime += 20000;
                     if (unlockedBlook.shiny) waitTime += 1000;
 
-                    if (rarity.animationType === RarityAnimationTypeEnum.MYTHICAL) {
-                        let timeoutTime = 11000;
-
-                        if (blook.video) timeoutTime = blook.video.length + 4000;
-
+                    if (
+                        rarity.animationType === RarityAnimationTypeEnum.MYTHICAL
+                        || rarity.animationType === RarityAnimationTypeEnum.IRIDESCENT
+                    ) {
                         const spotlightDimmer = spotlightDimmerRef.current;
-                        if (spotlightDimmer) setTimeout(() => {
-                            playSound("angelic-chords");
 
-                            spotlightDimmer.style.opacity = String(1);
+                        if (spotlightDimmer) {
+                            const showSpotlight = () => {
+                                playSound("angelic-chords");
+
+                                spotlightDimmer.style.opacity = String(1);
+
+                                setTimeout(() => {
+                                    spotlightDimmer.style.opacity = String(0);
+                                }, 10000);
+                            };
+
+                            const checkSpotlight = () => {
+                                if (!isPlayingRef.current) setTimeout(showSpotlight, 3000);
+                                else setTimeout(checkSpotlight, 100);
+                            };
+
 
                             setTimeout(() => {
-                                spotlightDimmer.style.opacity = String(0);
-                            }, 10000);
-                        }, timeoutTime);
+                                if (!isPlayingRef.current) setTimeout(showSpotlight, 2000);
+                                else checkSpotlight();
+                            }, 9000);
+                        }
                     }
 
                     setTimeout(() => {
@@ -200,6 +214,11 @@ export default function Market() {
                 break;
         }
     };
+
+    useEffect(() => {
+        isPlayingRef.current = isPlaying;
+        console.log("isPlaying changed:", isPlaying);
+    }, [isPlaying]);
 
     useEffect(() => {
         getBoosters()

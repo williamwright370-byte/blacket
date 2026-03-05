@@ -60,7 +60,6 @@ export default function InsanePullUI() {
 
         const handleCanPlayThrough = () => {
             setTimeout(() => {
-                setIsPlaying(true);
                 fullscreen();
 
                 vid.style.opacity = String(1);

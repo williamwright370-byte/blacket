@@ -253,7 +253,7 @@
     outline: none;
     border: none;
     font-size: 16px;
-    font-family: Nunito;
+    font-family: var(--paragraph-font);
     color: var(--accent-color);
     user-select: text;
     width: calc(100% - 40px);

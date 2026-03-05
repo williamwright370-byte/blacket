@@ -21,7 +21,7 @@
         line-height: 1em;
         font-weight: 700;
         vertical-align: top;
-        font-family: "Nunito", sans-serif !important;
+        font-family: var(--paragraph-font) !important;
         transform: scale(0.9);
         margin: 0.05em;
     }

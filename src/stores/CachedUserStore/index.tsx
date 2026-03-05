@@ -10,6 +10,7 @@ export const useCachedUser = create<CachedUserStore>((set, get) => {
 
     return {
         cachedUsers: [],
+        badCachedUsers: [],
 
         setCachedUsers: (users) => set((s) => {
             const existingUsers = s.cachedUsers.map((u) => u.id);
@@ -31,7 +32,7 @@ export const useCachedUser = create<CachedUserStore>((set, get) => {
         },
 
         addCachedUser: async (userIdOrName: string) => {
-            const { cachedUsers } = get();
+            const { cachedUsers, badCachedUsers } = get();
             const { user } = useUserStore.getState();
 
             const existingUser =
@@ -39,13 +40,23 @@ export const useCachedUser = create<CachedUserStore>((set, get) => {
                 (typeof userIdOrName === "string"
                     ? cachedUsers.find((user) => user.username.toLowerCase() === userIdOrName.toLowerCase())
                     : undefined);
-
             if (existingUser) return existingUser;
+
+            if (badCachedUsers.includes(userIdOrName.toLowerCase())) return null;
 
             const dummyUser = { ...user, id: userIdOrName, username: userIdOrName, avatar: undefined, customAvatar: undefined, bannerId: undefined } as PublicUser;
             set((state) => ({ cachedUsers: [...state.cachedUsers, dummyUser] }));
 
-            const res = await getUser(userIdOrName);
+            const res = await getUser(userIdOrName).catch(() => null);
+            if (!res) {
+                set((state) => ({
+                    cachedUsers: state.cachedUsers.filter((user) => user.id !== userIdOrName),
+                    badCachedUsers: [...state.badCachedUsers, userIdOrName.toLowerCase()]
+                }));
+
+                return null;
+            }
+
             set((state) => ({ cachedUsers: state.cachedUsers.map((user) => user.id === userIdOrName ? res.data : user) }));
 
             return res.data;

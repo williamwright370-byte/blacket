@@ -1,6 +1,6 @@
 import styles from "../home.module.scss";
 
-import { HowColumnProps } from "../home.d";
+import { HowColumnProps } from "../home";
 
 export default function HowColumn({ image, children }: HowColumnProps) {
     return (
