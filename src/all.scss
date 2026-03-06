@@ -1,5 +1,15 @@
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500..700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=DynaPuff:wdth,wght@75..100,700&display=swap');
+@font-face {
+    font-family: "Quicksand";
+    src: url("/fonts/Quicksand.ttf") format("opentype");
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Puffet";
+    src: url("/fonts/Puffet.ttf") format("opentype");
+    font-style: normal;
+}
 
 :root {
     --background-opacity: 0.05;
@@ -13,7 +23,7 @@
     --border-radius: 8px;
 
     --paragraph-font: "Quicksand", sans-serif;
-    --heading-font: "DynaPuff", sans-serif;
+    --heading-font: "Puffet", sans-serif;
 }
 
 * {

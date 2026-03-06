@@ -45,15 +45,21 @@ export default function Home() {
                                 to="/register"
                                 className={styles.heroButton}
                             >Register</Button.ClearButton>
+                            <Button.ClearButton
+                                to="/register"
+                                className={styles.heroButton}
+                            >Discord</Button.ClearButton>
                         </div>
                     </div>
 
                     <div className={styles.heroRight}>
                         <div className={styles.zoeyPlatform}>
                             <div className={styles.zoeyImage}>
-                                <img src="https://f005.backblazeb2.com/file/blacket-v2-cdn/uploads/9841625/9lhfyo18l/1772698132044-image.png" />
+                                <img
+                                    src="https://f005.backblazeb2.com/file/blacket-v2-cdn/uploads/9841625/g9x26eqbxm5/1772754846821-image.png"
+                                    draggable={false}
+                                />
                             </div>
-
 
                             <div className={styles.platform}>
                                 <div className={styles.platformTop} />
@@ -61,6 +67,10 @@ export default function Home() {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <div className={styles.heroArrowContainer}>
+                    <i className="fa-solid fa-arrow-down" />
                 </div>
             </div>
         </>
