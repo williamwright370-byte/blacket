@@ -8,7 +8,6 @@ export default function Loading({ error, children }: LoadingProps) {
             <Background />
 
             <Loader
-                image={!error ? window.constructCDNUrl("/content/icons/loading.png") : window.errorImage}
                 motionless={error ? true : false}
                 message={children}
             />
