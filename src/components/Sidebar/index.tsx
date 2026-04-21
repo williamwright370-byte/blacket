@@ -19,7 +19,8 @@ const PAGES: { left: Page[]; bottom: Page[] } = {
         {
             icon: "fas fa-trophy",
             text: "Leaderboard",
-            link: "/leaderboard"
+            link: "/leaderboard",
+            textSizeOverride: 18
         },
         {
             icon: "fas fa-comments",

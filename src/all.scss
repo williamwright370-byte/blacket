@@ -21,6 +21,7 @@
     --accent-color: rgba(255, 255, 255);
 
     --border-radius: 8px;
+    --border-radius-vh: 0.8vh;
 
     --paragraph-font: "Quicksand", sans-serif;
     --heading-font: "Puffet", sans-serif;
@@ -45,7 +46,7 @@
 
     &::-webkit-scrollbar-thumb {
         background: var(--secondary-color);
-        border-radius: 7px;
+        border-radius: var(--border-radius);
         border: 2px solid var(--primary-color);
     }
 

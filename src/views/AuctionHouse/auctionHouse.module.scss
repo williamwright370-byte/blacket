@@ -18,8 +18,8 @@
     width: 95%;
     height: 95%;
     background: var(--primary-color);
-    border-radius: .7vh;
-    box-shadow: inset 0 -9px rgba(0, 0, 0, .2), 0 5px rgba(0, 0, 0, .25);
+    border-radius: var(--border-radius-vh);
+    box-shadow: inset 0 -0.7vh rgba(0, 0, 0, 0.2);
 }
 
 .auctionHouseItemsContainer {
@@ -82,7 +82,7 @@
     max-height: 50px;
     padding: 10px;
     background: var(--background-color);
-    border-radius: 7px;
+    border-radius: var(--border-radius);
     box-shadow: inset 0 -7px rgba(0, 0, 0, .2);
     transition: background-color .2s;
     cursor: pointer;

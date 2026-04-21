@@ -52,7 +52,7 @@
     flex-direction: column;
     align-items: center;
     background-color: rgba(0, 0, 0, 0.2);
-    border-radius: .7vh;
+    border-radius: var(--border-radius-vh);
     padding: 2vh 4vh 2.7vh 4vh;
 
     @media (max-width: 600px) {

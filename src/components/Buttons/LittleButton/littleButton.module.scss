@@ -1,7 +1,7 @@
 .littleButton {
     background-color: var(--primary-color);
     color: var(--accent-color);
-    border-radius: 7px;
+    border-radius: var(--border-radius);
     font-size: 15px;
     width: fit-content;
     height: 20px;

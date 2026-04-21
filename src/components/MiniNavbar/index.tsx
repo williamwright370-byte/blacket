@@ -3,7 +3,9 @@ import styles from "./miniNavbar.module.scss";
 
 import { MiniNavbarProps } from "./miniNavbar.d";
 
-export default function MiniNavbar({ items, className, ...props }: MiniNavbarProps) {
+export default function MiniNavbar({ items, mobileIconOnly = true, className, ...props }: MiniNavbarProps) {
+    const mobile = window.innerWidth <= 768;
+
     return (
         <div className={`${styles.navbar} ${className || ""}`} {...props}>
             {items.map((item, index) => item.path ?
@@ -15,7 +17,7 @@ export default function MiniNavbar({ items, className, ...props }: MiniNavbarPro
                     onClick={item.onClick}
                 >
                     {item.icon && <i className={item.icon} />}
-                    {item.text}
+                    {!(mobile && mobileIconOnly) && item.text}
                 </Link>
 
                 :
@@ -27,7 +29,7 @@ export default function MiniNavbar({ items, className, ...props }: MiniNavbarPro
                     onClick={item.onClick}
                 >
                     {item.icon && <i className={item.icon} />}
-                    {item.text}
+                    {!(mobile && mobileIconOnly) && item.text}
                 </div>
             )}
         </div>

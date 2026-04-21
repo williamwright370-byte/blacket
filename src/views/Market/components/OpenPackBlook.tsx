@@ -37,25 +37,23 @@ export default function OpenPackBlook({ userBlook, animate = false, isNew }: Ope
     }, [isPlaying]);
 
     useEffect(() => {
-        setShow(false);
+        if (!animate) return;
+
+        const showFunction = () => {
+            setShow(true);
+
+            if (userBlook.shiny) setTimeout(() => {
+                playSound("shiny");
+            }, 500);
+        };
 
         if (delay > 0) {
-            setShow(false);
-
-            const show = () => {
-                setShow(true);
-
-                if (userBlook.shiny) setTimeout(() => {
-                    playSound("shiny");
-                }, 500);
-            };
-
             const timeout = setTimeout(() => {
-                if (!isPlayingRef.current) show();
+                if (!isPlayingRef.current) showFunction();
                 else {
                     const checkPlaying = () => {
 
-                        if (!isPlayingRef.current) setTimeout(show, 700);
+                        if (!isPlayingRef.current) setTimeout(showFunction, 700);
                         else setTimeout(checkPlaying, 100);
                     };
 
@@ -65,7 +63,7 @@ export default function OpenPackBlook({ userBlook, animate = false, isNew }: Ope
 
             return () => clearTimeout(timeout);
         } else {
-            setShow(true);
+            showFunction();
         }
     }, [delay, animate]);
 

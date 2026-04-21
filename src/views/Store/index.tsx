@@ -80,7 +80,7 @@ export default function Store() {
                                 active: subscriptionInterval === BillingIntervalEnum.YEARLY,
                                 onClick: () => setSubscriptionInterval(BillingIntervalEnum.YEARLY)
                             }
-                        ]} />}
+                        ]} mobileIconOnly={false} />}
                     >
                         {subscriptions
                             .sort((a, b) => a.priority - b.priority)

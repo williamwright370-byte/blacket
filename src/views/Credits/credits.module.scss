@@ -19,7 +19,7 @@
     height: 125px;
     padding: 10px 10px 15px;
     background-color: var(--primary-color);
-    border-radius: 7px;
+    border-radius: var(--border-radius);
     text-decoration: none;
     box-shadow: inset 0 -5px rgba(0, 0, 0, .2);
     cursor: pointer;

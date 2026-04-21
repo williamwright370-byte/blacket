@@ -226,7 +226,7 @@
 .notificationIndicator {
     position: absolute;
     right: 7px;
-    border-radius: 7px;
+    border-radius: var(--border-radius);
     width: 25px;
     height: 25px;
     background-color: #ff4e4e;

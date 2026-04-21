@@ -16,7 +16,7 @@
     cursor: pointer;
     user-select: none;
     background-color: transparent;
-    border-radius: 7px;
+    border-radius: var(--border-radius);
     box-sizing: border-box;
     border: 1px solid var(--accent-color);
     transition: .2s;
@@ -54,7 +54,7 @@
     flex-direction: column;
     justify-content: center;
     background-color: var(--primary-color);
-    border-radius: 7px;
+    border-radius: var(--border-radius);
     outline: .5px solid var(--accent-color);
     width: 400px;
 

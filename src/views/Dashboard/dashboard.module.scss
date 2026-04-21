@@ -13,7 +13,7 @@
 
     &>.section {
         // background-color: rgba(0, 0, 0, 0.125);
-        border-radius: 0.7vh;
+        border-radius: var(--border-radius-vh);
         margin: 1vh;
         filter: drop-shadow(0 0.4vh 0.4vh rgba(0, 0, 0, 0.25));
 
@@ -323,7 +323,7 @@
         padding: 0.75vh;
         box-shadow: inset 0 -0.5vh rgba(0, 0, 0, 0.2);
         background-color: var(--primary-color);
-        border-radius: 0.7vh;
+        border-radius: var(--border-radius-vh);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -332,7 +332,7 @@
             height: 30px;
             padding: 7.5px;
             box-shadow: inset 0 -5px rgba(0, 0, 0, 0.2);
-            border-radius: 7px;
+            border-radius: var(--border-radius);
         }
 
         &>img {
@@ -448,7 +448,7 @@
 .smallButton {
     width: fit-content;
     padding: 0.5vh 1.5vh;
-    border-radius: 0.7vh;
+    border-radius: var(--border-radius-vh);
     background-color: var(--primary-color);
     box-shadow: inset 0 -0.5vh rgba(0, 0, 0, 0.2);
     display: flex;
@@ -465,7 +465,7 @@
         gap: 7px;
         padding: 5px 15px;
         padding-bottom: 10px;
-        border-radius: 7px;
+        border-radius: var(--border-radius);
         box-shadow: inset 0 -5px rgba(0, 0, 0, 0.2);
         font-size: 20px;
     }
@@ -491,12 +491,12 @@
     box-shadow: inset 0 -0.7vh rgba(0, 0, 0, 0.2);
     background-color: var(--primary-color);
     padding: 0.4vh 0.4vh 0.8vh;
-    border-radius: 0.7vh;
+    border-radius: var(--border-radius-vh);
     z-index: 1;
 
     @media screen and (max-width: 475px) {
         padding: 4px 4px 8px;
-        border-radius: 7px;
+        border-radius: var(--border-radius);
         box-shadow: inset 0 -7px rgba(0, 0, 0, 0.2);
         left: 10px;
         height: 35px;
@@ -513,7 +513,7 @@
     box-sizing: border-box;
     background: var(--primary-color);
     padding: 0 1vh 0.5vh;
-    border-radius: 0.7vh;
+    border-radius: var(--border-radius-vh);
     font-family: var(--heading-font);
     color: var(--accent-color);
     font-size: 2.5vh;
@@ -521,7 +521,7 @@
     @media screen and (max-width: 475px) {
         font-size: 25px;
         padding: 0 10px 5px;
-        border-radius: 7px;
+        border-radius: var(--border-radius);
     }
 }
 
@@ -581,7 +581,7 @@
     text-align: center;
     gap: 1vh;
     box-shadow: inset 0 -0.7vh rgba(0, 0, 0, 0.2);
-    border-radius: 0.7vh;
+    border-radius: var(--border-radius-vh);
     background-color: var(--primary-color);
     line-height: 1;
     padding: 0.5vh 2vh 1.5vh 2vh;
@@ -591,7 +591,7 @@
         padding: 5px 20px 15px 20px;
         gap: 10px;
         box-shadow: inset 0 -7px rgba(0, 0, 0, 0.2);
-        border-radius: 7px;
+        border-radius: var(--border-radius);
         height: 65px;
         width: calc(50% - 45px);
     }
@@ -642,11 +642,11 @@
     height: 0.3vh;
     background-color: var(--accent-color);
     opacity: 0.1;
-    border-radius: 0.7vh;
+    border-radius: var(--border-radius-vh);
 
     @media screen and (max-width: 475px) {
         height: 3px;
-        border-radius: 7px;
+        border-radius: var(--border-radius);
     }
 }
 
@@ -696,7 +696,7 @@
     left: 0;
     top: 0;
     margin: -1vh;
-    border-radius: 0.7vh;
+    border-radius: var(--border-radius-vh);
     width: 2.5vh;
     height: 2.5vh;
     background-color: #ff4e4e;
@@ -751,12 +751,12 @@
     font-size: 1.5vh;
     background: rgba(0, 0, 0, 0.2);
     padding: 1vh;
-    border-radius: 0.7vh;
+    border-radius: var(--border-radius-vh);
 
     @media screen and (max-width: 768px) {
         font-size: 20px;
         padding: 10px;
-        border-radius: 7px;
+        border-radius: var(--border-radius);
         background: transparent;
     }
 }
@@ -787,7 +787,7 @@
         font-family: var(--heading-font);
         font-size: 1.2vh;
         -webkit-text-stroke: #000000 .1vh;
-        border-radius: .7vh;
+        border-radius: var(--border-radius-vh);
         padding: 0 .5vh;
         height: 1.4vh;
         line-height: 1.4vh;
@@ -844,7 +844,7 @@
         font-family: var(--heading-font);
         font-size: 1.2vh;
         -webkit-text-stroke: #000000 .1vh;
-        border-radius: .7vh;
+        border-radius: var(--border-radius-vh);
         padding: 0 .5vh;
         height: 1.4vh;
         line-height: 1.4vh;
@@ -967,7 +967,7 @@
         width: 15%;
         height: 70px;
         background-color: rgba(255, 255, 255, 0.1);
-        border-radius: 7px;
+        border-radius: var(--border-radius);
         padding: 2px 7px;
     }
 }
@@ -999,7 +999,7 @@
     @media screen and (max-width: 768px) {
 
         background-color: rgba(255, 255, 255, 0.1);
-        border-radius: 7px;
+        border-radius: var(--border-radius);
         padding: 7px 0;
     }
 }

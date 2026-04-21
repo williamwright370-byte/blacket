@@ -11,4 +11,5 @@ export interface MiniNavbarItem {
 
 export interface MiniNavbarProps extends HTMLAttributes<HTMLDivElement> {
     items: MiniNavbarItem[];
+    mobileIconOnly?: boolean;
 }

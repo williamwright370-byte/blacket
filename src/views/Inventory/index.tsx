@@ -65,11 +65,13 @@ export default function Inventory() {
     }, [selected]);
 
     const getLowestSerialBlook = (blookId: number, shiny: boolean): number | null => {
-        const blook = user.blooks
-            .find((b) => b.blookId === blookId && b.shiny === shiny);
-        if (!blook) return null;
+        const blooks = user.blooks
+            .filter((b) => b.blookId === blookId && b.shiny === shiny)
+            .sort((a, b) => (a.serial ?? 0) - (b.serial ?? 0));
+        if (blooks.length === 0) return null;
 
-        return blook.serial;
+        if (blooks[0].serial === null) return null;
+        else return blooks[0].serial;
     };
 
     const getHighestSerialBlook = (blookId: number, shiny: boolean): number | null => {
@@ -81,8 +83,6 @@ export default function Inventory() {
         if (blooks[0].serial === null) return null;
         else return blooks[0].serial;
     };
-
-
 
     return (
         <>

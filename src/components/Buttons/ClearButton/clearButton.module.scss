@@ -3,7 +3,7 @@
     width: fit-content;
     padding: 5px 10px;
     margin: 5px 0;
-    border-radius: 7px;
+    border-radius: var(--border-radius);
     cursor: pointer;
     border: 2px solid var(--accent-color);
     background: rgba(255, 255, 255, 0.1);

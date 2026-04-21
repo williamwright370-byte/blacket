@@ -10,7 +10,7 @@
     align-items: center;
     padding: 5px;
     background-color: var(--background-color);
-    border-radius: 7px;
+    border-radius: var(--border-radius);
     text-decoration: none;
     transition: filter 0.2s;
 

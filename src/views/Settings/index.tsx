@@ -57,7 +57,7 @@ export default function Settings() {
 
     return (
         <>
-            <MiniNavbar items={NAVBAR} className={styles.navbar} />
+            <MiniNavbar items={NAVBAR} />
 
             <div className={styles.container}>
                 <currentSection.element />

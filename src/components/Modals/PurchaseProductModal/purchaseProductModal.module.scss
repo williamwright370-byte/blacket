@@ -18,7 +18,7 @@
     margin-top: 5px;
     margin-bottom: 25px;
     padding: 5px 10px;
-    border-radius: 7px;
+    border-radius: var(--border-radius);
     background: var(--background-color);
 
     @media screen and (max-width: 768px) {

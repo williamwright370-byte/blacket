@@ -30,7 +30,7 @@
         font-family: var(--heading-font);
         font-size: 1.2vh;
         -webkit-text-stroke: #000000 0.1vh;
-        border-radius: 0.7vh;
+        border-radius: var(--border-radius-vh);
         padding: 0 0.5vh;
         height: 1.5vh;
         line-height: 1.5vh;

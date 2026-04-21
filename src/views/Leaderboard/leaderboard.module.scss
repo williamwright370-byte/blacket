@@ -1,45 +1,45 @@
-.wrapper {
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    position: absolute;
-    // top: 50px;
-    left: 85px;
-    z-index: 0;
-    // transform: scale(.95);
+// .wrapper {
+//     width: 100%;
+//     margin: 0;
+//     padding: 0;
+//     position: absolute;
+//     // top: 50px;
+//     left: 85px;
+//     z-index: 0;
+//     // transform: scale(.95);
 
-    @media only screen and (max-width: 1400px) {
-        top: 0;
-    }
+//     @media only screen and (max-width: 1400px) {
+//         top: 0;
+//     }
 
-    @media only screen and (max-width: 850px) {
-        left: 0;
-        transform: scale(.95);
-    }
-}
+//     @media only screen and (max-width: 850px) {
+//         left: 0;
+//         transform: scale(.95);
+//     }
+// }
 
-.filterButton {
-    position: absolute;
-    top: 15px;
-    left: 240px;
-    font-size: 30px !important;
-    border: 4px solid var(--accent-color);
-    z-index: 2;
+// .filterButton {
+//     position: absolute;
+//     top: 15px;
+//     left: 240px;
+//     font-size: 30px !important;
+//     border: 4px solid var(--accent-color);
+//     z-index: 2;
 
-    @media not screen and (min-width: 1400px) {
-        display: none;
-        visibility: hidden;
-    }
-}
+//     @media not screen and (min-width: 1400px) {
+//         display: none;
+//         visibility: hidden;
+//     }
+// }
 
-.mobileFilterButton {
-    margin-bottom: 10px;
+// .mobileFilterButton {
+//     margin-bottom: 10px;
 
-    @media only screen and (min-width: 1400px) {
-        /* display: none;
-        visibility: hidden; */
-    }
-}
+//     @media only screen and (min-width: 1400px) {
+//         /* display: none;
+//         visibility: hidden; */
+//     }
+// }
 
 .placement1 {
     position: absolute;
@@ -347,24 +347,24 @@
 .otherStandings {
     display: flex;
     flex-direction: column;
-    position: absolute;
     // top: 96vh;
-    top: 0;
-    left: 10vw;
-    width: 80vw;
-    padding: 1vh 0 4vh;
+    // top: 0;
+    width: 95%;
+    // padding: 1vh 0 4vh;
+    padding: 2% 2%;
+    margin: 0 auto;
     justify-content: center;
 
-    @media only screen and (max-width: 1400px) {
-        top: 9vh;
-        left: 12vw;
-    }
+    // @media only screen and (max-width: 1400px) {
+    //     top: 9vh;
+    //     left: 12vw;
+    // }
 
-    @media only screen and (max-width: 850px) {
-        top: 0;
-        left: 0;
-        width: 100vw;
-    }
+    // @media only screen and (max-width: 850px) {
+    //     top: 0;
+    //     left: 0;
+    //     width: 100vw;
+    // }
 }
 
 .otherTopThreeStandings {
@@ -398,7 +398,7 @@
 
 .otherStandingContainer {
     background-color: var(--primary-color);
-    border-radius: 7px;
+    border-radius: var(--border-radius);
     box-shadow: inset 0 -7px rgba(0, 0, 0, .2), 0 0 4px rgba(0, 0, 0, .15);
     color: var(--accent-color);
     height: 70px;
@@ -453,7 +453,7 @@
     margin-top: 10px;
     width: fit-content;
     padding: 5px 10px;
-    border-radius: 7px;
+    border-radius: var(--border-radius);
     border: 2px solid var(--accent-color);
     transition: background-color .2s, color .2s;
 
