@@ -67,7 +67,7 @@ export default function Store() {
 
                     {subscriptions && <Category
                         title="Plans"
-                        subTitle={`The best way to enchance your ${import.meta.env.VITE_INFORMATION_NAME} experience with exclusive perks and benefits!`}
+                        subTitle={`The best way to enhance your ${import.meta.env.VITE_INFORMATION_NAME} experience with exclusive perks and benefits!`}
                         spaceEvenly={true}
                         rightChildren={<MiniNavbar items={[
                             {

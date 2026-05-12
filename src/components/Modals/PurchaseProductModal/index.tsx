@@ -263,7 +263,6 @@ function TheModal({ product }: ProductPurchaseModalProps) {
                                     setError(err?.data?.message ?? "Something went wrong.");
                                     setLoading(false);
                                 });
-                            // TODO: crystals purchase endpoint
                         } else {
                             if (!selectedPaymentMethod) return setError(MUST_SELECT_PAYMENT_METHOD);
 
