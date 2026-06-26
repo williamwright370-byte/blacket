@@ -8,6 +8,8 @@ lerna-debug.log*
 
 node_modules
 package-lock.json
+bun.lock
+bun.lockb
 dist
 dist-ssr
 *.local

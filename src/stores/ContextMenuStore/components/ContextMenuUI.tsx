@@ -2,6 +2,8 @@ import { memo, useLayoutEffect, useRef } from "react";
 import { useContextMenu } from "../index";
 import { Container, Divider, Item } from "./index";
 
+import styles from "../contextMenu.module.scss";
+
 export default memo(function ContextMenuUI() {
     const { contextMenu, closeContextMenu } = useContextMenu();
     const containerRef = useRef<HTMLDivElement>(null);

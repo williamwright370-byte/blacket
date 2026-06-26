@@ -3,13 +3,25 @@ import { useNavigate } from "react-router-dom";
 import { useUser } from "@stores/UserStore/index";
 import { useSocket } from "@stores/SocketStore/index";
 import { useToast } from "@stores/ToastStore/index";
+import { useResource } from "@stores/ResourceStore/index";
 
 import { SocketMessageType, SocketPaymentMethodEntity } from "@blacket/types";
+
+interface BoosterNotification {
+    type: "BOOSTER";
+    username: string;
+    multiplier: number;
+    expiresAt: Date | string;
+    imageId?: number;
+}
+
+// TODO: booster notification should be handled on the types
 
 export function SocketDefiner() {
     const { user, setUser } = useUser();
     const { socket, initializeSocket } = useSocket();
     const { createToast } = useToast();
+    const { resourceIdToPath } = useResource();
 
     const navigate = useNavigate();
 
@@ -71,14 +83,32 @@ export function SocketDefiner() {
             setUser(newUser);
         };
 
+        const onNotification = (data: BoosterNotification) => {
+            if (data.type !== "BOOSTER") return;
+
+            const endTime = new Intl.DateTimeFormat(undefined, {
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true
+            }).format(new Date(data.expiresAt));
+
+            createToast({
+                header: "Booster Activated",
+                body: `${data.username} is currently boosting the chances by ${data.multiplier}x! The booster will end at ${endTime}.`,
+                icon: data.imageId ? resourceIdToPath(data.imageId) : "fas fa-bolt"
+            });
+        };
+
         socket.on(SocketMessageType.USER_REFETCH_ME, onUserRefetchMe);
         socket.on(SocketMessageType.STRIPE_PAYMENT_METHOD, onPaymentMethod);
+        socket.on(SocketMessageType.NOTIFICATION, onNotification);
 
         return () => {
             socket.off(SocketMessageType.USER_REFETCH_ME, onUserRefetchMe);
             socket.off(SocketMessageType.STRIPE_PAYMENT_METHOD, onPaymentMethod);
+            socket.off(SocketMessageType.NOTIFICATION, onNotification);
         };
-    }, [socket, user]);
+    }, [socket, user, resourceIdToPath]);
 
     return null;
 }

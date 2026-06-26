@@ -26,6 +26,7 @@ export interface ContainerProps {
     top: CSSProperties["top"];
     left: CSSProperties["left"];
     children: ReactNode;
+    className?: string;
 }
 
 export interface ItemProps {

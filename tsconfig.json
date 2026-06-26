@@ -1,29 +1,31 @@
 {
     "compilerOptions": {
         "target": "ES2020",
-        "baseUrl": ".",
         "paths": {
             "react-textfit": [
-                "src/components/Textfit"
+                "./src/components/Textfit"
             ],
             "@brender/*": [
-                "src/brender/*"
+                "./src/brender/*"
             ],
             "@components/*": [
-                "src/components/*"
+                "./src/components/*"
             ],
             "@constants/*": [
-                "src/constants/*"
+                "./src/constants/*"
             ],
             "@controllers/*": [
-                "src/controllers/*"
+                "./src/controllers/*"
             ],
             "@functions/*": [
-                "src/functions/*"
+                "./src/functions/*"
             ],
             "@stores/*": [
-                "src/stores/*"
-            ]
+                "./src/stores/*"
+            ],
+            "@views/*": [
+                "./src/views/*"
+            ],
         },
         "plugins": [
             {

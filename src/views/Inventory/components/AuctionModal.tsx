@@ -4,7 +4,7 @@ import { useUser } from "@stores/UserStore/index";
 import { useResource } from "@stores/ResourceStore/index";
 import { useAuctionHouse } from "@stores/AuctionHouseStore/index";
 import { useCreateAuction } from "@controllers/auctions/useCreateAuction/index";
-import { useRecentAveragePrice } from "@controllers/auctions/useRecentAveragePrice/index";
+import { useRecentAveragePrice } from "@controllers/inventory/useRecentAveragePrice/index";
 import { Modal, Button, Form, Input, ErrorContainer, Toggle, WarningContainer, Blook, Textfit } from "@components/index";
 import styles from "../inventory.module.scss";
 
@@ -67,9 +67,14 @@ export default function AuctionModal({ type, blook, item, shiny }: AuctionModalP
     }, [price, duration, buyItNow]);
 
     useEffect(() => {
-        getRecentAveragePrice({ type, itemId: item ? item.id : undefined, blookId: blook ? blook.id : undefined })
+        getRecentAveragePrice({
+            type,
+            itemId: item ? item.id : undefined,
+            blookId: blook ? blook.id : undefined,
+            shiny
+        })
             .then((res) => {
-                setPrice(Math.floor(res.data.averagePrice * 0.99).toString());
+                if (res.data.averagePrice !== null) setPrice(Math.floor(res.data.averagePrice * 0.99).toString());
                 setSuspicious(res.data.suspicious);
             })
             .catch((err) => setError(err?.data?.message || "Something went wrong."))

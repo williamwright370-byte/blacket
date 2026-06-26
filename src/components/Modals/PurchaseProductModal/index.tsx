@@ -14,6 +14,24 @@ import { Forbidden, PaymentMethodTypeEnum, RarityAnimationTypeEnum, UserPaymentM
 
 const MUST_SELECT_PAYMENT_METHOD = "You must select a payment method.";
 
+function withTimeout<T>(promise: Promise<T>, message: string, timeoutMs = 45_000): Promise<T> {
+    return Promise.race([
+        promise,
+        new Promise<T>((_, reject) => {
+            window.setTimeout(() => reject(new Error(message)), timeoutMs);
+        })
+    ]);
+}
+
+function getErrorMessage(err: unknown): string {
+    if (err instanceof Error) return err.message;
+    if (err && typeof err === "object" && "data" in err) {
+        return (err as { data?: { message?: string } }).data?.message ?? "Something went wrong.";
+    }
+
+    return "Something went wrong.";
+}
+
 function SuccessModalOutside() {
     const particleCanvasRef = useRef<ParticleCanvasRef>(null);
 
@@ -248,48 +266,56 @@ function TheModal({ product }: ProductPurchaseModalProps) {
                         if (!accepted) return setError("You must agree to the Terms of Service and Purchase Policy.");
                         if (quantity === "" || parseInt(quantity) < 1) return setError("You must select a quantity of at least 1.");
 
-                        if (product.isPriceUsingCrystals) {
-                            if (user.crystals < finalPrice) return setError(Forbidden.STRIPE_NOT_ENOUGH_CRYSTALS);
+                        try {
+                            if (product.isPriceUsingCrystals) {
+                                if (user.crystals < finalPrice) return setError(Forbidden.STRIPE_NOT_ENOUGH_CRYSTALS);
 
-                            setLoading(true);
+                                setLoading(true);
 
-                            window.fetch2.post(`/api/stripe/purchase-with-crystals/${product.id}`, {
-                                quantity: parseInt(quantity)
-                            })
-                                .then(() => {
-                                    showSuccessModal();
-                                })
-                                .catch((err) => {
-                                    setError(err?.data?.message ?? "Something went wrong.");
-                                    setLoading(false);
-                                });
-                        } else {
+                                await withTimeout(
+                                    window.fetch2.post(`/api/stripe/purchase-with-crystals/${product.id}`, {
+                                        quantity: parseInt(quantity)
+                                    }),
+                                    "The purchase request timed out. Please try again."
+                                );
+
+                                showSuccessModal();
+                                return;
+                            }
+
                             if (!selectedPaymentMethod) return setError(MUST_SELECT_PAYMENT_METHOD);
+                            if (selectedPaymentMethod.type !== PaymentMethodTypeEnum.CARD) {
+                                return setError(MUST_SELECT_PAYMENT_METHOD);
+                            }
 
                             setLoading(true);
 
-                            window.fetch2.post(`/api/stripe/payment-intent/${product.id}`, {
-                                quantity: parseInt(quantity),
-                                paymentMethodId: selectedPaymentMethod.paymentMethodId
-                            })
-                                .then(async (res) => {
-                                    switch (selectedPaymentMethod?.type) {
-                                        case PaymentMethodTypeEnum.CARD: {
-                                            const { error: verifyError } = await stripe.confirmCardPayment(res.data.client_secret);
-                                            if (verifyError) return setErrorAndStopLoading(verifyError?.message ?? "Something went wrong.");
-                                            break;
-                                        }
-                                        default:
-                                            // TODO: implement other payment method types
-                                            return setErrorAndStopLoading(MUST_SELECT_PAYMENT_METHOD);
-                                    }
+                            const res = await withTimeout(
+                                window.fetch2.post(`/api/stripe/payment-intent/${product.id}`, {
+                                    quantity: parseInt(quantity),
+                                    paymentMethodId: selectedPaymentMethod.paymentMethodId
+                                }),
+                                "The purchase request timed out. Please try again."
+                            );
+                            if (res.data.status !== "succeeded") {
+                                const clientSecret = res.data.client_secret;
+                                if (!clientSecret) {
+                                    return setErrorAndStopLoading("Stripe did not return a payment confirmation token.");
+                                }
 
-                                    showSuccessModal();
-                                })
-                                .catch((err) => {
-                                    setError(err?.data?.message ?? "Something went wrong.");
-                                    setLoading(false);
-                                });
+                                const { error: verifyError } = await withTimeout(
+                                    stripe.confirmCardPayment(clientSecret),
+                                    "Stripe confirmation timed out. Please check your card and try again."
+                                );
+                                if (verifyError) {
+                                    return setErrorAndStopLoading(verifyError.message ?? "Something went wrong.");
+                                }
+                            }
+
+                            showSuccessModal();
+                        } catch (err) {
+                            setError(getErrorMessage(err));
+                            setLoading(false);
                         }
                     }}
                 >

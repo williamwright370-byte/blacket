@@ -326,18 +326,33 @@ export default function Market() {
                             ) && "No packs found."}
                         </div>
                     </Category>
+                    
+                    {/* 
+                        pro-tip for future:
+
+                        const weeklyItems = itemShop.filter(item => item.weekly);
+                        const nonWeeklyItems = itemShop.filter(item => !item.weekly);
+                    */}
 
                     <Category header="Weekly Shop">
                         <div className={styles.itemShopContainer}>
-                            {/* TODO: weekly shop */}
-                            {itemShop.length > 0 ? itemShop.map((entry) => entry.weekly && <Item itemShop={entry} key={entry.id} />) : "No items found."}
+                            {/* todo: item shop (Bleh :P <[tboyj]) */}
+                            {(() => {
+                                const nonWeeklyItems = itemShop.filter((entry) => !entry.weekly);
+
+                                return nonWeeklyItems.length > 0 ? nonWeeklyItems.map((entry) => <Item itemShop={entry} key={entry.id}></Item>) : "No items found." // no items found works
+                            })()}
                         </div>
                     </Category>
-
+                    {/* TODO: Test values by adding data to the ItemShop table. */}
                     <Category header="Item Shop">
                         <div className={styles.itemShopContainer}>
                             {/* TODO: item shop */}
-                            {itemShop.length > 0 ? itemShop.map((entry) => !entry.weekly && <Item itemShop={entry} key={entry.id} />) : "No items found."}
+                            {(() => {
+                                const weeklyItems = itemShop.filter((entry) => entry.weekly);
+
+                                return weeklyItems.length > 0 ? weeklyItems.map((entry) => <Item itemShop={entry} key={entry.id}></Item>) : "No items found." // no items found works
+                            })()}
                         </div>
                     </Category>
                 </div>

@@ -6,12 +6,17 @@ import { useResource } from "@stores/ResourceStore/index";
 import { useUser } from "@stores/UserStore/index";
 import { useModal } from "@stores/ModalStore/index";
 import { useLocalStorageState } from "@functions/core/hooks/useLocalStorageState";
+import { useExistCount } from "@controllers/inventory/useExistCount/index";
+import { useRecentAveragePrice } from "@controllers/inventory/useRecentAveragePrice/index";
 import { Blook, Button, ItemContainer, Markdown, PageHeader, RarityLabel, SearchBox } from "@components/index";
-import { Info, SellBlooksModal, AuctionModal } from "./components/index";
+import { Info, SellBlooksModal, AuctionModal, BoosterModal } from "./components/index";
 import styles from "./inventory.module.scss";
 
 import { SelectedTypeEnum, SortDirection, SortField } from "@components/ItemContainer/itemContainer.d";
-import { AuctionTypeEnum, Blook as BlookType, Item as ItemType, Rarity, UserBlook, UserItem } from "@blacket/types";
+import { AuctionTypeEnum, Blook as BlookType, Item as ItemType, ItemTypeEnum, Rarity, UserBlook, UserItem } from "@blacket/types";
+
+// TODO: make sure this caches
+type InventoryFilter = "all" | "blooks" | "items";
 
 export default function Inventory() {
     const { user, getBlookAmount } = useUser();
@@ -20,17 +25,22 @@ export default function Inventory() {
     const { blooks, items, rarities } = useData();
     const { resourceIdToPath } = useResource();
     const { createModal } = useModal();
+    const { getExistCount } = useExistCount();
+    const { getRecentAveragePrice } = useRecentAveragePrice();
 
     const [selectedType, setSelectedType] = useState<SelectedTypeEnum | null>(null);
     const [selected, setSelected] = useState<UserBlook | UserItem | null>(null);
 
     const [showLocked, setShowLocked] = useLocalStorageState<boolean>("inventory:showLocked", false);
     const [searchQuery, setSearchQuery] = useLocalStorageState<string>("inventory:searchQuery", "");
+    const [filter, setFilter] = useLocalStorageState<InventoryFilter>("inventory:filter", "all");
 
     const [blook, setBlook] = useState<BlookType | null>(null);
     const [item, setItem] = useState<ItemType | null>(null);
     const [rarity, setRarity] = useState<Rarity | null>(null);
     const [description, setDescription] = useState<string>("");
+    const [existCount, setExistCount] = useState<number | null | undefined>(undefined);
+    const [recentAveragePrice, setRecentAveragePrice] = useState<number | null | undefined>(undefined);
 
     useEffect(() => {
         switch (selectedType) {
@@ -64,6 +74,79 @@ export default function Inventory() {
         }
     }, [selected]);
 
+    useEffect(() => {
+        if (!selected) {
+            setExistCount(undefined);
+            return;
+        }
+
+        let isCurrentSelection = true;
+
+        const countPromise = selectedType === SelectedTypeEnum.BLOOK && blook
+            ? getExistCount("BLOOK", blook.id, (selected as UserBlook).shiny)
+            : selectedType === SelectedTypeEnum.ITEM && item
+                ? getExistCount("ITEM", item.id)
+                : null;
+
+        if (!countPromise) {
+            setExistCount(undefined);
+            return;
+        }
+
+        setExistCount(undefined);
+        countPromise
+            .then((res) => {
+                if (isCurrentSelection) setExistCount(res.data.count);
+            })
+            .catch(() => {
+                if (isCurrentSelection) setExistCount(null);
+            });
+
+        return () => {
+            isCurrentSelection = false;
+        };
+    }, [blook, item, selected, selectedType]);
+
+    useEffect(() => {
+        if (!selected) {
+            setRecentAveragePrice(undefined);
+            return;
+        }
+
+        let isCurrentSelection = true;
+
+        const pricePromise = selectedType === SelectedTypeEnum.BLOOK && blook
+            ? getRecentAveragePrice({
+                type: AuctionTypeEnum.BLOOK,
+                blookId: blook.id,
+                shiny: (selected as UserBlook).shiny
+            })
+            : selectedType === SelectedTypeEnum.ITEM && item
+                ? getRecentAveragePrice({
+                    type: AuctionTypeEnum.ITEM,
+                    itemId: item.id
+                })
+                : null;
+
+        if (!pricePromise) {
+            setRecentAveragePrice(undefined);
+            return;
+        }
+
+        setRecentAveragePrice(undefined);
+        pricePromise
+            .then((res) => {
+                if (isCurrentSelection) setRecentAveragePrice(res.data.averagePrice);
+            })
+            .catch(() => {
+                if (isCurrentSelection) setRecentAveragePrice(null);
+            });
+
+        return () => {
+            isCurrentSelection = false;
+        };
+    }, [blook, item, selected, selectedType]);
+
     const getLowestSerialBlook = (blookId: number, shiny: boolean): number | null => {
         const blooks = user.blooks
             .filter((b) => b.blookId === blookId && b.shiny === shiny)
@@ -84,6 +167,18 @@ export default function Inventory() {
         else return blooks[0].serial;
     };
 
+    const getExistCountLabel = (): string => {
+        if (existCount === undefined) return "Loading...";
+
+        return existCount?.toLocaleString() ?? "N/A";
+    };
+
+    const getRecentAveragePriceLabel = (): string => {
+        if (recentAveragePrice === undefined) return "Loading...";
+
+        return recentAveragePrice?.toLocaleString() ?? "N/A";
+    };
+
     return (
         <>
             {window.innerWidth > 768 && <PageHeader>Inventory</PageHeader>}
@@ -93,9 +188,18 @@ export default function Inventory() {
             >
                 <SearchBox
                     noPadding={true}
-                    placeholder="Search for an item..."
+                    placeholder={`Search ${filter === "all" ? "inventory" : filter}...`}
                     value={searchQuery}
                     buttons={[
+                        {
+                            icon: filter === "all" ? "fas fa-layer-group" : filter === "blooks" ? "fas fa-user" : "fas fa-box",
+                            tooltip: filter === "all" ? "Showing All" : filter === "blooks" ? "Showing Blooks" : "Showing Items",
+                            onClick: () => {
+                                if (filter === "all") setFilter("blooks");
+                                else if (filter === "blooks") setFilter("items");
+                                else setFilter("all");
+                            }
+                        },
                         {
                             icon: showLocked ? "fas fa-lock-open" : "fas fa-lock",
                             tooltip: "Show Locked Items",
@@ -113,8 +217,8 @@ export default function Inventory() {
                 <ItemContainer
                     user={user}
                     options={{
-                        showItems: true,
-                        showBlooks: true,
+                        showItems: filter !== "blooks",
+                        showBlooks: filter !== "items",
                         showShiny: true,
                         showLocked: showLocked,
                         showPacks: true,
@@ -310,13 +414,13 @@ export default function Inventory() {
                             name="Recent Average Price"
                             icon="fas fa-gem"
                         >
-                            TODO
+                            {getRecentAveragePriceLabel()}
                         </Info>
                         <Info
                             name="Exist Count"
                             icon="fas fa-database"
                         >
-                            TODO
+                            {getExistCountLabel()}
                         </Info>
 
                     </div>
@@ -333,9 +437,20 @@ export default function Inventory() {
                                 Sell
                             </Button.GenericButton>}
 
+                            {selectedType === SelectedTypeEnum.ITEM && item?.canUse && item.type === ItemTypeEnum.BOOSTER && <Button.GenericButton onClick={() => {
+                                createModal(<BoosterModal booster={item} userItem={selected as UserItem} />);
+                            }}
+                                icon="fas fa-bolt"
+                            >
+                                Use
+                            </Button.GenericButton>}
+
                             <Button.GenericButton onClick={() => {
                                 if (blook && selectedType === SelectedTypeEnum.BLOOK) {
                                     createModal(<AuctionModal type={AuctionTypeEnum.BLOOK} blook={blook} shiny={(selected as UserBlook).shiny} />);
+                                }
+                                else if (item && selectedType === SelectedTypeEnum.ITEM) {
+                                    createModal(<AuctionModal type={AuctionTypeEnum.ITEM} item={item} />);
                                 }
                             }}
                                 icon="fas fa-building-columns"

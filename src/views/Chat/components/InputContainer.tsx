@@ -1,4 +1,4 @@
-import { memo, useState } from "react";
+import { KeyboardEventHandler, memo, useState } from "react";
 import { Editor, Node, Transforms } from "slate";
 import { useUser } from "@stores/UserStore/index";
 import { useChat } from "@stores/ChatStore/index";
@@ -117,10 +117,15 @@ export default memo(function InputContainer({ placeholder }: InputContainerProps
                 }}
             ></div>
 
-            {replyingTo && <div className={styles.aboveInputContainer}>
-                <div>Replying to <b>{cachedUsers.find((user) => user.id === replyingTo.authorId)?.username}</b></div>
+            <div style={{
+                transform: replyingTo ? "rotateX(0)" : "rotateX(90deg)",
+                transformOrigin: "bottom",
+                transition: "transform 0.2s ease",
+                overflow: "hidden"
+            }} className={styles.aboveInputContainer}>
+                <div>Replying to <b>{replyingTo ? cachedUsers.find((user) => user.id === replyingTo.authorId)?.username : ""}</b></div>
                 <i className="fas fa-times" onClick={() => setReplyingTo(null)} />
-            </div>}
+            </div>
 
             <div className={styles.leftInputButtonsContainer}>
                 {user.hasPermission(PermissionTypeEnum.UPLOAD_FILES_SMALL) && <FileUploadContainer />}
@@ -143,12 +148,11 @@ export default memo(function InputContainer({ placeholder }: InputContainerProps
             ) : (
                 <MarkdownEditor
                     className={styles.messageInput}
-                    placeholder={placeholder}
                     color={user.settings.chatColor || undefined}
                     spellCheck
                     autoFocus
                     onInput={() => startTyping()}
-                    onKeyDown={handleKeyDown}
+                    onKeyDown={handleKeyDown as unknown as KeyboardEventHandler}
                     getEditor={(editor) => setEditor(editor)}
                 />
             )}

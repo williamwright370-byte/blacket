@@ -559,6 +559,28 @@
     }
 }
 
+.editorWrapper {
+    position: relative;
+
+    [role="textbox"] {
+        position: relative;
+    }
+
+    [data-slate-placeholder="true"] {
+        position: absolute !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        left: 10px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        opacity: 0.5 !important;
+        pointer-events: none;
+        user-select: none;
+        font-style: normal;
+        line-height: inherit; 
+    }
+}
+
 .editingMessageInput {
     padding: 2px;
     border-radius: var(--border-radius);

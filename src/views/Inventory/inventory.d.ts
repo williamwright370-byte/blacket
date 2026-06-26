@@ -1,6 +1,6 @@
 import { HTMLAttributes } from "react";
 
-import { Item } from "@blacket/types";
+import { Item, UserItem } from "@blacket/types";
 
 export interface InfoProps extends HTMLAttributes<HTMLDivElement> {
     name?: string;
@@ -21,4 +21,5 @@ export interface AuctionModalProps {
 
 export interface BoosterModalProps {
     booster: Item;
+    userItem: UserItem;
 }

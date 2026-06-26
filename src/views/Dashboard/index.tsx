@@ -9,7 +9,6 @@ import { useAuctionHouse } from "@stores/AuctionHouseStore/index";
 import { useFriend } from "@stores/FriendStore/index";
 import { useUsers } from "@controllers/users/useUsers/index";
 import { useSearchAuction } from "@controllers/auctions/useSearchAuction/index";
-import { useClaimDailyTokens } from "@controllers/quests/useClaimDailyTokens/index";
 import { useAddFriend } from "@controllers/friends/useAddFriend/index";
 import { useRemoveFriend } from "@controllers/friends/useRemoveFriend/index";
 import { useRevokeRequest } from "@controllers/friends/useRevokeRequest/index";
@@ -17,7 +16,7 @@ import { useDeclineRequest } from "@controllers/friends/useDeclineRequest/index"
 import { useBlockFriend } from "@controllers/friends/useBlockFriend/index";
 import { useUnblockFriend } from "@controllers/friends/useUnblockFriend/index";
 import { Auction, Blook, ImageOrVideo, Username, ItemContainer, Title, Button, Modal } from "@components/index";
-import { LevelContainer, LookupUserModal, SectionHeader, StatContainer, CosmeticsModal, DailyRewardsModal, StatButton, FriendsContainer, MobileFriendsModal } from "./components";
+import { LevelContainer, LookupUserModal, SectionHeader, StatContainer, CosmeticsModal, StatButton, FriendsContainer, MobileFriendsModal } from "./components";
 import styles from "./dashboard.module.scss";
 
 import { AuctionsAuctionEntity, PrivateUser, PublicUser } from "@blacket/types";
@@ -36,7 +35,6 @@ export default function Dashboard() {
 
     const { getUser } = useUsers();
     const { searchAuction } = useSearchAuction();
-    const { claimDailyTokens } = useClaimDailyTokens();
 
     const { addFriend } = useAddFriend();
     const { removeFriend } = useRemoveFriend();
@@ -187,13 +185,8 @@ export default function Dashboard() {
                             Friends
                         </StatButton>}
 
-                        {viewingUser.id === user.id && new Date(user.lastClaimed) < claimableDate && <StatButton icon="fas fa-star" onClick={() => {
-                            setLoading(true);
-
-                            claimDailyTokens()
-                                .then((res) => createModal(<DailyRewardsModal amount={res.data.tokens} />))
-                                .finally(() => setLoading(false));
-                        }}>Daily Rewards</StatButton>}
+                        {/* TODO: add daily rewards functoinality */}
+                        {viewingUser.id === user.id && new Date(user.lastClaimed) < claimableDate && <StatButton icon="fas fa-star">Daily Rewards</StatButton>}
 
                         <StatButton icon="fas fa-cart-shopping" onClick={() => {
                             navigate("/store");
