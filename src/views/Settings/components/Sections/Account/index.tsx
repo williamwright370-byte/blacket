@@ -4,6 +4,7 @@ import { useUser } from "@stores/UserStore/index";
 import { useData } from "@stores/DataStore/index";
 import { useModal } from "@stores/ModalStore/index";
 import { useLoading } from "@stores/LoadingStore/index";
+import { useDiscordLink } from "@controllers/discord/useDiscordLink/index";
 import { useSettings } from "@controllers/settings/useSettings/index";
 import { Button, Modal, PaymentMethodText } from "@components/index";
 import { SettingsContainer, Divider } from "..";
@@ -18,6 +19,7 @@ export default function Account() {
     const { setLoading } = useLoading();
 
     const { changeSetting } = useSettings();
+    const { getOAuthUrl } = useDiscordLink();
 
     const navigate = useNavigate();
 
@@ -49,6 +51,19 @@ export default function Account() {
             .finally(() => setLoading(false));
     };
 
+    const linkDiscordButton = () => {
+        setLoading("Opening Discord");
+
+        getOAuthUrl()
+            .then((url) => {
+                window.location.href = url;
+            })
+            .catch(() => {
+                createModal(<Modal.ErrorModal>Failed to open Discord.</Modal.ErrorModal>);
+            })
+            .finally(() => setLoading(false));
+    };
+
     return <>
         <SettingsContainer header={{ icon: "fas fa-user", text: "Account" }}>
             <div><b>ID:</b> {user.id}</div>
@@ -68,12 +83,13 @@ export default function Account() {
             <Button.ClearButton onClick={friendRequestsButton}>Friend Requests: {
                 user.settings.friendRequests === SettingFriendRequestEnum.ON ? "On" : user.settings.friendRequests === SettingFriendRequestEnum.OFF ? "Off" : user.settings.friendRequests === SettingFriendRequestEnum.MUTUAL ? "Mutual" : "Unknown"
             }</Button.ClearButton>
+            {!user.discord && <Button.ClearButton onClick={linkDiscordButton}>Link Discord</Button.ClearButton>}
 
             <Button.ClearButton onClick={() => createModal(<Modal.LogoutModal />)}>
                 Logout
             </Button.ClearButton>
         </SettingsContainer>
-
+ 
         <SettingsContainer header={{ icon: "fas fa-wallet", text: "Billing" }}>
             <PlanText>Basic</PlanText>
 

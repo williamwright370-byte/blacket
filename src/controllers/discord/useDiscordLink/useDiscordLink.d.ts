@@ -1,5 +1,5 @@
-import { DiscordLinkDto } from "@blacket/types";
+import { DiscordDiscordUser } from "@blacket/types";
 
 export interface DiscordLinkResponse {
-    data: DiscordLinkDto;
+    data: DiscordDiscordUser;
 }

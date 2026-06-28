@@ -15,13 +15,14 @@ export default function SettingsLinkDiscord() {
     const { linkDiscord } = useDiscordLink();
 
     const code = searchParams.get("code");
+    const state = searchParams.get("state");
 
     useEffect(() => {
-        if (!code) return navigate("/settings");
+        if (!code || !state) return navigate("/settings");
 
         setLoading("Linking Discord");
 
-        linkDiscord({ code })
+        linkDiscord({ code, state })
             .then(() => {
                 navigate("/settings");
             })
@@ -31,7 +32,8 @@ export default function SettingsLinkDiscord() {
             .finally(() => {
                 setLoading(false);
             });
-    }, [code]);
+    }, [code, state]);
 
     return null;
 }
+
