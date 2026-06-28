@@ -56,10 +56,11 @@ export default function Account() {
 
         getOAuthUrl()
             .then((url) => {
-                window.location.href = url;
+                // TODO: make this a popup
+                open(url, "_blank");
             })
-            .catch(() => {
-                createModal(<Modal.ErrorModal>Failed to open Discord.</Modal.ErrorModal>);
+            .catch((err: Fetch2Response) => {
+                createModal(<Modal.ErrorModal>{err.data.message}</Modal.ErrorModal>);
             })
             .finally(() => setLoading(false));
     };
@@ -89,7 +90,7 @@ export default function Account() {
                 Logout
             </Button.ClearButton>
         </SettingsContainer>
- 
+
         <SettingsContainer header={{ icon: "fas fa-wallet", text: "Billing" }}>
             <PlanText>Basic</PlanText>
 
