@@ -49,7 +49,7 @@ export default function SettingsBilling() {
 
         return null;
     });
-    const isCancellationScheduled = userSubscription?.status === UserSubscriptionStatusEnum.CANCELED;
+    const isCancellationScheduled = userSubscription?.status === UserSubscriptionStatusEnum.PENDING_CANCELLATION;
 
     useEffect(() => {
         getTransactions()

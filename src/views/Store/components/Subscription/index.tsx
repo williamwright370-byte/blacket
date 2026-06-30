@@ -64,7 +64,7 @@ export default function Subscription({ subscription, interval = BillingIntervalE
 
     const activeSubscription = user.subscriptions
         .filter((userSubscription) =>
-            [UserSubscriptionStatusEnum.ACTIVE, UserSubscriptionStatusEnum.CANCELED].includes(userSubscription.status as UserSubscriptionStatusEnum) &&
+            [UserSubscriptionStatusEnum.ACTIVE, UserSubscriptionStatusEnum.PENDING_CANCELLATION].includes(userSubscription.status as UserSubscriptionStatusEnum) &&
             (!userSubscription.expiresAt || new Date(userSubscription.expiresAt) > new Date())
         )
         .sort((a, b) => {
