@@ -79,11 +79,6 @@ export default function Store() {
                                 text: "Yearly",
                                 active: subscriptionInterval === BillingIntervalEnum.YEARLY,
                                 onClick: () => setSubscriptionInterval(BillingIntervalEnum.YEARLY)
-                            },
-                            {
-                                text: "Lifetime",
-                                active: subscriptionInterval === BillingIntervalEnum.LIFETIME,
-                                onClick: () => setSubscriptionInterval(BillingIntervalEnum.LIFETIME)
                             }
                         ]} mobileIconOnly={false} />}
                     >

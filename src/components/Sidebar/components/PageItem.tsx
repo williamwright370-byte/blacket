@@ -4,7 +4,7 @@ import styles from "../sidebar.module.scss";
 
 import { PageItemProps } from "../sidebar.d";
 
-export default memo(function PageItem({ page, location, mentions, onClick }: PageItemProps) {
+export default memo(function PageItem({ page, location, mentions, onClick, ...props }: PageItemProps) {
     const handleClick = useCallback(() => {
         onClick?.();
     }, [onClick]);
@@ -15,6 +15,7 @@ export default memo(function PageItem({ page, location, mentions, onClick }: Pag
             className={styles.page}
             to={page.link}
             onClick={handleClick}
+            {...props}
         >
             <i className={`${styles.pageIcon} ${page.icon}`} />
             <div

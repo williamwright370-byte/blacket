@@ -171,6 +171,7 @@ export default memo(function Sidebar() {
                                 page={page}
                                 location={location}
                                 mentions={0}
+                                data-staff={true}
                             />
                         ))}
                     </div>
@@ -232,6 +233,7 @@ export default memo(function Sidebar() {
                         location={location}
                         mentions={0}
                         onClick={handleMobileSidebarClose}
+                        data-staff={true}
                     />
                 ))}
 

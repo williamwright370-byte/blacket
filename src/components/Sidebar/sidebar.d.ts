@@ -1,3 +1,4 @@
+import { HTMLAttributes } from "react";
 import { PermissionTypeEnum } from "@blacket/types";
 
 export interface Page {
@@ -9,7 +10,7 @@ export interface Page {
     isChat?: boolean;
 }
 
-export interface PageItemProps {
+export interface PageItemProps extends HTMLAttributes<HTMLAnchorElement> {
     page: Page;
     location: string;
     mentions: number;
