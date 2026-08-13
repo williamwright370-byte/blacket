@@ -22,7 +22,8 @@ export interface ProductProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 export interface ProductModalProps {
-    product: StripeProductEntity;
+    product?: StripeProductEntity;
+    subscription?: StripeSubscriptionEntity;
 }
 
 export interface SubscriptionProps {

@@ -50,6 +50,8 @@ const MOVEMENT_KEYS = {
     RUN: ["shift"]
 };
 
+const STEP_SOUNDS = ["step-1", "step-2", "step-3", "step-4", "step-5"];
+
 const clampBit = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const minutesSinceMidnightLocal = (): number => {
     const now = new Date();
@@ -106,8 +108,6 @@ export default function TradingPlaza() {
     );
     const overlayRef = useRef<RGBA>(getTimeColor(debugMinute));
 
-    const stepSounds = ["step-1", "step-2", "step-3", "step-4", "step-5"];
-
     const setAmbienceVolumes = (minute: number) => {
         let mix = 0;
 
@@ -153,7 +153,7 @@ export default function TradingPlaza() {
                     volume: gainToDb(0)
                 }
             },
-            ...stepSounds.map((sound) => ({
+            ...STEP_SOUNDS.map((sound) => ({
                 id: sound,
                 url: window.constructCDNUrl(
                     `/content/audio/sound/trading-plaza/${sound}.mp3`

@@ -1,6 +1,8 @@
 import { useResource } from "@stores/ResourceStore/index";
 import { useUser } from "@stores/UserStore/index";
+import { useModal } from "@stores/ModalStore/index";
 import { Button, Markdown, Textfit } from "@components/index";
+import { ProductModal } from "../index";
 import styles from "./subscription.module.scss";
 
 import { BillingIntervalEnum } from "@blacket/types";
@@ -9,6 +11,9 @@ import { SubscriptionProps } from "../../store.d";
 export default function Subscription({ subscription, interval = BillingIntervalEnum.MONTHLY }: SubscriptionProps) {
     const { resourceIdToPath } = useResource();
     const { user } = useUser();
+    const { createModal } = useModal();
+
+    if (!user) return null;
 
     const GRADIENT = {
         normal: `linear-gradient(${subscription.color1} 0%, ${subscription.color2} 100%)`,
@@ -18,11 +23,9 @@ export default function Subscription({ subscription, interval = BillingIntervalE
     const PRICE_TEXT = {
         [BillingIntervalEnum.MONTHLY]: subscription.monthlyPrice ? `$${subscription.monthlyPrice} / month` : null,
         [BillingIntervalEnum.YEARLY]: subscription.yearlyPrice ? `$${subscription.yearlyPrice} / year` : null,
-        [BillingIntervalEnum.LIFETIME]: subscription.lifetimePrice ? `$${subscription.lifetimePrice} one time` :  null
+        [BillingIntervalEnum.LIFETIME]: subscription.lifetimePrice ? `$${subscription.lifetimePrice} one time` : null
     };
     if (!PRICE_TEXT[interval]) return null;
-
-    if (!user) return null;
 
     return (
         <div className={styles.subscription}>
@@ -54,6 +57,7 @@ export default function Subscription({ subscription, interval = BillingIntervalE
             <div className={styles.bottom}>
                 <Button.ClearButton
                     className={styles.subscribeButton}
+                    onClick={() => createModal(<ProductModal subscription={subscription} />)}
                 >
                     {PRICE_TEXT[interval]}
                     <div className={styles.lifetimeText}>

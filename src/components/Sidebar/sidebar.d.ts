@@ -14,6 +14,7 @@ export interface PageItemProps extends HTMLAttributes<HTMLAnchorElement> {
     page: Page;
     location: string;
     mentions: number;
+    collapsed?: boolean;
     onClick?: () => void;
 }
 

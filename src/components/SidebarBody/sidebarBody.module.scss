@@ -1,8 +1,8 @@
 .sidebarBody {
     position: absolute;
     top: 0;
-    left: calc(50% + 110px);
-    width: calc(100% - 220px);
+    left: calc(50% + calc(var(--sidebar-width) / 2));
+    width: calc(100% - var(--sidebar-width));
     height: 100%;
     transform: translateX(-50%);
 

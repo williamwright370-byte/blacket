@@ -10,27 +10,11 @@ import { ParticleCanvasRef } from "@components/ParticleCanvas/particleCanvas";
 import styles from "./purchaseProductModal.module.scss";
 
 import { ProductPurchaseModalProps, ProductSuccessModalProps } from "./productPurchaseModal.d";
-import { Forbidden, PaymentMethodTypeEnum, RarityAnimationTypeEnum, UserPaymentMethod } from "@blacket/types";
+import { BillingIntervalEnum, Forbidden, InternalServerError, PaymentMethodTypeEnum, RarityAnimationTypeEnum, StripeProductEntity, StripeSubscriptionEntity, UserPaymentMethod } from "@blacket/types";
+import { calculateFinalPrice } from "@blacket/common";
 
+// TODO: move to types?
 const MUST_SELECT_PAYMENT_METHOD = "You must select a payment method.";
-
-function withTimeout<T>(promise: Promise<T>, message: string, timeoutMs = 45_000): Promise<T> {
-    return Promise.race([
-        promise,
-        new Promise<T>((_, reject) => {
-            window.setTimeout(() => reject(new Error(message)), timeoutMs);
-        })
-    ]);
-}
-
-function getErrorMessage(err: unknown): string {
-    if (err instanceof Error) return err.message;
-    if (err && typeof err === "object" && "data" in err) {
-        return (err as { data?: { message?: string } }).data?.message ?? "Something went wrong.";
-    }
-
-    return "Something went wrong.";
-}
 
 function SuccessModalOutside() {
     const particleCanvasRef = useRef<ParticleCanvasRef>(null);
@@ -84,14 +68,25 @@ function SuccessModalOutside() {
     );
 }
 
-function SuccessModal({ product, quantity }: ProductSuccessModalProps) {
+function SuccessModal({ product, subscription, quantity, priceOverride }: ProductSuccessModalProps) {
+    if (!product && !subscription) return null;
+
     const { closeModal } = useModal();
     const { resourceIdToPath } = useResource();
 
-    const PRICE = Math.round((product.price * Number(quantity)) * (product.isPriceUsingCrystals ? 1 : 100));
-    const FINAL_PRICE_STRING = !product.discount ? PRICE :
-        (PRICE * (1 - (product.discount / 100))).toFixed(product.isPriceUsingCrystals ? 0 : 2);
-    const FINAL_PRICE = product.isPriceUsingCrystals ? Math.floor(Number(FINAL_PRICE_STRING)) : Number(FINAL_PRICE_STRING) / 100;
+    const item: StripeProductEntity | StripeSubscriptionEntity | undefined = product ?? subscription;
+
+    let FINAL_PRICE: number | undefined;
+
+    if (product) {
+        const i = item as StripeProductEntity;
+
+        FINAL_PRICE = calculateFinalPrice(i.price, Number(quantity), i.discount, i.isPriceUsingCrystals);
+    } else if (subscription) {
+        FINAL_PRICE = priceOverride ?? 0;
+    } else return null;
+
+    if (FINAL_PRICE === undefined) return null;
 
     return (
         <>
@@ -108,13 +103,13 @@ function SuccessModal({ product, quantity }: ProductSuccessModalProps) {
                     <div className={styles.purchaseDetails}>
                         <span style={{ display: "flex", alignItems: "center" }}>
                             <ImageOrVideo
-                                src={resourceIdToPath(product.imageId)}
+                                src={resourceIdToPath(item?.imageId)}
                                 className={styles.productImage}
                             />
-                            {!product.isQuantityCapped ? `x${quantity} ` : ""}{product.name}
+                            {product && !(item as StripeProductEntity).isQuantityCapped ? `x${quantity} ` : ""}{item?.name}
                         </span>
                         <span className={styles.productPrice}>
-                            {product.isPriceUsingCrystals ? <>
+                            {product && (item as StripeProductEntity).isPriceUsingCrystals ? <>
                                 <img className={styles.productCurrencyImage} src={window.constructCDNUrl("/content/crystal.png")} />
                                 {FINAL_PRICE} Crystals
                             </> : <>
@@ -134,7 +129,10 @@ function SuccessModal({ product, quantity }: ProductSuccessModalProps) {
     );
 }
 
-function TheModal({ product }: ProductPurchaseModalProps) {
+function TheModal({ product, subscription, subscriptionInterval }: ProductPurchaseModalProps) {
+    if (!product && !subscription) return null;
+    if (subscription && !subscriptionInterval) return null;
+
     const stripe = useStripe();
     const { user } = useUser();
     const { createModal, closeModal } = useModal();
@@ -147,12 +145,18 @@ function TheModal({ product }: ProductPurchaseModalProps) {
     );
     const [quantity, setQuantity] = useState<string>("1");
     const [accepted, setAccepted] = useState<boolean>(false);
-    const [finalPrice, setFinalPrice] = useState<number>(product.price);
+    const [finalPrice, setFinalPrice] = useState<number>(product?.price ?? 0);
 
     const navigate = useNavigate();
 
-    const showSuccessModal = () => {
-        createModal(<SuccessModal product={product} quantity={parseInt(quantity)} />, { outsideModal: <SuccessModalOutside /> });
+    const showSuccessModal = (priceOverride?: number) => {
+        createModal(<SuccessModal
+            product={product}
+            subscription={subscription}
+            quantity={parseInt(quantity)}
+            priceOverride={priceOverride}
+        />, { outsideModal: <SuccessModalOutside /> }
+        );
         closeModal();
     };
 
@@ -162,35 +166,52 @@ function TheModal({ product }: ProductPurchaseModalProps) {
     };
 
     useEffect(() => {
-        const PRICE = Math.round((product.price * Number(quantity)) * (product.isPriceUsingCrystals ? 1 : 100));
-        const FINAL_PRICE_STRING = !product.discount ? PRICE :
-            (PRICE * (1 - (product.discount / 100))).toFixed(product.isPriceUsingCrystals ? 0 : 2);
-        const FINAL_PRICE = product.isPriceUsingCrystals ? Math.floor(Number(FINAL_PRICE_STRING)) : Number(FINAL_PRICE_STRING) / 100;
+        if (product) {
+            const i = product as StripeProductEntity;
 
-        setFinalPrice(FINAL_PRICE);
-    }, [product, quantity]);
+            setFinalPrice(calculateFinalPrice(i.price, Number(quantity), i.discount, i.isPriceUsingCrystals));
+        } else if (subscription) {
+            const i = subscription as StripeSubscriptionEntity;
+
+            switch (subscriptionInterval) {
+                case BillingIntervalEnum.MONTHLY:
+                    setFinalPrice(i.monthlyPrice ?? 0);
+                    break;
+                case BillingIntervalEnum.YEARLY:
+                    setFinalPrice(i.yearlyPrice ?? 0);
+                    break;
+                case BillingIntervalEnum.LIFETIME:
+                    setFinalPrice(i.lifetimePrice ?? 0);
+                    break;
+            }
+        }
+    }, [product, quantity, subscription, subscriptionInterval]);
+
+    const item: StripeProductEntity | StripeSubscriptionEntity | undefined = product ?? subscription;
 
     if (!stripe || !user) return null;
 
     return (
         <>
-            <Modal.ModalHeader>Review Purchase</Modal.ModalHeader>
+            <Modal.ModalHeader>Review {product ? "Purchase" : "Subscription"}</Modal.ModalHeader>
 
             <Modal.ModalBody>
-                Please review your purchase below.
+                Please review your {product ? "purchase" : "subscription"} below.
             </Modal.ModalBody>
 
             <Modal.ModalBody style={{ minWidth: 500 }}>
                 <div className={styles.purchaseDetailsContainer}>
-                    <span className={styles.purchaseDetailsText}>Product Details</span>
+                    <span className={styles.purchaseDetailsText}>{
+                        product ? "Product" : "Subscription"
+                    } Details</span>
 
                     <div className={styles.purchaseDetails}>
                         <span style={{ display: "flex", alignItems: "center" }}>
                             <ImageOrVideo
-                                src={resourceIdToPath(product.imageId)}
+                                src={resourceIdToPath(item?.imageId)}
                                 className={styles.productImage}
                             />
-                            {!product.isQuantityCapped && <>x<Input
+                            {product && !product?.isQuantityCapped && <>x<Input
                                 value={quantity.toString()}
                                 onChange={(e) => {
                                     const value = e.target.value;
@@ -207,20 +228,24 @@ function TheModal({ product }: ProductPurchaseModalProps) {
                                 containerProps={{ style: { width: 35, height: 20, margin: "0 10px 0 0", border: "unset", borderRadius: 7 } }}
                                 style={{ height: 20, width: 30, margin: "unset", borderRadius: 7 }}
                                 autoComplete="off"
-                            />{" "}</>}{product.name}
+                            />{" "}</>}{item?.name}
                         </span>
                         <span className={styles.productPrice}>
-                            {product.isPriceUsingCrystals ? <>
+                            {product && product?.isPriceUsingCrystals ? <>
                                 <img className={styles.productCurrencyImage} src={window.constructCDNUrl("/content/crystal.png")} />
                                 {finalPrice} Crystals
                             </> : <>
-                                ${finalPrice.toFixed(2)}
+                                ${finalPrice.toFixed(2)} USD {
+                                    subscription && subscriptionInterval &&
+                                        subscriptionInterval === BillingIntervalEnum.MONTHLY ? "/ month" :
+                                        subscriptionInterval === BillingIntervalEnum.YEARLY ? "/ year" : ""
+                                }
                             </>}
                         </span>
                     </div>
                 </div>
 
-                {!product.isPriceUsingCrystals && <Dropdown
+                {!product?.isPriceUsingCrystals && <Dropdown
                     options={[
                         ...user.paymentMethods.map((method) => ({
                             label: method.value, value: method.id
@@ -233,6 +258,11 @@ function TheModal({ product }: ProductPurchaseModalProps) {
 
                             navigate("/settings/billing");
                         } else {
+                            if (subscription) {
+                                closeModal();
+
+                                navigate("/settings/billing");
+                            }
                             setSelectedPaymentMethod(user.paymentMethods.find((method) => method.id === value) ?? null);
                         }
                     }}
@@ -253,7 +283,8 @@ function TheModal({ product }: ProductPurchaseModalProps) {
                     <div style={{ marginLeft: 5, fontSize: "0.8rem", textAlign: "left" }}>
                         I agree to the <Link to="/terms">Terms of Service</Link> and I understand that I
                         <br />
-                        waive the right to withdrawal from this purchase.
+                        {product ? "waive the right to withdrawal from this purchase." :
+                         "will be charged on an interval basis until I cancel."}
                     </div>
                 </Toggle>
             </Modal.ModalBody>
@@ -264,62 +295,56 @@ function TheModal({ product }: ProductPurchaseModalProps) {
                 <Button.GenericButton
                     onClick={async () => {
                         if (!accepted) return setError("You must agree to the Terms of Service and Purchase Policy.");
-                        if (quantity === "" || parseInt(quantity) < 1) return setError("You must select a quantity of at least 1.");
+                        if (!subscription && (quantity === "" || parseInt(quantity) < 1)) return setError("You must select a quantity of at least 1.");
 
-                        try {
-                            if (product.isPriceUsingCrystals) {
-                                if (user.crystals < finalPrice) return setError(Forbidden.STRIPE_NOT_ENOUGH_CRYSTALS);
-
-                                setLoading(true);
-
-                                await withTimeout(
-                                    window.fetch2.post(`/api/stripe/purchase-with-crystals/${product.id}`, {
-                                        quantity: parseInt(quantity)
-                                    }),
-                                    "The purchase request timed out. Please try again."
-                                );
-
-                                showSuccessModal();
-                                return;
-                            }
-
-                            if (!selectedPaymentMethod) return setError(MUST_SELECT_PAYMENT_METHOD);
-                            if (selectedPaymentMethod.type !== PaymentMethodTypeEnum.CARD) {
-                                return setError(MUST_SELECT_PAYMENT_METHOD);
-                            }
+                        if (product && product.isPriceUsingCrystals) {
+                            if (user.crystals < finalPrice) return setError(Forbidden.STRIPE_NOT_ENOUGH_CRYSTALS);
 
                             setLoading(true);
 
-                            const res = await withTimeout(
-                                window.fetch2.post(`/api/stripe/payment-intent/${product.id}`, {
-                                    quantity: parseInt(quantity),
-                                    paymentMethodId: selectedPaymentMethod.paymentMethodId
-                                }),
-                                "The purchase request timed out. Please try again."
-                            );
-                            if (res.data.status !== "succeeded") {
-                                const clientSecret = res.data.client_secret;
-                                if (!clientSecret) {
-                                    return setErrorAndStopLoading("Stripe did not return a payment confirmation token.");
-                                }
+                            window.fetch2.post(`/api/stripe/purchase-with-crystals/${product.id}`, {
+                                quantity: parseInt(quantity)
+                            })
+                                .then(() => {
+                                    showSuccessModal();
+                                })
+                                .catch((err) => {
+                                    setError(err?.data?.message ?? InternalServerError.DEFAULT);
+                                    setLoading(false);
+                                });
+                        } else if (product && !subscription) {
+                            if (!selectedPaymentMethod) return setError(MUST_SELECT_PAYMENT_METHOD);
 
-                                const { error: verifyError } = await withTimeout(
-                                    stripe.confirmCardPayment(clientSecret),
-                                    "Stripe confirmation timed out. Please check your card and try again."
-                                );
-                                if (verifyError) {
-                                    return setErrorAndStopLoading(verifyError.message ?? "Something went wrong.");
-                                }
-                            }
+                            setLoading(true);
 
-                            showSuccessModal();
-                        } catch (err) {
-                            setError(getErrorMessage(err));
-                            setLoading(false);
+                            window.fetch2.post(`/api/stripe/payment-intent/${product.id}`, {
+                                quantity: parseInt(quantity),
+                                paymentMethodId: selectedPaymentMethod.paymentMethodId
+                            })
+                                .then(async (res) => {
+                                    switch (selectedPaymentMethod?.type) {
+                                        case PaymentMethodTypeEnum.CARD: {
+                                            const { error: verifyError } = await stripe.confirmCardPayment(res.data.client_secret);
+                                            if (verifyError) return setErrorAndStopLoading(verifyError?.message ?? InternalServerError.DEFAULT);
+                                            break;
+                                        }
+                                        default:
+                                            // TODO: implement other payment method types (everything works except stuff like paypal)
+                                            return setErrorAndStopLoading(MUST_SELECT_PAYMENT_METHOD);
+                                    }
+
+                                    showSuccessModal();
+                                })
+                                .catch((err) => {
+                                    setError(err?.data?.message ?? InternalServerError.DEFAULT);
+                                    setLoading(false);
+                                });
+                        } else if (subscription) {
+                            setError("not impl");
                         }
                     }}
                 >
-                    Purchase
+                    {product ? "Purchase" : "Subscribe"}
                 </Button.GenericButton>
 
                 <Button.GenericButton onClick={closeModal}>Cancel</Button.GenericButton>
@@ -328,10 +353,10 @@ function TheModal({ product }: ProductPurchaseModalProps) {
     );
 }
 
-export default function PurchaseProductModal({ product }: ProductPurchaseModalProps) {
+export default function PurchaseProductModal({ product, subscription, subscriptionInterval }: ProductPurchaseModalProps) {
     return (
         <StripeElementsWrapper>
-            <TheModal product={product} />
+            <TheModal product={product} subscription={subscription} subscriptionInterval={subscriptionInterval} />
         </StripeElementsWrapper>
     );
 }

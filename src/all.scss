@@ -23,6 +23,9 @@
     --border-radius: 8px;
     --border-radius-vh: 0.8vh;
 
+    --sidebar-width: 220px;
+    --sidebar-text-scale: 1;
+
     --paragraph-font: "Quicksand", sans-serif;
     --heading-font: "Puffet", sans-serif;
 }
@@ -105,6 +108,10 @@ button {
 
 a {
     color: var(--accent-color);
+}
+
+input[type="color"] {
+    color-scheme: light dark;
 }
 
 .react-tooltip {
