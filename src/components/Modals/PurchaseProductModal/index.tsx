@@ -284,7 +284,7 @@ function TheModal({ product, subscription, subscriptionInterval }: ProductPurcha
                         I agree to the <Link to="/terms">Terms of Service</Link> and I understand that I
                         <br />
                         {product ? "waive the right to withdrawal from this purchase." :
-                         "will be charged on an interval basis until I cancel."}
+                            "will be charged on an interval basis until I cancel."}
                     </div>
                 </Toggle>
             </Modal.ModalBody>
@@ -340,7 +340,34 @@ function TheModal({ product, subscription, subscriptionInterval }: ProductPurcha
                                     setLoading(false);
                                 });
                         } else if (subscription) {
-                            setError("not impl");
+                            if (!selectedPaymentMethod) return setError(MUST_SELECT_PAYMENT_METHOD);
+                            if (selectedPaymentMethod.type !== PaymentMethodTypeEnum.CARD) return setError("Only card payments are supported right now.");
+
+                            setLoading(true);
+                            setError("");
+
+                            window.fetch2.post(`/api/stripe/subscription/${subscription.id}`, {
+                                interval: subscriptionInterval
+                            })
+                                .then(async (res) => {
+                                    const clientSecret = res?.data.clientSecret;
+
+                                    if (clientSecret) {
+                                        const { error: stripeError } = await stripe.confirmCardPayment(clientSecret);
+
+                                        if (stripeError) {
+                                            setError(stripeError.message ?? InternalServerError.DEFAULT);
+                                            setLoading(false);
+                                            return;
+                                        }
+                                    }
+
+                                    showSuccessModal(finalPrice);
+                                })
+                                .catch((err) => {
+                                    setError(err?.data?.message ?? InternalServerError.DEFAULT);
+                                    setLoading(false);
+                                });
                         }
                     }}
                 >
