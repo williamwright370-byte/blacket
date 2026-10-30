@@ -3,8 +3,6 @@ import { useChat } from "@stores/ChatStore/index";
 import { Username } from "@components/index";
 import styles from "../chat.module.scss";
 
-// import { UsersTypingProps } from "../chat.d";
-
 export default function UsersTypingContainer() {
     const { cachedUsers } = useCachedUser();
     const { usersTyping } = useChat();
@@ -13,16 +11,20 @@ export default function UsersTypingContainer() {
 
     return (
         <div className={styles.usersTypingContainer} data-visible={usersTyping.length > 0}>
-            {usersTyping.length > 0 ? (
+            {usersTyping.length > 0 && (
                 usersTyping.length > 4 ? <b>{usersTyping.length} people are typing...</b> :
                     <>
-                        {users.sort((a, b) => b.username.localeCompare(a.username)).map((user, index) => <span key={user.id}>
-                            <Username user={user} />{index === usersTyping.length - 1 ? "" : ", "}
-                        </span>)}
+                        {users.sort((a, b) => b.username.localeCompare(a.username)).map((user, index) =>
+                            <span
+                                key={user.id}
+                                className={styles.userTyping}
+                            >
+                                <Username user={user} />{index === usersTyping.length - 1 ? "" : ", "}
+                            </span>)}
 
                         {usersTyping.length === 1 ? " is typing..." : " are typing..."}
                     </>
-            ) : null}
+            )}
         </div>
     );
 }

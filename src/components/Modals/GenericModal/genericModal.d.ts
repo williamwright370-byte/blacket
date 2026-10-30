@@ -5,4 +5,5 @@ export interface GenericModalProps extends HTMLAttributes<HTMLDivElement> {
     noAnimation?: boolean;
     children: ReactNode;
     outside?: ReactNode;
+    fullscreen?: boolean;
 }

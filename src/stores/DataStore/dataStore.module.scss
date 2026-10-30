@@ -7,14 +7,14 @@
 
 .progressBar {
     width: 200px;
-    background-color: var(--secondary-color);
-    border-radius: 7px;
+    background: var(--secondary-color);
+    border-radius: var(--border-radius);
 }
 
 .progress {
     height: 20px;
-    background-color: var(--accent-color);
-    border-radius: 7px;
+    background: var(--accent-color);
+    border-radius: var(--border-radius);
 }
 
 .error {

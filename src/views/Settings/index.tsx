@@ -1,19 +1,18 @@
-import { Link, Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useUser } from "@stores/UserStore/index";
+import { MiniNavbar } from "@components/index";
 import { Section } from "./components/index";
-
 import styles from "./settings.module.scss";
 
-import { NavbarItem } from "./settings.d";
+import { MiniNavbarItem } from "@components/MiniNavbar/miniNavbar.d";
 
 export default function Settings() {
     const { user } = useUser();
-
     if (!user) return <Navigate to="/login" />;
 
     const location = useLocation();
 
-    const NAVBAR: NavbarItem[] = [
+    const NAVBAR: MiniNavbarItem[] = [
         {
             icon: "fas fa-user",
             text: "Account",
@@ -51,26 +50,17 @@ export default function Settings() {
         }
     ];
 
-    if (location.pathname === "/settings") return <Navigate to={NAVBAR[0].path} />;
+    if (location.pathname === "/settings") return <Navigate to={NAVBAR[0]?.path || "/settings"} />;
 
     const currentSection = NAVBAR.find((item) => item.path === location.pathname);
     if (!currentSection) return <Navigate to="/settings" />;
 
     return (
         <>
-            <div className={styles.navbar}>
-                {NAVBAR.map((item) => (
-                    <Link
-                        key={item.path}
-                        to={item.path}
-                        className={styles.navbarItem}
-                        data-active={location.pathname === item.path}
-                    >
-                        <i className={item.icon} />
-                        {item.text}
-                    </Link>
-                ))}
-            </div>
+            <MiniNavbar
+                items={NAVBAR}
+                className={styles.navbar}
+            />
 
             <div className={styles.container}>
                 <currentSection.element />

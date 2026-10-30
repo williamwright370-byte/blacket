@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Blook, ImageOrVideo, RarityLabel } from "@components/index";
 import { useResource } from "@stores/ResourceStore/index";
 import { useData } from "@stores/DataStore/index";
 import { useSound } from "@stores/SoundStore/index";
+import { useInsanePull } from "@stores/InsanePullStore/index";
 import Textfit from "react-textfit";
 import styles from "../market.module.scss";
 
@@ -13,6 +14,7 @@ export default function OpenPackBlook({ userBlook, animate = false, isNew }: Ope
     const { resourceIdToPath } = useResource();
     const { blooks, rarities } = useData();
     const { playSound } = useSound();
+    const { isPlaying } = useInsanePull();
 
     const blook = blooks.find((b) => b.id === userBlook.blookId);
     if (!blook) return null;
@@ -24,29 +26,44 @@ export default function OpenPackBlook({ userBlook, animate = false, isNew }: Ope
 
     if (rarity.animationType === RarityAnimationTypeEnum.CHROMA) delay = 4600;
     if (rarity.animationType === RarityAnimationTypeEnum.MYTHICAL) delay = 8400;
+    if (rarity.animationType === RarityAnimationTypeEnum.IRIDESCENT) delay = 10000;
 
     const [show, setShow] = useState(delay === 0);
 
+    const isPlayingRef = useRef(isPlaying);
+
+    useEffect(() => {
+        isPlayingRef.current = isPlaying;
+    }, [isPlaying]);
+
     useEffect(() => {
         if (!animate) return;
-        if (!userBlook.shiny) return;
 
-        setTimeout(() => {
-            playSound("shiny");
-        }, 500 + (delay ? (delay + 250) : 0));
-    }, [animate, userBlook.shiny]);
+        const showFunction = () => {
+            setShow(true);
 
-    useEffect(() => {
-        setShow(false);
+            if (userBlook.shiny) setTimeout(() => {
+                playSound("shiny");
+            }, 500);
+        };
 
         if (delay > 0) {
-            setShow(false);
+            const timeout = setTimeout(() => {
+                if (!isPlayingRef.current) showFunction();
+                else {
+                    const checkPlaying = () => {
 
-            const timeout = setTimeout(() => setShow(true), delay);
+                        if (!isPlayingRef.current) setTimeout(showFunction, 700);
+                        else setTimeout(checkPlaying, 100);
+                    };
+
+                    checkPlaying();
+                }
+            }, delay);
 
             return () => clearTimeout(timeout);
         } else {
-            setShow(true);
+            showFunction();
         }
     }, [delay, animate]);
 
@@ -63,6 +80,7 @@ export default function OpenPackBlook({ userBlook, animate = false, isNew }: Ope
                 <Blook
                     shiny={userBlook.shiny}
                     src={resourceIdToPath(blook.imageId)}
+                    big={blook.isBig}
                 />
             </div>
             <div className={styles.openPackBlookTopText}>
@@ -84,7 +102,7 @@ export default function OpenPackBlook({ userBlook, animate = false, isNew }: Ope
                 </div>
             </div>
             <div className={styles.openPackBlookBottomText}>
-                {blook.chance / (userBlook.shiny ? 100 : 1)}%{isNew ? " - NEW!" : ""}
+                {(blook.chance / (userBlook.shiny ? 100 : 1))}%{isNew ? " - NEW!" : ""}
             </div>
             <div className={styles.openPackBlookShadow} />
         </div >

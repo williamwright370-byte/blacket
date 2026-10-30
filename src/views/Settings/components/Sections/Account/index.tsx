@@ -4,10 +4,11 @@ import { useUser } from "@stores/UserStore/index";
 import { useData } from "@stores/DataStore/index";
 import { useModal } from "@stores/ModalStore/index";
 import { useLoading } from "@stores/LoadingStore/index";
+import { useDiscordLink } from "@controllers/discord/useDiscordLink/index";
 import { useSettings } from "@controllers/settings/useSettings/index";
-import { Button, Modal } from "@components/index";
+import { Button, Modal, PaymentMethodText } from "@components/index";
 import { SettingsContainer, Divider } from "..";
-import { PlanText, UpgradeButton, ChangeUsernameModal } from "./components/index";
+import { PlanText, ChangeUsernameModal } from "./components/index";
 
 import { SettingFriendRequestEnum } from "@blacket/types";
 
@@ -18,6 +19,7 @@ export default function Account() {
     const { setLoading } = useLoading();
 
     const { changeSetting } = useSettings();
+    const { getOAuthUrl } = useDiscordLink();
 
     const navigate = useNavigate();
 
@@ -49,6 +51,20 @@ export default function Account() {
             .finally(() => setLoading(false));
     };
 
+    const linkDiscordButton = () => {
+        setLoading("Opening Discord");
+
+        getOAuthUrl()
+            .then((url) => {
+                // TODO: make this a popup
+                open(url, "_blank");
+            })
+            .catch((err: Fetch2Response) => {
+                createModal(<Modal.ErrorModal>{err.data.message}</Modal.ErrorModal>);
+            })
+            .finally(() => setLoading(false));
+    };
+
     return <>
         <SettingsContainer header={{ icon: "fas fa-user", text: "Account" }}>
             <div><b>ID:</b> {user.id}</div>
@@ -68,6 +84,7 @@ export default function Account() {
             <Button.ClearButton onClick={friendRequestsButton}>Friend Requests: {
                 user.settings.friendRequests === SettingFriendRequestEnum.ON ? "On" : user.settings.friendRequests === SettingFriendRequestEnum.OFF ? "Off" : user.settings.friendRequests === SettingFriendRequestEnum.MUTUAL ? "Mutual" : "Unknown"
             }</Button.ClearButton>
+            {!user.discord && <Button.ClearButton onClick={linkDiscordButton}>Link Discord</Button.ClearButton>}
 
             <Button.ClearButton onClick={() => createModal(<Modal.LogoutModal />)}>
                 Logout
@@ -75,20 +92,13 @@ export default function Account() {
         </SettingsContainer>
 
         <SettingsContainer header={{ icon: "fas fa-wallet", text: "Billing" }}>
-            <PlanText>Basic</PlanText>
-
-            <UpgradeButton>Upgrade</UpgradeButton>
-
-            <Divider margin={15} />
-
             <div>
                 <b>Payment Method:</b> {user.paymentMethods.length > 0 ? <>
-                    <i className="fas fa-credit-card" style={{ marginLeft: 5, marginRight: 3 }} /> {user.paymentMethods.find((method) => method.primary)?.cardBrand} {user.paymentMethods.find((method) => method.primary)?.lastFour}
+                    <PaymentMethodText paymentMethod={user.paymentMethods.find((method) => method.primary)} />
                 </> : "None"}
             </div>
             <div style={{ marginTop: 5 }}>
-                {user.paymentMethods.length < 1 && <Button.ClearButton onClick={() => navigate("/settings/billing")}>Add Payment Method</Button.ClearButton>}
-                {user.paymentMethods.length > 0 && <Button.ClearButton onClick={() => navigate("/settings/billing")}>Manage Payment Methods</Button.ClearButton>}
+                <Button.ClearButton onClick={() => navigate("/settings/billing")}>Manage Payment Methods</Button.ClearButton>
             </div>
         </SettingsContainer>
 

@@ -11,16 +11,18 @@ import Form from "./Form";
 import Header from "./Header";
 import HeaderBody from "./HeaderBody";
 import ImageOrVideo from "./ImageOrVideo";
-import InventoryBlook from "./ItemContainer/components/InventoryBlook";
+import InventoryBlook from "./ItemContainer/components/InventoryItem";
 import InventoryItem from "./ItemContainer/components/InventoryItem";
 import Input from "./Input";
 import ItemContainer from "./ItemContainer";
 import Joystick from "./Joystick";
 import Loader from "./Loader";
 import Markdown from "./Markdown";
+import MiniNavbar from "./MiniNavbar";
 import * as Modal from "./Modals";
 import PageHeader from "./PageHeader";
 import ParticleCanvas from "./ParticleCanvas";
+import PaymentMethodText from "./PaymentMethodText";
 import RarityLabel from "./RarityLabel";
 import SearchBox from "./SearchBox";
 import Sidebar from "./Sidebar";
@@ -56,9 +58,11 @@ export {
     Joystick,
     Loader,
     Markdown,
+    MiniNavbar,
     Modal,
     PageHeader,
     ParticleCanvas,
+    PaymentMethodText,
     RarityLabel,
     SearchBox,
     Sidebar,

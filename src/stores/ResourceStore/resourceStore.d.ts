@@ -3,5 +3,6 @@ import { Resource } from "@blacket/types";
 export interface ResourceStore {
     resources: Resource[];
     setResources: (resources: Resource[]) => void;
-    resourceIdToPath: (id: number) => string;
+    getResourceById: (id: number) => Resource | undefined;
+    resourceIdToPath: (id?: number | null) => string;
 }

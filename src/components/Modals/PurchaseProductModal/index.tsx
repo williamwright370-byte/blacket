@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useStripe } from "@stripe/react-stripe-js";
 import { useUser } from "@stores/UserStore/index";
 import { useModal } from "@stores/ModalStore/index";
 import { useResource } from "@stores/ResourceStore/index";
+import { useData } from "@stores/DataStore/index";
 import { useSound } from "@stores/SoundStore/index";
+import { useSubscriptionProration } from "@controllers/stripe/subscriptions/useProration/index";
 import { Modal, ErrorContainer, Button, StripeElementsWrapper, ImageOrVideo, Dropdown, Toggle, ParticleCanvas, Input } from "@components/index";
 import { ParticleCanvasRef } from "@components/ParticleCanvas/particleCanvas";
-import { useSelect } from "@controllers/stripe/payment-methods/useSelect";
 import styles from "./purchaseProductModal.module.scss";
 
 import { ProductPurchaseModalProps, ProductSuccessModalProps } from "./productPurchaseModal.d";
-import { RarityAnimationTypeEnum, UserPaymentMethod } from "@blacket/types";
+import { BillingIntervalEnum, Forbidden, SubscriptionSwitchType, InternalServerError, PaymentMethodTypeEnum, RarityAnimationTypeEnum, StripeProductEntity, StripeSubscriptionEntity, StripeSubscriptionProrationEntity, UserPaymentMethod, BadRequest } from "@blacket/types";
+import { calculateFinalPrice, getSubscriptionSwitchType } from "@blacket/common";
 
 function SuccessModalOutside() {
     const particleCanvasRef = useRef<ParticleCanvasRef>(null);
@@ -65,9 +67,25 @@ function SuccessModalOutside() {
     );
 }
 
-function SuccessModal({ product, quantity, subscription }: ProductSuccessModalProps) {
+function SuccessModal({ product, subscription, quantity, priceOverride }: ProductSuccessModalProps) {
+    if (!product && !subscription) return null;
+
     const { closeModal } = useModal();
     const { resourceIdToPath } = useResource();
+
+    const item: StripeProductEntity | StripeSubscriptionEntity | undefined = product ?? subscription;
+
+    let FINAL_PRICE: number | undefined;
+
+    if (product) {
+        const i = item as StripeProductEntity;
+
+        FINAL_PRICE = calculateFinalPrice(i.price, Number(quantity), i.discount, i.isPriceUsingCrystals);
+    } else if (subscription) {
+        FINAL_PRICE = priceOverride ?? 0;
+    } else return null;
+
+    if (FINAL_PRICE === undefined) return null;
 
     return (
         <>
@@ -84,12 +102,19 @@ function SuccessModal({ product, quantity, subscription }: ProductSuccessModalPr
                     <div className={styles.purchaseDetails}>
                         <span style={{ display: "flex", alignItems: "center" }}>
                             <ImageOrVideo
-                                src={resourceIdToPath(product.imageId)}
+                                src={resourceIdToPath(item?.imageId)}
                                 className={styles.productImage}
                             />
-                            {!product.isQuantityCapped ? `x${quantity} ` : ""}{product.name}
+                            {product && !(item as StripeProductEntity).isQuantityCapped ? `x${quantity} ` : ""}{item?.name}
                         </span>
-                        <span>${((subscription ? (product.subscriptionPrice ?? 0) : product.price) * quantity).toFixed(2)} USD</span>
+                        <span className={styles.productPrice}>
+                            {product && (item as StripeProductEntity).isPriceUsingCrystals ? <>
+                                <img className={styles.productCurrencyImage} src={window.constructCDNUrl("/content/crystal.png")} />
+                                {FINAL_PRICE} Crystals
+                            </> : <>
+                                ${FINAL_PRICE} USD
+                            </>}
+                        </span>
                     </div>
                 </div>
 
@@ -103,12 +128,19 @@ function SuccessModal({ product, quantity, subscription }: ProductSuccessModalPr
     );
 }
 
-function TheModal({ product, subscription = false }: ProductPurchaseModalProps) {
+function TheModal({ product, subscription, subscriptionInterval, priceOverride }: ProductPurchaseModalProps) {
+    if (!product && !subscription) return null;
+    if (subscription && !subscriptionInterval) return null;
+
     const stripe = useStripe();
     const { user } = useUser();
+    if (!user) return null;
+
     const { createModal, closeModal } = useModal();
     const { resourceIdToPath } = useResource();
-    const { selectPaymentMethod } = useSelect();
+
+    const { subscriptions } = useData();
+    const { getSubscriptionProration } = useSubscriptionProration();
 
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>("");
@@ -117,33 +149,102 @@ function TheModal({ product, subscription = false }: ProductPurchaseModalProps) 
     );
     const [quantity, setQuantity] = useState<string>("1");
     const [accepted, setAccepted] = useState<boolean>(false);
+    const [finalPrice, setFinalPrice] = useState<number>(priceOverride ?? product?.price ?? 0);
+    const [proration, setProration] = useState<StripeSubscriptionProrationEntity | null>(null);
 
-    if (!stripe || !user) return null;
+    const prorationPrice = proration && (
+        subscriptionInterval === BillingIntervalEnum.MONTHLY ? proration.monthly :
+            subscriptionInterval === BillingIntervalEnum.YEARLY ? proration.yearly :
+                proration.lifetime
+    );
+
+    const currentIntervalPlan = user.intervalSubscription
+        ? subscriptions.find((s) => s.id === user.intervalSubscription!.subscriptionId)
+        : undefined;
+    const isDowngrade = !!subscription && !!subscriptionInterval && !!user.intervalSubscription
+        && subscriptionInterval !== BillingIntervalEnum.LIFETIME
+        && getSubscriptionSwitchType({
+            priority: currentIntervalPlan?.priority ?? 0,
+            billingInterval: user.intervalSubscription.billingInterval
+        }, {
+            priority: subscription.priority,
+            billingInterval: subscriptionInterval
+        }) === SubscriptionSwitchType.DOWNGRADE;
+
+    const showProration = !isDowngrade && proration && Number(prorationPrice) !== Number(finalPrice);
+
+    const navigate = useNavigate();
 
     const showSuccessModal = () => {
-        createModal(<SuccessModal product={product} quantity={parseInt(quantity)} subscription={subscription} />, <SuccessModalOutside />);
+        createModal(<SuccessModal
+            product={product}
+            subscription={subscription}
+            quantity={parseInt(quantity)}
+            priceOverride={prorationPrice ?? priceOverride}
+        />, { outsideModal: <SuccessModalOutside /> }
+        );
         closeModal();
     };
 
+    const setErrorAndStopLoading = (message: string) => {
+        setError(message);
+        setLoading(false);
+    };
+
+    useEffect(() => {
+        if (subscription) {
+            const i = subscription as StripeSubscriptionEntity;
+
+            if (!priceOverride) switch (subscriptionInterval) {
+                case BillingIntervalEnum.MONTHLY:
+                    setFinalPrice(i.monthlyPrice ?? 0);
+                    break;
+                case BillingIntervalEnum.YEARLY:
+                    setFinalPrice(i.yearlyPrice ?? 0);
+                    break;
+                case BillingIntervalEnum.LIFETIME:
+                    setFinalPrice(i.lifetimePrice ?? 0);
+
+                    break;
+            }
+
+            getSubscriptionProration(subscription.id).then(setProration);
+        }
+
+        if (priceOverride) return setFinalPrice(calculateFinalPrice(priceOverride, Number(quantity), 0, false));
+
+        if (product) {
+            const i = product as StripeProductEntity;
+
+            setFinalPrice(calculateFinalPrice(i.price, Number(quantity), i.discount, i.isPriceUsingCrystals));
+        }
+    }, [product, quantity, subscription, subscriptionInterval]);
+
+    const item: StripeProductEntity | StripeSubscriptionEntity | undefined = product ?? subscription;
+
+    if (!stripe || !user) return null;
+
     return (
         <>
-            <Modal.ModalHeader>Review Purchase</Modal.ModalHeader>
+            <Modal.ModalHeader>Review {product ? "Purchase" : "Subscription"}</Modal.ModalHeader>
 
             <Modal.ModalBody>
-                Please review your purchase below.
+                Please review your {product ? "purchase" : "subscription"} below.
             </Modal.ModalBody>
 
-            <Modal.ModalBody>
+            <Modal.ModalBody style={{ minWidth: 500 }}>
                 <div className={styles.purchaseDetailsContainer}>
-                    <span className={styles.purchaseDetailsText}>{subscription ? "Subscription" : "Product"} Details</span>
+                    <span className={styles.purchaseDetailsText}>{
+                        product ? "Product" : "Subscription"
+                    } Details</span>
 
                     <div className={styles.purchaseDetails}>
                         <span style={{ display: "flex", alignItems: "center" }}>
                             <ImageOrVideo
-                                src={resourceIdToPath(product.imageId)}
+                                src={resourceIdToPath(item?.imageId)}
                                 className={styles.productImage}
                             />
-                            {!product.isQuantityCapped && <>x<Input
+                            {product && !product?.isQuantityCapped && <>x<Input
                                 value={quantity.toString()}
                                 onChange={(e) => {
                                     const value = e.target.value;
@@ -151,7 +252,7 @@ function TheModal({ product, subscription = false }: ProductPurchaseModalProps) 
 
                                     if (value.match(/[^0-9]/)) return;
                                     if (parsedValue < 1 && value !== "") return;
-                                    if (parsedValue > 100) return setQuantity("100"); // Limit to 100 for practical reasons
+                                    if (parsedValue > 100) return setQuantity("100");
 
                                     if (value === "") return setQuantity("");
                                     setQuantity(parsedValue.toString());
@@ -160,16 +261,35 @@ function TheModal({ product, subscription = false }: ProductPurchaseModalProps) 
                                 containerProps={{ style: { width: 35, height: 20, margin: "0 10px 0 0", border: "unset", borderRadius: 7 } }}
                                 style={{ height: 20, width: 30, margin: "unset", borderRadius: 7 }}
                                 autoComplete="off"
-                            />{" "}</>}{product.name}
+                            />{" "}</>}{item?.name}
                         </span>
-                        <span>${((subscription ? (product.subscriptionPrice ?? 0) : product.price) * parseInt(quantity !== "" ? quantity : "1")).toFixed(2)} USD</span>
+                        <span className={styles.productPrice}>
+                            {product && product?.isPriceUsingCrystals ? <>
+                                <img className={styles.productCurrencyImage} src={window.constructCDNUrl("/content/crystal.png")} />
+                                {finalPrice} Crystals
+                            </> : <div>
+                                <span style={{
+                                    textDecoration: showProration ? "line-through" : "unset"
+                                }}>${finalPrice.toFixed(2)} USD</span> {
+                                    subscription && subscriptionInterval &&
+                                        subscriptionInterval === BillingIntervalEnum.MONTHLY ? "/ month" :
+                                        subscriptionInterval === BillingIntervalEnum.YEARLY ? "/ year" : ""
+                                }
+                                {showProration && <div className={styles.prorationPrice}>
+                                    Proration: ${prorationPrice} USD
+                                </div>}
+                                {isDowngrade && <div className={styles.prorationPrice}>
+                                    Will be charged on next interval
+                                </div>}
+                            </div>}
+                        </span>
                     </div>
                 </div>
 
-                <Dropdown
+                {!product?.isPriceUsingCrystals && <Dropdown
                     options={[
                         ...user.paymentMethods.map((method) => ({
-                            label: `${method.cardBrand} ${method.lastFour}`, value: method.id
+                            label: method.value, value: method.id
                         })),
                         { label: "Add Payment Method", value: null }
                     ]}
@@ -177,14 +297,20 @@ function TheModal({ product, subscription = false }: ProductPurchaseModalProps) 
                         if (value === null) {
                             closeModal();
 
-                            createModal(<Modal.AddPaymentMethodModal />);
+                            navigate("/settings/billing");
                         } else {
+                            if (subscription) {
+                                closeModal();
+
+                                navigate("/settings/billing");
+                            }
                             setSelectedPaymentMethod(user.paymentMethods.find((method) => method.id === value) ?? null);
                         }
                     }}
+                    className={styles.paymentMethodDropdown}
                 >
-                    {selectedPaymentMethod ? `${selectedPaymentMethod.cardBrand} ${selectedPaymentMethod.lastFour}` : "Select a payment method..."}
-                </Dropdown>
+                    {selectedPaymentMethod ? selectedPaymentMethod.value : "Select a payment method..."}
+                </Dropdown>}
             </Modal.ModalBody>
 
             <Modal.ModalBody>
@@ -198,7 +324,8 @@ function TheModal({ product, subscription = false }: ProductPurchaseModalProps) 
                     <div style={{ marginLeft: 5, fontSize: "0.8rem", textAlign: "left" }}>
                         I agree to the <Link to="/terms">Terms of Service</Link> and I understand that I
                         <br />
-                        waive the right to withdrawal from this purchase.
+                        {product ? "waive the right to withdrawal from this purchase." :
+                            "will be charged on an interval basis until I cancel."}
                     </div>
                 </Toggle>
             </Modal.ModalBody>
@@ -209,41 +336,97 @@ function TheModal({ product, subscription = false }: ProductPurchaseModalProps) 
                 <Button.GenericButton
                     onClick={async () => {
                         if (!accepted) return setError("You must agree to the Terms of Service and Purchase Policy.");
-                        if (quantity === "" || parseInt(quantity) < 1) return setError("You must select a quantity of at least 1.");
-                        if (!selectedPaymentMethod) return setError("You must select a payment method.");
+                        if (!subscription && (quantity === "" || parseInt(quantity) < 1)) return setError("You must select a quantity of at least 1.");
 
-                        setLoading(true);
+                        if (product && product.isPriceUsingCrystals) {
+                            if (user.crystals < finalPrice) return setError(Forbidden.STRIPE_NOT_ENOUGH_CRYSTALS);
 
-                        if (subscription) selectPaymentMethod(selectedPaymentMethod.id)
-                            .then(() => window.fetch2.post(`/api/stripe/invoice/${product.id}`, {})
-                                .then(async () => {
+                            setLoading(true);
+
+                            window.fetch2.post(`/api/stripe/purchase-with-crystals/${product.id}`, {
+                                quantity: parseInt(quantity)
+                            })
+                                .then(() => {
                                     showSuccessModal();
                                 })
                                 .catch((err) => {
-                                    setError(err?.data?.message ?? "Something went wrong.");
+                                    setError(err?.data?.message ?? InternalServerError.DEFAULT);
                                     setLoading(false);
-                                }))
-                            .catch((err) => {
-                                setError(err?.data?.message ?? "Something went wrong.");
-                                setLoading(false);
-                            });
-                        else window.fetch2.post(`/api/stripe/payment-intent/${product.id}`, {
-                            quantity: parseInt(quantity),
-                            paymentMethodId: selectedPaymentMethod.id
-                        })
-                            .then(async (res) => {
-                                const { error: verifyError } = await stripe.confirmCardPayment(res.data.client_secret);
-                                if (verifyError) return setError(verifyError?.message ?? "Something went wrong.");
+                                });
+                        } else if (product && !subscription) {
+                            if (!selectedPaymentMethod) return setError(BadRequest.STRIPE_PAYMENT_METHOD_REQUIRED);
 
-                                showSuccessModal();
+                            setLoading(true);
+
+                            window.fetch2.post(`/api/stripe/payment-intent/${product.id}`, {
+                                quantity: parseInt(quantity),
+                                paymentMethodId: selectedPaymentMethod.paymentMethodId
                             })
-                            .catch((err) => {
-                                setError(err?.data?.message ?? "Something went wrong.");
-                                setLoading(false);
-                            });
+                                .then(async (res) => {
+                                    switch (selectedPaymentMethod?.type) {
+                                        case PaymentMethodTypeEnum.CARD: {
+                                            const { error: verifyError } = await stripe.confirmCardPayment(res.data.client_secret);
+                                            if (verifyError) return setErrorAndStopLoading(verifyError?.message ?? InternalServerError.DEFAULT);
+                                            break;
+                                        }
+                                        default:
+                                            // TODO: implement other payment method types (everything works except stuff like paypal)
+                                            return setErrorAndStopLoading(BadRequest.STRIPE_PAYMENT_METHOD_REQUIRED);
+                                    }
+
+                                    showSuccessModal();
+                                })
+                                .catch((err) => {
+                                    setError(err?.data?.message ?? InternalServerError.DEFAULT);
+                                    setLoading(false);
+                                });
+                        } else if (subscription) {
+                            if (!selectedPaymentMethod) return setError(BadRequest.STRIPE_PAYMENT_METHOD_REQUIRED);
+                            if (selectedPaymentMethod.type !== PaymentMethodTypeEnum.CARD) return setError("Only card payments are supported right now.");
+
+                            setLoading(true);
+                            setError("");
+
+                            if (user.intervalSubscription && subscriptionInterval !== BillingIntervalEnum.LIFETIME) {
+                                window.fetch2.post(`/api/stripe/subscription/${subscription.id}/switch`, {
+                                    interval: subscriptionInterval
+                                })
+                                    .then(async (res) => {
+                                        const clientSecret = res?.data?.clientSecret;
+
+                                        if (clientSecret) {
+                                            const { error: stripeError } = await stripe.confirmCardPayment(clientSecret);
+
+                                            if (stripeError) return setErrorAndStopLoading(stripeError?.message ?? InternalServerError.DEFAULT);
+                                        }
+
+                                        if (isDowngrade) {
+                                            closeModal();
+                                            navigate("/settings/billing");
+                                        } else showSuccessModal();
+                                    })
+                                    .catch((err) => setErrorAndStopLoading(err?.data?.message ?? InternalServerError.DEFAULT));
+                            } else window.fetch2.post(`/api/stripe/subscription/${subscription.id}`, {
+                                interval: subscriptionInterval
+                            })
+                                .then(async (res) => {
+                                    const clientSecret = res?.data.clientSecret;
+
+                                    if (clientSecret) {
+                                        const { error: stripeError } = await stripe.confirmCardPayment(clientSecret);
+
+                                        if (stripeError) return setErrorAndStopLoading(stripeError?.message ?? InternalServerError.DEFAULT);
+                                    } else {
+                                        return setErrorAndStopLoading(InternalServerError.DEFAULT);
+                                    }
+
+                                    showSuccessModal();
+                                })
+                                .catch((err) => setErrorAndStopLoading(err?.data?.message ?? InternalServerError.DEFAULT));
+                        }
                     }}
                 >
-                    {subscription ? "Subscribe" : "Purchase"}
+                    {product ? "Purchase" : "Subscribe"}
                 </Button.GenericButton>
 
                 <Button.GenericButton onClick={closeModal}>Cancel</Button.GenericButton>
@@ -252,10 +435,10 @@ function TheModal({ product, subscription = false }: ProductPurchaseModalProps) 
     );
 }
 
-export default function PurchaseProductModal({ product, subscription }: ProductPurchaseModalProps) {
+export default function PurchaseProductModal({ product, subscription, subscriptionInterval, priceOverride }: ProductPurchaseModalProps) {
     return (
         <StripeElementsWrapper>
-            <TheModal product={product} subscription={subscription} />
+            <TheModal product={product} subscription={subscription} subscriptionInterval={subscriptionInterval} priceOverride={priceOverride} />
         </StripeElementsWrapper>
     );
 }

@@ -1,18 +1,34 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Modal } from "@components/index";
 import { useModal } from "@stores/ModalStore/index";
+import { formatTimePassed } from "@functions/blacket/formatTime";
 
 import { TooFastModalProps } from "../rules.d";
-import { useEffect } from "react";
 
-export default function TooFastModal({ startedReading }: TooFastModalProps) {
+export default function TooFastModal({ startedReading, submitCallback }: TooFastModalProps) {
     const { closeModal } = useModal();
 
-    const [seconds] = useState(Math.floor((Date.now() - startedReading.getTime()) / 1000));
+    const [timeRemainingString, setTimeRemainingString] = useState<string>("");
     const [canProceed, setCanProceed] = useState(false);
 
-    const navigate = useNavigate();
+    useEffect(() => {
+        let active = true;
+
+        const tick = () => {
+            if (!active) return;
+
+            setTimeRemainingString(formatTimePassed(startedReading));
+
+            setTimeout(tick, 1000);
+        };
+
+        tick();
+
+        return () => {
+            active = false;
+        };
+    }, [startedReading]);
 
     useEffect(() => {
         const timer = setTimeout(() => setCanProceed(true), 5000);
@@ -22,10 +38,10 @@ export default function TooFastModal({ startedReading }: TooFastModalProps) {
 
     return (
         <>
-            <Modal.ModalHeader>Too Fast!</Modal.ModalHeader>
+            <Modal.ModalHeader>Too Fast</Modal.ModalHeader>
 
             <Modal.ModalBody>
-                You've only read the rules for {seconds} second{seconds !== 1 ? "s" : ""}. Are you sure?
+                You've only read the rules for {timeRemainingString}. Are you sure?
                 <br />
                 <br />
                 Violating these rules even unknowingly can result in a permanent ban.
@@ -40,13 +56,8 @@ export default function TooFastModal({ startedReading }: TooFastModalProps) {
                         opacity: !canProceed ? 0.5 : 1
                     }}
                     onClick={() => {
-                        if (!canProceed) return;
-
+                        submitCallback();
                         closeModal();
-
-                        window.fetch2.patch("/api/users/read-rules", {});
-
-                        navigate("/dashboard");
                     }}
                 >
                     I Agree

@@ -1,7 +1,16 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { gainToDb } from "tone";
-import { BrenderCanvas, BrenderCanvasRef, BrenderEntity, isColliding, isOnScreen, PlayerEntity, urlToImage } from "@brender/index";
+import {
+    BrenderCanvas,
+    BrenderCanvasRef,
+    BrenderEntity,
+    drawRoundedRect,
+    isColliding,
+    isOnScreen,
+    PlayerEntity,
+    urlToImage
+} from "@brender/index";
 import { useUser } from "@stores/UserStore/index";
 import { useSocket, useSocketLatency } from "@stores/SocketStore/index";
 import { useData } from "@stores/DataStore/index";
@@ -14,9 +23,13 @@ import styles from "./tradingPlaza.module.scss";
 
 import { SocketMessageType } from "@blacket/types";
 import { TILES } from "@constants/index";
+import { useChat } from "@stores/ChatStore";
 
-// TODO: Put these somewhere else
+// TODO: put these somewhere else
 type RGBA = { r: number; g: number; b: number; a: number };
+
+const getDistance = (x1: number, y1: number, x2: number, y2: number) =>
+    Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 
 const TIME_KEYFRAMES: Array<{ minute: number; color: RGBA }> = [
     { minute: 0, color: { r: 6, g: 10, b: 22, a: 0.7 } }, // 00:00 midnight - almost black-blue
@@ -26,7 +39,7 @@ const TIME_KEYFRAMES: Array<{ minute: number; color: RGBA }> = [
     { minute: 780, color: { r: 0, g: 0, b: 0, a: 0 } }, // 13:00 midday
     { minute: 1020, color: { r: 255, g: 160, b: 80, a: 0.2 } }, // 17:00 golden hour
     { minute: 1140, color: { r: 110, g: 40, b: 120, a: 0.3 } }, // 19:00 dusk, more saturated purple
-    { minute: 1220, color: { r: 6, g: 10, b: 22, a: 0.7 } }  // 20:00 midnight again
+    { minute: 1220, color: { r: 6, g: 10, b: 22, a: 0.7 } } // 20:00 midnight again
 ];
 
 const MOVEMENT_KEYS = {
@@ -36,6 +49,10 @@ const MOVEMENT_KEYS = {
     RIGHT: ["d", "arrowright"],
     RUN: ["shift"]
 };
+
+const PLAYER_SPAWN = { x: (750 - 300 / 6) / 2, y: (750 - 345 / 6) / 2 };
+
+const STEP_SOUNDS = ["step-1", "step-2", "step-3", "step-4", "step-5"];
 
 const clampBit = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const minutesSinceMidnightLocal = (): number => {
@@ -59,7 +76,8 @@ const lerpRGBA = (a: RGBA, b: RGBA, t: number): RGBA => {
 };
 
 const getTimeColor = (m: number): RGBA => {
-    const f = TIME_KEYFRAMES, n = f.length;
+    const f = TIME_KEYFRAMES,
+        n = f.length;
     let i = f.findIndex((k) => m <= k.minute);
     if (i === -1) i = n;
     const a = i === 0 ? f[n - 1] : f[i - 1];
@@ -67,7 +85,7 @@ const getTimeColor = (m: number): RGBA => {
 
     const bMin = b.minute + (i === n ? 1440 : 0);
     const span = bMin - a.minute || 1;
-    const t = clampBit(((m + (i === 0 ? 1440 : 0)) - a.minute) / span);
+    const t = clampBit((m + (i === 0 ? 1440 : 0) - a.minute) / span);
 
     return lerpRGBA(a.color, b.color, t);
 };
@@ -79,6 +97,7 @@ export default function TradingPlaza() {
     const { fontIdToName } = useData();
     const { addCachedUser } = useCachedUser();
     const { playSound, defineSounds, stopSound, setVolume } = useSound();
+    const { messages, fetchMessages, sendMessage } = useChat();
 
     if (!user) return <Navigate to="/login" />;
 
@@ -86,16 +105,10 @@ export default function TradingPlaza() {
     const waterBackgroundRef = useRef<HTMLDivElement>(null);
 
     const [useSystemTime, setUseSystemTime] = useState<boolean>(true);
-    const [debugMinute, setDebugMinute] = useState<number>(() => Math.floor(minutesSinceMidnightLocal()));
+    const [debugMinute, setDebugMinute] = useState<number>(() =>
+        Math.floor(minutesSinceMidnightLocal())
+    );
     const overlayRef = useRef<RGBA>(getTimeColor(debugMinute));
-
-    const stepSounds = [
-        "step-1",
-        "step-2",
-        "step-3",
-        "step-4",
-        "step-5"
-    ];
 
     const setAmbienceVolumes = (minute: number) => {
         let mix = 0;
@@ -108,15 +121,23 @@ export default function TradingPlaza() {
         const dayGain = 0.2 * (1 - mix);
         const nightGain = 0.2 * mix;
 
-        setVolume("trading-plaza-ambience", dayGain > 0 ? gainToDb(dayGain) : gainToDb(0));
-        setVolume("trading-plaza-night-ambience", nightGain > 0 ? gainToDb(nightGain) : gainToDb(0));
+        setVolume(
+            "trading-plaza-ambience",
+            dayGain > 0 ? gainToDb(dayGain) : gainToDb(0)
+        );
+        setVolume(
+            "trading-plaza-night-ambience",
+            nightGain > 0 ? gainToDb(nightGain) : gainToDb(0)
+        );
     };
 
     useEffect(() => {
         defineSounds([
             {
                 id: "trading-plaza-ambience",
-                url: window.constructCDNUrl("/content/audio/sound/trading-plaza/ambience.mp3"),
+                url: window.constructCDNUrl(
+                    "/content/audio/sound/trading-plaza/ambience.mp3"
+                ),
                 options: {
                     loop: true,
                     preload: true,
@@ -125,25 +146,28 @@ export default function TradingPlaza() {
             },
             {
                 id: "trading-plaza-night-ambience",
-                url: window.constructCDNUrl("/content/audio/sound/trading-plaza/night-ambience.mp3"),
+                url: window.constructCDNUrl(
+                    "/content/audio/sound/trading-plaza/night-ambience.mp3"
+                ),
                 options: {
                     loop: true,
                     preload: true,
                     volume: gainToDb(0)
                 }
             },
-            ...stepSounds.map((sound) => ({
+            ...STEP_SOUNDS.map((sound) => ({
                 id: sound,
-                url: window.constructCDNUrl(`/content/audio/sound/trading-plaza/${sound}.mp3`),
+                url: window.constructCDNUrl(
+                    `/content/audio/sound/trading-plaza/${sound}.mp3`
+                ),
                 options: { volume: gainToDb(0.5) }
             }))
-        ])
-            .then(() => {
-                playSound("trading-plaza-ambience");
-                playSound("trading-plaza-night-ambience");
+        ]).then(() => {
+            playSound("trading-plaza-ambience");
+            playSound("trading-plaza-night-ambience");
 
-                setAmbienceVolumes(debugMinute);
-            });
+            setAmbienceVolumes(debugMinute);
+        });
 
         return () => {
             stopSound("trading-plaza-ambience");
@@ -175,7 +199,7 @@ export default function TradingPlaza() {
 
         let active = true;
 
-        const PLAYER_SPEED = (window.innerWidth < 1024 ? 8 : 10);
+        const PLAYER_SPEED = 10;
         const FOOTSTEP_INTERVAL = 350 / (PLAYER_SPEED / 10);
 
         // TODO: delete this
@@ -183,7 +207,7 @@ export default function TradingPlaza() {
         const COLUMNS = 35;
         const ROWS = 40;
 
-        let _previousPos = { x: 0, y: 0 };
+        let _previousPos = { ...PLAYER_SPAWN };
         let _lastFootstep = 0;
 
         let sprinting = false;
@@ -195,7 +219,10 @@ export default function TradingPlaza() {
                 let key: string = "";
                 let tile = tiles[0];
 
-                const chanceSum = TILES.reduce((sum, tile) => sum + (tile?.chance ?? 1), 0);
+                const chanceSum = TILES.reduce(
+                    (sum, tile) => sum + (tile?.chance ?? 1),
+                    0
+                );
                 const randomChance = Math.random() * chanceSum;
 
                 let accumulatedChance = 0;
@@ -272,7 +299,8 @@ export default function TradingPlaza() {
                 y: entity.y + (entity?.height ?? 345 / 6) + 20,
                 z,
                 style: {
-                    fontFamily: fontIdToName(entity.user.fontId) ?? "Nunito Bold",
+                    fontFamily:
+                        fontIdToName(entity.user.fontId) ?? "sans-serif",
                     fontSize: 20,
                     textAlign: "center",
                     color: entity.user.color
@@ -280,11 +308,117 @@ export default function TradingPlaza() {
             });
         };
 
+        const PROXIMITY_RANGE = 150;
+
+        const renderPlayerPopups = (
+            entity: PlayerEntity,
+            localPlayer: PlayerEntity
+        ) => {
+            const dist = getDistance(
+                entity.x,
+                entity.y,
+                localPlayer.x,
+                localPlayer.y
+            );
+            const PROXIMITY_THRESHOLD = 150;
+
+            const centerX = entity.x + (entity.width || 50) / 2;
+            let currentY = entity.y - 20;
+
+            if (dist < PROXIMITY_THRESHOLD && entity.id !== localPlayer.id) {
+                const text = "Trade [E]";
+                const padding = 12;
+                const rectWidth = text.length * 9 + padding;
+                const rectHeight = 32;
+
+                drawRoundedRect(
+                    {
+                        x: centerX - rectWidth / 2,
+                        y: currentY - rectHeight,
+                        z: 100,
+                        width: rectWidth,
+                        height: rectHeight,
+                        color: "rgba(40, 40, 40, 0.95)"
+                    },
+                    8
+                );
+
+                brenderCanvasRef.current?.drawText({
+                    text,
+                    x: centerX,
+                    y: currentY + 22,
+                    z: 101,
+                    style: {
+                        fontSize: 14,
+                        color: "#ffca28",
+                        textAlign: "center"
+                    }
+                });
+
+                currentY = entity.y - rectHeight - 30;
+            }
+
+            if (
+                messages
+                    .reverse()
+                    .some(
+                        (msg) =>
+                            msg.authorId === entity.id &&
+                            Date.now() - new Date(msg.createdAt).getTime() <
+                            5000
+                    )
+            ) {
+                const msg =
+                    messages.find(
+                        (msg) =>
+                            msg.authorId === entity.id &&
+                            Date.now() - new Date(msg.createdAt).getTime() <
+                            5000
+                    )?.content ?? "";
+                const padding = 20;
+                const maxWidth = 200;
+
+                const displayMsg =
+                    msg.length > 30 ? msg.substring(0, 27) + "..." : msg;
+                const rectWidth = Math.min(
+                    displayMsg.length * 10 + padding,
+                    maxWidth
+                );
+                const rectHeight = 38;
+                const bubbleY = currentY - rectHeight;
+
+                drawRoundedRect(
+                    {
+                        x: centerX - rectWidth / 2,
+                        y: bubbleY,
+                        z: 102,
+                        width: rectWidth,
+                        height: rectHeight,
+                        color: "#ffffff"
+                    },
+                    10
+                );
+
+                brenderCanvasRef.current?.drawText({
+                    text: displayMsg,
+                    x: centerX,
+                    y: bubbleY + 24,
+                    z: 103,
+                    style: {
+                        fontSize: 16,
+                        color: "#111111",
+                        textAlign: "center"
+                    }
+                });
+            }
+        };
+
         const createPlayerEntity = async (userId: string) => {
             const entity = brender.createPlayerEntity({
                 id: userId,
-                x: 0,
-                y: 0,
+                ...PLAYER_SPAWN,
+                targetX: PLAYER_SPAWN.x,
+                targetY: PLAYER_SPAWN.y,
                 z: 1,
                 image: brender.loadingImage,
                 width: 300 / 6,
@@ -299,8 +433,16 @@ export default function TradingPlaza() {
                 onFrame: async (entity, deltaTime) => {
                     renderPlayerText(entity);
 
-                    entity.x = lerp(entity.x, entity?.targetX ?? 0, (entity?.targetEasingSpeed ?? 0.1 * deltaTime));
-                    entity.y = lerp(entity.y, entity?.targetY ?? 0, (entity?.targetEasingSpeed ?? 0.1 * deltaTime));
+                    entity.x = lerp(
+                        entity.x,
+                        entity?.targetX ?? 0,
+                        entity?.targetEasingSpeed ?? 0.1 * deltaTime
+                    );
+                    entity.y = lerp(
+                        entity.y,
+                        entity?.targetY ?? 0,
+                        entity?.targetEasingSpeed ?? 0.1 * deltaTime
+                    );
                 }
             });
 
@@ -309,25 +451,29 @@ export default function TradingPlaza() {
 
             entity.user = user;
 
-            brender.urlToImage(getUserAvatarPath(user))
-                .then((image) => {
-                    entity.image = image;
-                    if (user?.avatar?.shiny) entity.imageShiny = true;
-                    if (isAvatarBig(user)) {
-                        entity.width = 600 / 6;
-                        entity.height = 690 / 6;
-                    } else {
-                        entity.width = 300 / 6;
-                        entity.height = 345 / 6;
-                    }
-                });
+            brender.urlToImage(getUserAvatarPath(user)).then((image) => {
+                entity.image = image;
+                if (user?.avatar?.shiny) entity.imageShiny = true;
+                if (isAvatarBig(user)) {
+                    entity.width = 600 / 6;
+                    entity.height = 690 / 6;
+                } else {
+                    entity.width = 300 / 6;
+                    entity.height = 345 / 6;
+                }
+            });
 
             return entity;
         };
 
-        const handleJoin = async (data: { userId: string }) => createPlayerEntity(data.userId);
+        const handleJoin = async (data: { userId: string }) =>
+            createPlayerEntity(data.userId);
 
-        const handleMove = async (data: { userId: string, x: number, y: number }) => {
+        const handleMove = async (data: {
+            userId: string;
+            x: number;
+            y: number;
+        }) => {
             if (data.userId === user.id) return;
 
             const entity = brender.findEntity(data.userId);
@@ -337,9 +483,10 @@ export default function TradingPlaza() {
             entity.targetY = data.y;
         };
 
-        const handleLeave = (data: { userId: string }) => brender.findEntity(data.userId)?.destroy?.();
+        const handleLeave = (data: { userId: string }) =>
+            brender.findEntity(data.userId)?.destroy?.();
 
-        const handleLagback = (data: { x: number, y: number }) => {
+        const handleLagback = (data: { x: number; y: number }) => {
             const player = brender.findEntity(user.id) as PlayerEntity;
             if (!player) return;
 
@@ -354,8 +501,7 @@ export default function TradingPlaza() {
 
         const player = brender.createPlayerEntity({
             id: user.id,
-            x: 0,
-            y: 0,
+            ...PLAYER_SPAWN,
             z: 10,
             image: brender.loadingImage,
             width: 300 / 6,
@@ -368,10 +514,14 @@ export default function TradingPlaza() {
                 let moveX = 0;
                 let moveY = 0;
 
-                if (MOVEMENT_KEYS.UP.some((key) => brender.pressing[key])) moveY -= PLAYER_SPEED * deltaTime;
-                if (MOVEMENT_KEYS.LEFT.some((key) => brender.pressing[key])) moveX -= PLAYER_SPEED * deltaTime;
-                if (MOVEMENT_KEYS.DOWN.some((key) => brender.pressing[key])) moveY += PLAYER_SPEED * deltaTime;
-                if (MOVEMENT_KEYS.RIGHT.some((key) => brender.pressing[key])) moveX += PLAYER_SPEED * deltaTime;
+                if (MOVEMENT_KEYS.UP.some((key) => brender.pressing[key]))
+                    moveY -= PLAYER_SPEED * deltaTime;
+                if (MOVEMENT_KEYS.LEFT.some((key) => brender.pressing[key]))
+                    moveX -= PLAYER_SPEED * deltaTime;
+                if (MOVEMENT_KEYS.DOWN.some((key) => brender.pressing[key]))
+                    moveY += PLAYER_SPEED * deltaTime;
+                if (MOVEMENT_KEYS.RIGHT.some((key) => brender.pressing[key]))
+                    moveX += PLAYER_SPEED * deltaTime;
 
                 if (MOVEMENT_KEYS.RUN.some((key) => brender.pressing[key])) {
                     moveX *= 1.5;
@@ -391,16 +541,33 @@ export default function TradingPlaza() {
                 const nextY = (entity.y + moveY) | 0;
 
                 // object collision checks
-                const objects = brender.objects.filter((object) => isOnScreen(object.x, object.y, object.width!, object.height!));
+                const objects = brender.objects.filter((object) =>
+                    isOnScreen(
+                        object.x,
+                        object.y,
+                        object.width!,
+                        object.height!
+                    )
+                );
                 for (const object of objects) {
-                    if (isColliding({ ...entity, x: nextX } as BrenderEntity, object)) {
+                    if (
+                        isColliding(
+                            { ...entity, x: nextX } as BrenderEntity,
+                            object
+                        )
+                    ) {
                         const diffX = entity.x - object.x;
 
                         if (diffX > 0) moveX = Math.max(0, moveX);
                         if (diffX < 0) moveX = Math.min(0, moveX);
                     }
 
-                    if (isColliding({ ...entity, y: nextY } as BrenderEntity, object)) {
+                    if (
+                        isColliding(
+                            { ...entity, y: nextY } as BrenderEntity,
+                            object
+                        )
+                    ) {
                         const diffY = entity.y - object.y;
 
                         if (diffY > 0) moveY = Math.max(0, moveY);
@@ -409,16 +576,28 @@ export default function TradingPlaza() {
                 }
 
                 // entity collision checks
-                const entities = brender.entities.filter((entity) => entity.id !== user.id);
+                const entities = brender.entities.filter(
+                    (entity) => entity.id !== user.id
+                );
                 for (const entity2 of entities) {
-                    if (isColliding({ ...entity, x: nextX } as BrenderEntity, entity2)) {
+                    if (
+                        isColliding(
+                            { ...entity, x: nextX } as BrenderEntity,
+                            entity2
+                        )
+                    ) {
                         const diffX = entity.x - entity2.x;
 
                         if (diffX > 0) moveX = Math.max(0, moveX);
                         if (diffX < 0) moveX = Math.min(0, moveX);
                     }
 
-                    if (isColliding({ ...entity, y: nextY } as BrenderEntity, entity2)) {
+                    if (
+                        isColliding(
+                            { ...entity, y: nextY } as BrenderEntity,
+                            entity2
+                        )
+                    ) {
                         const diffY = entity.y - entity2.y;
 
                         if (diffY > 0) moveY = Math.max(0, moveY);
@@ -428,36 +607,45 @@ export default function TradingPlaza() {
 
                 _previousPos = { x: entity.x, y: entity.y };
 
-                brender.camera.focusOn(entity as BrenderEntity, (window.innerWidth < 1024 ? 0.15 : 0.1) * deltaTime);
+                brender.camera.focusOn(
+                    entity as BrenderEntity,
+                    (window.innerWidth < 1024 ? 0.15 : 0.1) * deltaTime
+                );
 
                 entity.x += moveX | 0;
                 entity.y += moveY | 0;
 
-                waterBackgroundRef.current?.style.setProperty("background-position", `${-brender.camera.x}px ${-brender.camera.y}px`);
+                waterBackgroundRef.current?.style.setProperty(
+                    "background-position",
+                    `${-brender.camera.x}px ${-brender.camera.y}px`
+                );
             }
         });
 
-        brender.urlToImage(getUserAvatarPath(user))
-            .then((image) => {
-                player.image = image;
-                if (user?.avatar?.shiny) player.imageShiny = true;
-                if (isAvatarBig(user)) {
-                    player.width = 600 / 6;
-                    player.height = 690 / 6;
-                } else {
-                    player.width = 300 / 6;
-                    player.height = 345 / 6;
-                }
-            });
+        brender.urlToImage(getUserAvatarPath(user)).then((image) => {
+            player.image = image;
+            if (user?.avatar?.shiny) player.imageShiny = true;
+            if (isAvatarBig(user)) {
+                player.width = 600 / 6;
+                player.height = 690 / 6;
+            } else {
+                player.width = 300 / 6;
+                player.height = 345 / 6;
+            }
+        });
 
         const movementLoop = () => {
             if (!active) return;
 
             const now = Date.now();
-            const isMoving = player.x !== _previousPos.x || player.y !== _previousPos.y;
+            const isMoving =
+                player.x !== _previousPos.x || player.y !== _previousPos.y;
 
             if (isMoving) {
-                if (now - _lastFootstep > FOOTSTEP_INTERVAL / (sprinting ? 1.5 : 1)) {
+                if (
+                    now - _lastFootstep >
+                    FOOTSTEP_INTERVAL / (sprinting ? 1.5 : 1)
+                ) {
                     const sound = `step-${Math.floor(Math.random() * 5) + 1}`;
 
                     playSound(sound);
@@ -465,7 +653,10 @@ export default function TradingPlaza() {
                     _lastFootstep = now;
                 }
 
-                socket.emit(SocketMessageType.TRADING_PLAZA_MOVE, { x: player.x, y: player.y });
+                socket.emit(SocketMessageType.TRADING_PLAZA_MOVE, {
+                    x: player.x,
+                    y: player.y
+                });
 
                 _previousPos.x = player.x;
                 _previousPos.y = player.y;
@@ -477,14 +668,29 @@ export default function TradingPlaza() {
         movementLoop();
 
         (async () => {
+            const spawnRing = TILES.find((tile) => tile.id === "spawn-ring")!;
+
+            brender.createObject({
+                id: "spawn-ring",
+                x: (750 - spawnRing.width) / 2,
+                y: (750 - spawnRing.height) / 2,
+                z: 0,
+                image: await brender.urlToImage(spawnRing.image),
+                width: spawnRing.width,
+                height: spawnRing.height,
+                hasCollision: false
+            });
+
             brender.createObject({
                 id: "spawn",
                 x: 0,
                 y: 0,
                 z: 0,
-                image: (await brender.urlToImage(window.constructCDNUrl("/content/trading-plaza/spawn.png"))),
-                width: 500,
-                height: 500,
+                image: await brender.urlToImage(
+                    window.constructCDNUrl("/content/trading-plaza/spawn.png")
+                ),
+                width: 750,
+                height: 750,
                 hasCollision: false
             });
 
@@ -531,20 +737,33 @@ export default function TradingPlaza() {
         >
             <WaterBackground ref={waterBackgroundRef} />
 
-            {socket && <BrenderCanvas
-                ref={brenderCanvasRef}
-                className={styles.canvas}
-                debug={true}
-                showFPS={true}
-            />}
+            {socket && (
+                <BrenderCanvas
+                    ref={brenderCanvasRef}
+                    className={styles.canvas}
+                    debug={true}
+                    showFPS={true}
+                />
+            )}
 
             <div className={styles.ui}>
-                <div
-                    className={styles.topLeft}
-                >
-                    {connected ? "Connected to Trading Plaza" : "Disconnected from Trading Plaza"}
+                <div className={styles.topLeft}>
+                    {connected
+                        ? "Connected to Trading Plaza"
+                        : "Disconnected from Trading Plaza"}
                     <br />
-                    <div style={{ color: latency < 100 ? "unset" : latency < 200 ? "yellow" : "red" }}>Ping: {latency}ms</div>
+                    <div
+                        style={{
+                            color:
+                                latency < 100
+                                    ? "unset"
+                                    : latency < 200
+                                        ? "yellow"
+                                        : "red"
+                        }}
+                    >
+                        Ping: {latency}ms
+                    </div>
                 </div>
             </div>
 
@@ -555,25 +774,46 @@ export default function TradingPlaza() {
                     right: 100,
                     padding: 10,
                     zIndex: 10,
-                    background: "rgba(0,0,0,0.35)",
+                    background: "rgba(var(--black),0.35)",
                     backdropFilter: "blur(4px)",
                     borderRadius: 8,
                     color: "#fff",
                     width: 260
                 }}
             >
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        marginBottom: 6
+                    }}
+                >
                     <input
                         id="useSystemTime"
                         type="checkbox"
                         checked={useSystemTime}
                         onChange={(e) => setUseSystemTime(e.target.checked)}
                     />
-                    <label htmlFor="useSystemTime">system time (snapshot at open)</label>
+                    <label htmlFor="useSystemTime">
+                        system time (snapshot at open)
+                    </label>
                 </div>
 
-                <div style={{ opacity: useSystemTime ? 0.5 : 1, pointerEvents: useSystemTime ? "none" : "auto" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 4 }}>
+                <div
+                    style={{
+                        opacity: useSystemTime ? 0.5 : 1,
+                        pointerEvents: useSystemTime ? "none" : "auto"
+                    }}
+                >
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            fontSize: 12,
+                            marginBottom: 4
+                        }}
+                    >
                         <span>fake time</span>
                         <span>{minuteToHHMM(debugMinute)}</span>
                     </div>
@@ -603,20 +843,21 @@ export default function TradingPlaza() {
                 }}
             />
 
-            <Joystick onMove={(a) => {
-                const brender = brenderCanvasRef.current;
-                if (!brender) return;
+            <Joystick
+                onMove={(a) => {
+                    const brender = brenderCanvasRef.current;
+                    if (!brender) return;
 
-                const direction = {
-                    x: Math.cos(a),
-                    y: Math.sin(a)
-                };
+                    const direction = {
+                        x: Math.cos(a),
+                        y: Math.sin(a)
+                    };
 
-                brender.pressing["w"] = direction.y < -0.5;
-                brender.pressing["s"] = direction.y > 0.5;
-                brender.pressing["a"] = direction.x < -0.5;
-                brender.pressing["d"] = direction.x > 0.5;
-            }}
+                    brender.pressing["w"] = direction.y < -0.5;
+                    brender.pressing["s"] = direction.y > 0.5;
+                    brender.pressing["a"] = direction.x < -0.5;
+                    brender.pressing["d"] = direction.x > 0.5;
+                }}
                 onStop={() => {
                     const brender = brenderCanvasRef.current;
                     if (!brender) return;
@@ -627,6 +868,6 @@ export default function TradingPlaza() {
                     brender.pressing["d"] = false;
                 }}
             />
-        </div >
+        </div>
     );
 }

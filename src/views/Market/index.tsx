@@ -7,9 +7,11 @@ import { useResource } from "@stores/ResourceStore";
 import { useModal } from "@stores/ModalStore/index";
 import { useSound } from "@stores/SoundStore/index";
 import { useData } from "@stores/DataStore/index";
+import { useInsanePull } from "@stores/InsanePullStore/index";
 import { useSettings } from "@controllers/settings/useSettings";
 import { useOpenPack } from "@controllers/market/useOpenPack";
 import { useBoosters } from "@controllers/data/useBoosters";
+import { useLocalStorageState } from "@functions/core/hooks/useLocalStorageState";
 import { SidebarBody, PageHeader, Modal, Button, SearchBox, ParticleCanvas } from "@components/index";
 import type { ParticleCanvasRef } from "@components/ParticleCanvas/particleCanvas.d";
 import { OpenPackModal, Category, Pack, OpenPackContainer, OpenPackBlook, Item, BoosterContainer } from "./components";
@@ -18,17 +20,16 @@ import styles from "./market.module.scss";
 import { DataBoostersEntity, MarketOpenPackDto, Pack as PackType, RarityAnimationTypeEnum, UserBlook } from "@blacket/types";
 import { BigButtonClickType, LittleButton, SearchOptions } from "./market.d";
 
-// TODO: can't hear so i will see if this is right
-
 export default function Market() {
+    const { user } = useUser();
+    if (!user) return <Navigate to="/login" />;
+
     const { setLoading } = useLoading();
     const { createModal } = useModal();
-    const { user } = useUser();
     const { resourceIdToPath } = useResource();
-    const { playSound, stopSounds, defineSounds, setVolume, getSound } = useSound();
+    const { playSound, stopSounds, defineSounds, setVolume } = useSound();
     const { packs, rarities, blooks, itemShop } = useData();
-
-    if (!user) return <Navigate to="/login" />;
+    const { isPlaying } = useInsanePull();
 
     const { changeSetting } = useSettings();
     const { openPack } = useOpenPack();
@@ -38,11 +39,12 @@ export default function Market() {
     const [openingPack, setOpeningPack] = useState<boolean>(false);
     const [unlockedBlook, setUnlockedBlook] = useState<UserBlook | null>(null);
     const [bigButtonEvent, setBigButtonEvent] = useState<BigButtonClickType>(BigButtonClickType.CLOSE);
-    const [search, setSearch] = useState<SearchOptions>({ query: localStorage.getItem("MARKET_SEARCH_QUERY") ?? "", onlyPurchasable: localStorage.getItem("MARKET_SEARCH_ONLY_PURCHASABLE") ? true : false });
+    const [search, setSearch] = useLocalStorageState<SearchOptions>("market:search", { query: "", onlyPurchasable: false });
     const [boosters, setBoosters] = useState<DataBoostersEntity | null>(null);
 
     const particleCanvasRef = useRef<ParticleCanvasRef>(null);
     const spotlightDimmerRef = useRef<HTMLDivElement>(null);
+    const isPlayingRef = useRef(isPlaying);
 
     const playRaritySound = async (r: RarityAnimationTypeEnum) => {
         if (!user.settings) return;
@@ -139,6 +141,8 @@ export default function Market() {
                 await new Promise((r) => {
                     let waitTime = 700;
 
+                    if (blook.video) waitTime += blook.video.length;
+
                     setTimeout(() => {
                         playRaritySound(rarity.animationType as RarityAnimationTypeEnum);
                     }, 500);
@@ -148,25 +152,42 @@ export default function Market() {
                     if (rarity.animationType === RarityAnimationTypeEnum.MYTHICAL) particleDelay = 8800;
 
                     setTimeout(() => {
-                        particleCanvasRef.current?.start();
+                        if (!blook.video) particleCanvasRef.current?.start();
                     }, particleDelay);
 
                     if (rarity.animationType === RarityAnimationTypeEnum.LEGENDARY) waitTime += 1300;
                     if (rarity.animationType === RarityAnimationTypeEnum.CHROMA) waitTime += 8000;
                     if (rarity.animationType === RarityAnimationTypeEnum.MYTHICAL) waitTime += 20000;
-                    if (unlockedBlook.shiny) waitTime += 2000;
+                    if (unlockedBlook.shiny) waitTime += 1000;
 
-                    if (rarity.animationType === RarityAnimationTypeEnum.MYTHICAL) {
+                    if (
+                        rarity.animationType === RarityAnimationTypeEnum.MYTHICAL
+                        || rarity.animationType === RarityAnimationTypeEnum.IRIDESCENT
+                    ) {
                         const spotlightDimmer = spotlightDimmerRef.current;
-                        if (spotlightDimmer) setTimeout(() => {
-                            playSound("angelic-chords");
 
-                            spotlightDimmer.style.opacity = String(1);
+                        if (spotlightDimmer) {
+                            const showSpotlight = () => {
+                                playSound("angelic-chords");
+
+                                spotlightDimmer.style.opacity = String(1);
+
+                                setTimeout(() => {
+                                    spotlightDimmer.style.opacity = String(0);
+                                }, 10000);
+                            };
+
+                            const checkSpotlight = () => {
+                                if (!isPlayingRef.current) setTimeout(showSpotlight, 3000);
+                                else setTimeout(checkSpotlight, 100);
+                            };
+
 
                             setTimeout(() => {
-                                spotlightDimmer.style.opacity = String(0);
-                            }, 10000);
-                        }, 11000);
+                                if (!isPlayingRef.current) setTimeout(showSpotlight, 2000);
+                                else checkSpotlight();
+                            }, 9000);
+                        }
                     }
 
                     setTimeout(() => {
@@ -193,6 +214,11 @@ export default function Market() {
                 break;
         }
     };
+
+    useEffect(() => {
+        isPlayingRef.current = isPlaying;
+        console.log("isPlaying changed:", isPlaying);
+    }, [isPlaying]);
 
     useEffect(() => {
         getBoosters()
@@ -260,15 +286,12 @@ export default function Market() {
                             { icon: !search.onlyPurchasable ? "fas fa-eye" : "fas fa-eye-slash", tooltip: "Only Purchasable", onClick: () => setSearch({ ...search, onlyPurchasable: !search.onlyPurchasable }) },
                             {
                                 icon: "fas fa-times", tooltip: "Reset Search", onClick: () => {
-                                    localStorage.removeItem("MARKET_SEARCH_QUERY");
                                     setSearch({ ...search, query: "" });
                                 }
                             }
                         ]}
                         value={search.query}
                         onChange={(e) => {
-                            localStorage.setItem("MARKET_SEARCH_QUERY", e.target.value);
-
                             setSearch({
                                 ...search,
                                 query: e.target.value
@@ -304,17 +327,32 @@ export default function Market() {
                         </div>
                     </Category>
 
+                    {/*
+                        pro-tip for future:
+
+                        const weeklyItems = itemShop.filter(item => item.weekly);
+                        const nonWeeklyItems = itemShop.filter(item => !item.weekly);
+                    */}
+
                     <Category header="Weekly Shop">
                         <div className={styles.itemShopContainer}>
-                            {/* TODO: weekly shop */}
-                            {itemShop.length > 0 ? itemShop.map((entry) => entry.weekly && <Item itemShop={entry} key={entry.id} />) : "No items found."}
+                            {/* todo: item shop (Bleh :P <[tboyj]) */}
+                            {(() => {
+                                const nonWeeklyItems = itemShop.filter((entry) => !entry.weekly);
+
+                                return nonWeeklyItems.length > 0 ? nonWeeklyItems.map((entry) => <Item itemShop={entry} key={entry.id}></Item>) : "No items found."; // no items found works
+                            })()}
                         </div>
                     </Category>
-
+                    {/* TODO: Test values by adding data to the ItemShop table. */}
                     <Category header="Item Shop">
                         <div className={styles.itemShopContainer}>
                             {/* TODO: item shop */}
-                            {itemShop.length > 0 ? itemShop.map((entry) => !entry.weekly && <Item itemShop={entry} key={entry.id} />) : "No items found."}
+                            {(() => {
+                                const weeklyItems = itemShop.filter((entry) => entry.weekly);
+
+                                return weeklyItems.length > 0 ? weeklyItems.map((entry) => <Item itemShop={entry} key={entry.id}></Item>) : "No items found."; // no items found works
+                            })()}
                         </div>
                     </Category>
                 </div>
@@ -333,7 +371,10 @@ export default function Market() {
             {currentPack && <>
                 <style>{"body{overflow:hidden}"}</style>
 
-                <div className={styles.openModal}>
+                <div
+                    className={styles.openModal}
+                    style={isPlaying ? { display: "none" } : {}}
+                >
                     <div
                         ref={spotlightDimmerRef}
                         className={styles.spotlightDimmer}
@@ -369,8 +410,8 @@ export default function Market() {
                             opening={openingPack}
                             image={resourceIdToPath(currentPack.imageId)}
                             video={
-                                blooks.find((blook) => blook.id === unlockedBlook.blookId)!.videoId
-                                    ? resourceIdToPath(blooks.find((blook) => blook.id === unlockedBlook.blookId)!.videoId!)
+                                blooks.find((blook) => blook.id === unlockedBlook.blookId)!.video
+                                    ? resourceIdToPath(blooks.find((blook) => blook.id === unlockedBlook.blookId)!.video?.resourceId)
                                     : undefined
                             }
                             animationType={rarities.find((rarity) => rarity.id === blooks.find((blook) => blook.id === unlockedBlook.blookId)!.rarityId)!.animationType}

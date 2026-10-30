@@ -8,6 +8,8 @@ lerna-debug.log*
 
 node_modules
 package-lock.json
+bun.lock
+bun.lockb
 dist
 dist-ssr
 *.local
@@ -25,6 +27,3 @@ config.json
 *.njsproj
 *.sln
 *.sw?
-
-public/**/*
-!public/favicon.ico

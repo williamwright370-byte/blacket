@@ -17,20 +17,75 @@
     }
 }
 
+.plans {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.changePendingContainer {
+    background: rgba(var(--black), 0.8);
+    width: auto;
+    border-radius: var(--border-radius);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 10px;
+
+    @media (max-width: 1024px) {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px 10px;
+    }
+}
+
+.changePendingMessage {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0.5;
+}
+
 .planContainer {
+    position: relative;
     background: var(--primary-color);
-    border-radius: 7px;
+    border-radius: var(--border-radius);
     padding: 16px;
     padding-bottom: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: inset 0 -7px rgba(0, 0, 0, .2);
+    box-shadow: inset 0 -7px rgba(var(--black), .2);
 
     @media (max-width: 768px) {
         flex-direction: column;
         align-items: flex-start;
     }
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(var(--black), 0.2);
+        border-radius: var(--border-radius);
+    }
+}
+
+.planOption {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    background: var(--primary-color);
+    border-radius: var(--border-radius);
+    padding: 10px 20px;
+    z-index: 1;
+    box-shadow: inset 0 -7px rgba(var(--black), .2);
 }
 
 .planDetailsContainer {
@@ -39,6 +94,7 @@
     justify-content: center;
     align-items: center;
     gap: 20px;
+    z-index: 1;
 }
 
 .planLogo {
@@ -68,6 +124,7 @@
     justify-content: center;
     align-items: center;
     gap: 10px;
+    z-index: 1;
 
     @media screen and (max-width: 768px) {
         margin-top: 20px;
@@ -98,7 +155,7 @@
     flex-direction: column;
     flex: 1;
     min-height: 100%;
-    box-shadow: inset 0 -7px rgba(0, 0, 0, .2);
+    box-shadow: inset 0 -7px rgba(var(--black), .2);
 
     @media screen and (max-width: 768px) {
         max-width: 95%;
@@ -130,7 +187,7 @@
     border-radius: 10px;
     padding: 16px;
     padding-bottom: 20px;
-    box-shadow: inset 0 -7px rgba(0, 0, 0, .2);
+    box-shadow: inset 0 -7px rgba(var(--black), .2);
 
     @media screen and (max-width: 768px) {
         max-width: 95%;
@@ -147,6 +204,35 @@
     align-items: center;
     font-weight: 700;
     margin-bottom: 10px;
+}
+
+.transactionHistoryBottomRow {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+    margin-top: 10px;
+}
+
+.transactionHistoryNavigationContainer {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-radius: var(--border-radius);
+    background: var(--secondary-color);
+}
+
+.transactionHistoryNavigationButton {
+    cursor: pointer;
+
+    &[data-disabled="true"] {
+        cursor: auto;
+        opacity: 0.5;
+    }
 }
 
 .transactionHistoryDate {
@@ -176,11 +262,9 @@
 
 .transaction {
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    border-radius: 10px;
+    flex-direction: column;
+    padding: 5px 10px;
+    border-radius: var(--border-radius);
     background: var(--background-color);
     transition: filter 0.2s;
     cursor: pointer;
@@ -192,6 +276,13 @@
     &:active {
         filter: brightness(0.9);
     }
+}
+
+.transactionTopRow {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .transactionDate {
@@ -241,7 +332,7 @@
     padding: 5px 10px;
     width: 10%;
     font-weight: 700;
-    border-radius: 7px;
+    border-radius: var(--border-radius);
 
     @media screen and (max-width: 768px) {
         width: 5%;
@@ -285,4 +376,28 @@
     @media screen and (max-width: 768px) {
         width: 90%;
     }
+}
+
+.transactionDetails {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+    margin: 10px 0 5px 0;
+    gap: 5px;
+}
+
+.transactionDetailsRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.transactionDetailsDivider {
+    width: 100%;
+    height: 2px;
+    background-color: rgba(var(--white), 0.1);
+    margin: 5px 0;
 }

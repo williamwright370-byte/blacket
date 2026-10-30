@@ -7,6 +7,7 @@
     font-size: 20px;
     line-height: 1.4;
     gap: 10px;
+    flex-wrap: wrap;
 
     &[data-loading="true"] {
         padding: 23px 20px 40px;

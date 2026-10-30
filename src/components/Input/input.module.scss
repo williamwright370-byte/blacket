@@ -1,7 +1,7 @@
 .inputContainer {
     align-items: center;
     border: 2px solid var(--background-color);
-    border-radius: 7px;
+    border-radius: var(--border-radius);
     display: flex;
     flex-direction: row;
     height: 45px;
@@ -35,11 +35,12 @@
     &>input {
         align-items: center;
         border: none;
-        background-color: var(--primary-color);
+        border-radius: var(--border-radius);
+        background: var(--primary-color);
         color: var(--accent-color);
         display: flex;
         flex-direction: row;
-        font-family: "Nunito", sans-serif;
+        font-family: var(--paragraph-font);
         font-size: 17px;
         height: 35px;
         margin: 5px 2px 5px 11px;

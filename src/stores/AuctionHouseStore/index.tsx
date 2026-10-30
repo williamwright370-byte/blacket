@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuctionTypeEnum, SocketAuctionBidEntity, SocketAuctionExpireEntity, SocketMessageType, UserBlook, UserItem } from "@blacket/types";
+import { AuctionTypeEnum, AuctionsSearchAuctionDto, SocketAuctionBidEntity, SocketAuctionExpireEntity, SocketMessageType, UserBlook, UserItem } from "@blacket/types";
 
 import { useSocket } from "@stores/SocketStore";
 import { useUser } from "@stores/UserStore";
@@ -10,13 +10,14 @@ import { useData } from "@stores/DataStore";
 import { useResource } from "@stores/ResourceStore";
 import { useToast } from "@stores/ToastStore";
 import { useSearchAuction } from "@controllers/auctions/useSearchAuction";
+import { localStorage } from "@functions/core/localStorage";
 
 import { AuctionHouseStore } from "./auctionHouse.d";
 
 const useAuctionHouseStore = create<AuctionHouseStore>((set, get) => ({
     loading: false,
     auctions: [],
-    search: JSON.parse(localStorage.getItem("AUCTION_SEARCH") || "{}"),
+    search: localStorage.get<AuctionsSearchAuctionDto>("auctionHouse:search", {}) || {},
     setLoading: (loading) => set({ loading }),
     setAuctions: (auctions) => {
         if (typeof auctions === "function") {
@@ -25,7 +26,11 @@ const useAuctionHouseStore = create<AuctionHouseStore>((set, get) => ({
             set({ auctions });
         }
     },
-    setSearch: (search) => set({ search }),
+    setSearch: (search) => {
+        localStorage.set<AuctionsSearchAuctionDto>("auctionHouse:search", search);
+
+        set({ search });
+    },
     getAuctions: () => {
         const { search } = get();
         const { searchAuction } = useSearchAuction();
@@ -34,7 +39,8 @@ const useAuctionHouseStore = create<AuctionHouseStore>((set, get) => ({
 
         searchAuction(search)
             .then((res) => {
-                localStorage.setItem("AUCTION_SEARCH", JSON.stringify(search));
+                localStorage.set<AuctionsSearchAuctionDto>("auctionHouse:search", search);
+
                 set({ auctions: res.data, loading: false });
             })
             .catch(() => set({ auctions: [], loading: false }));

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useRouteError } from "react-router-dom";
+import * as Tone from "tone";
 import { Background, Button } from "@components/index";
 import { Image } from "./components/index";
 import styles from "./error.module.scss";
@@ -20,6 +21,12 @@ export default function Error({ code, reason }: ErrorProps) {
     }
 
     useEffect(() => {
+        Tone.start().then(() => {
+            const player = new Tone.Player(window.constructCDNUrl("/content/audio/sound/error.mp3")).toDestination();
+
+            player.autostart = true;
+        });
+
         if (code === ErrorCode.UNKNOWN) document.title = `Error | ${import.meta.env.VITE_INFORMATION_NAME}`;
         else if (code === ErrorCode.NOT_FOUND) document.title = `Not Found | ${import.meta.env.VITE_INFORMATION_NAME}`;
         else if (code === ErrorCode.BLACKLISTED) document.title = `Blacklisted | ${import.meta.env.VITE_INFORMATION_NAME}`;

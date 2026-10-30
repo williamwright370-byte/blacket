@@ -1,5 +1,4 @@
 import CosmeticsModal from "./CosmeticsModal";
-import DailyRewardsModal from "./DailyRewardsModal";
 import FriendsContainer from "./FriendsContainer";
 import LevelContainer from "./LevelContainer";
 import LookupUserModal from "./LookupUserModal";
@@ -11,7 +10,6 @@ import StatContainer from "./StatContainer";
 
 export {
     CosmeticsModal,
-    DailyRewardsModal,
     FriendsContainer,
     LevelContainer,
     LookupUserModal,

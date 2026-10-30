@@ -12,4 +12,5 @@ export interface RuleObject {
 
 export interface TooFastModalProps {
     startedReading: Date;
+    submitCallback: () => void;
 }

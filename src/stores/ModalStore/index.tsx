@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { localStorage } from "@functions/core/localStorage";
 
 import { ModalStore } from "./modalStore.d";
 
@@ -7,16 +8,16 @@ export const useModal = create<ModalStore>((set, get) => ({
 
     setModals: (modals) => set({ modals }),
 
-    createModal: (modal, outsideModal) => {
+    createModal: (modal, props) => {
         const id = Math.random().toString(36).slice(2);
 
-        set((s) => ({ modals: [...s.modals, { id, modal, outsideModal }] }));
+        set((s) => ({ modals: [...s.modals, { id, modal, props }] }));
 
         return id;
     },
 
     closeModal: () => {
-        if (localStorage.getItem("DISABLE_MODAL_ANIMATION") === "true") {
+        if (!localStorage.get("settings:modalAnimation")) {
             set((s) => ({ modals: s.modals.slice(1) }));
         } else {
             set({ closing: true });

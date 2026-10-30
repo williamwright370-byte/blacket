@@ -56,6 +56,7 @@ export default function SellBlooksModal({ blook, shiny }: SellBlooksModalProps) 
                         {user.blooks
                             .filter((userBlook) => userBlook.blookId === blook.id)
                             .filter((userBlook) => userBlook.shiny === shiny)
+                            .sort((a, b) => (b.serial || 0) - (a.serial || 0))
                             .map((userBlook) => <div
                                 key={userBlook.id}
                                 className={styles.sellBlook}
@@ -82,7 +83,7 @@ export default function SellBlooksModal({ blook, shiny }: SellBlooksModalProps) 
                     </div>
                 </div>
 
-                <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: "20rem", textAlign: "left" }}>
+                <div className={styles.sellBlooksQuantityContainer}>
                     <Textfit className={styles.sellBlookBlookName} mode="single" min={0} max={40}>
                         {shiny && "Shiny"} {blook.name}
                     </Textfit>

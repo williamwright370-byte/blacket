@@ -8,4 +8,5 @@ export interface UserStore {
     isAvatarBig: (user?: PrivateUser | null) => boolean;
     isLowPerformance: () => boolean;
     getBlookAmount: (blookId: number, shiny: boolean, user?: PrivateUser) => number;
+    getItemAmount: (itemId: number, user?: PrivateUser) => number;
 }

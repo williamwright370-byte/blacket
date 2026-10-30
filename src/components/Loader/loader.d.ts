@@ -1,7 +1,7 @@
 import { HTMLAttributes } from "react";
 
 export interface LoaderProps extends HTMLAttributes<HTMLDivElement> {
-    image?: string;
+    // image?: string;
     motionless?: boolean;
     noModal?: boolean;
     message?: any;

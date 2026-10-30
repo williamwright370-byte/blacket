@@ -8,15 +8,21 @@ import { RarityAnimationTypeEnum } from "@blacket/types";
 
 export default function OpenPackContainer({ opening, image, video, animationType }: OpenPackContainerProps) {
     const { defineSounds, getSound, playSound, playSounds } = useSound();
-    const { setVideo } = useInsanePull();
+    const { setVideo, isPlaying, setIsPlaying } = useInsanePull();
 
     const [ended, setEnded] = useState<boolean>(false);
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const endImageRef = useRef<HTMLImageElement>(null);
     const animationFrameRef = useRef<number | null>(null);
-
     const chromaImageRef = useRef<HTMLImageElement>(null);
+    const isPlayingRef = useRef(isPlaying);
+
+    const noGrow = false;
+
+    useEffect(() => {
+        isPlayingRef.current = isPlaying;
+    }, [isPlaying]);
 
     // define sounds
     useEffect(() => {
@@ -35,9 +41,9 @@ export default function OpenPackContainer({ opening, image, video, animationType
 
         const ps = async () => {
             const sound = await getSound("pack-tear");
-            if (!sound) throw new Error("something terribly went wrong, pack-tear sound not found");
+            if (!sound) throw new Error("something went wrong, pack-tear sound not found");
 
-            sound.playbackRate = 1 + (Math.random() * 0.2 - 0.1);
+            sound.playbackRate = 1 + (Math.random() * 0.3 - 0.1);
 
             playSound("pack-tear");
         };
@@ -81,6 +87,7 @@ export default function OpenPackContainer({ opening, image, video, animationType
         const animate = (timestamp: number) => {
             if (!running) return;
             if (lastTimestamp === null) lastTimestamp = timestamp;
+            if (top >= window.innerHeight) return img.style.display = "none";
 
             const elapsed = timestamp - lastTimestamp;
             lastTimestamp = timestamp;
@@ -116,23 +123,28 @@ export default function OpenPackContainer({ opening, image, video, animationType
         };
     }, [ended]);
 
-    // pack animation for chromas / mythicals
+    // pack animation for chromas+
     useEffect(() => {
         if (!opening) return;
-        if (![RarityAnimationTypeEnum.CHROMA, RarityAnimationTypeEnum.MYTHICAL].includes(animationType as RarityAnimationTypeEnum)) return;
+
+        if (![
+            RarityAnimationTypeEnum.CHROMA,
+            RarityAnimationTypeEnum.MYTHICAL,
+            RarityAnimationTypeEnum.IRIDESCENT
+        ].includes(animationType as RarityAnimationTypeEnum)) return;
         const isMythical = animationType === RarityAnimationTypeEnum.MYTHICAL;
 
         const img = chromaImageRef.current;
         if (!img) return;
 
-        playSound(isMythical ? "mythical-grow" : "chroma-grow");
+        if (!noGrow) playSound(isMythical ? "mythical-grow" : "chroma-grow");
 
         let scale = 1;
         let elapsed = 0;
         let last = performance.now();
         let shakePhase = 0;
 
-        const growDuration = isMythical ? 8800 : 5000;
+        const growDuration = (!noGrow ? (isMythical ? 8800 : 5000) : 10);
         const maxScale = isMythical ? 4 : 2;
         const shineStart = growDuration - 3000;
 
@@ -174,23 +186,32 @@ export default function OpenPackContainer({ opening, image, video, animationType
             img.style.top = "50%";
             img.style.transformOrigin = "center center";
             img.style.zIndex = "9999";
-            img.style.filter = `brightness(${brightness}) drop-shadow(0 0 ${glow}px rgba(255, 255, 255, 1))`;
+            img.style.filter = `brightness(${brightness}) drop-shadow(0 0 ${glow}px rgba(var(--white), 1))`;
+
+            const explode = () => {
+                playSounds(["chroma-explode", isMythical ? "mythical-explode" : ""]);
+
+                img.style.opacity = "0";
+                img.style.transition = "opacity 0.3s ease-out, transform 0.3s ease-out, filter 0.3s ease-out, border-radius 0.3s ease-out, background-color 0.3s ease-out";
+                img.style.transform =
+                    `translate(calc(-50% - ${shakeX}px), calc(-50% - ${shakeY}px)) ` +
+                    `scale(${scale + (isMythical ? 2 : 1)}) rotateZ(${shakeZ}deg)`;
+            };
 
             if (elapsed < growDuration) {
                 animationFrameId = requestAnimationFrame(animate);
             } else {
-                if (!video) {
-                    playSounds(["chroma-explode", isMythical ? "mythical-explode" : ""]);
-
-                    img.style.opacity = "0";
-                    img.style.transition = "opacity 0.3s ease-out, transform 0.3s ease-out, filter 0.3s ease-out, border-radius 0.3s ease-out, background-color 0.3s ease-out";
-                    img.style.transform =
-                        `translate(calc(-50% - ${shakeX}px), calc(-50% - ${shakeY}px)) ` +
-                        `scale(${scale + (isMythical ? 2 : 1)}) rotateZ(${shakeZ}deg)`;
-                } else {
-                    img.style.display = "none";
-
+                if (!video) explode();
+                else {
+                    setIsPlaying(true);
                     setVideo(video);
+
+                    const checkVideo = () => {
+                        if (!isPlayingRef.current) setTimeout(explode, 1000);
+                        else setTimeout(checkVideo, 100);
+                    };
+
+                    setTimeout(checkVideo, 100);
                 }
             }
         };
@@ -204,10 +225,11 @@ export default function OpenPackContainer({ opening, image, video, animationType
 
     return (
         <>
-            {![
+            {(![
                 RarityAnimationTypeEnum.CHROMA,
-                RarityAnimationTypeEnum.MYTHICAL
-            ].includes(animationType as RarityAnimationTypeEnum) ? <>
+                RarityAnimationTypeEnum.MYTHICAL,
+                RarityAnimationTypeEnum.IRIDESCENT
+            ].includes(animationType as RarityAnimationTypeEnum)) ? <>
                 <div className={styles.openPackContainer} data-opening={opening}>
                     {!ended && <video
                         ref={videoRef}

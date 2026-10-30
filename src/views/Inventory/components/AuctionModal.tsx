@@ -4,7 +4,7 @@ import { useUser } from "@stores/UserStore/index";
 import { useResource } from "@stores/ResourceStore/index";
 import { useAuctionHouse } from "@stores/AuctionHouseStore/index";
 import { useCreateAuction } from "@controllers/auctions/useCreateAuction/index";
-import { useRecentAveragePrice } from "@controllers/auctions/useRecentAveragePrice/index";
+import { useRecentAveragePrice } from "@controllers/inventory/useRecentAveragePrice/index";
 import { Modal, Button, Form, Input, ErrorContainer, Toggle, WarningContainer, Blook, Textfit } from "@components/index";
 import styles from "../inventory.module.scss";
 
@@ -21,7 +21,7 @@ export default function AuctionModal({ type, blook, item, shiny }: AuctionModalP
     const [suspicious, setSuspicious] = useState<boolean>(false);
     const [duration, setDuration] = useState<string>("");
     const [buyItNow, setBuyItNow] = useState<boolean>(false);
-    const [selectedBlook, setSelectedBlook] = useState<number | null>(null);
+    const [selected, setSelected] = useState<number | null>(null);
 
     const [auctionTax, setAuctionTax] = useState<number>(0);
     const [durationTax, setDurationTax] = useState<number>(0);
@@ -45,7 +45,7 @@ export default function AuctionModal({ type, blook, item, shiny }: AuctionModalP
         createAuction({
             type,
             itemId: item ? item.id : undefined,
-            blookId: selectedBlook ?? undefined,
+            blookId: selected ?? undefined,
             price: parseInt(price),
             duration: parseInt(duration),
             buyItNow
@@ -67,14 +67,30 @@ export default function AuctionModal({ type, blook, item, shiny }: AuctionModalP
     }, [price, duration, buyItNow]);
 
     useEffect(() => {
-        getRecentAveragePrice({ type, itemId: item ? item.id : undefined, blookId: blook ? blook.id : undefined })
+        getRecentAveragePrice({
+            type,
+            itemId: item ? item.id : undefined,
+            blookId: blook ? blook.id : undefined,
+            shiny
+        })
             .then((res) => {
-                setPrice(Math.floor(res.data.averagePrice * 0.99).toString());
+                if (res.data.averagePrice !== null) setPrice(Math.floor(res.data.averagePrice * 0.99).toString());
                 setSuspicious(res.data.suspicious);
             })
             .catch((err) => setError(err?.data?.message || "Something went wrong."))
             .finally(() => setLoading(false));
     }, []);
+
+    useEffect(() => {
+        if (!(type === AuctionTypeEnum.BLOOK && blook)) return;
+
+        const userBlooks = user.blooks
+            .filter((userBlook) => userBlook.blookId === blook.id)
+            .filter((userBlook) => userBlook.shiny === shiny)
+            .sort((a, b) => (b.serial || 0) - (a.serial || 0));
+
+        if (userBlooks.length > 0) setSelected(userBlooks[0].id);
+    }, [type, blook, shiny, user.blooks]);
 
     return (
         <>
@@ -84,13 +100,14 @@ export default function AuctionModal({ type, blook, item, shiny }: AuctionModalP
                         {user.blooks
                             .filter((userBlook) => userBlook.blookId === blook.id)
                             .filter((userBlook) => userBlook.shiny === shiny)
+                            .sort((a, b) => (b.serial || 0) - (a.serial || 0))
                             .map((userBlook) => <div
                                 key={userBlook.id}
                                 className={styles.sellBlook}
-                                data-selected={selectedBlook === userBlook.id ? "true" : "false"}
+                                data-selected={selected === userBlook.id ? "true" : "false"}
                                 onClick={() => {
-                                    if (selectedBlook === userBlook.id) setSelectedBlook(null);
-                                    else setSelectedBlook(userBlook.id);
+                                    if (selected === userBlook.id) setSelected(null);
+                                    else setSelected(userBlook.id);
                                 }}
                             >
                                 <div className={styles.sellBlookImageContainer}>
@@ -110,7 +127,8 @@ export default function AuctionModal({ type, blook, item, shiny }: AuctionModalP
                     </div>
                 </div>}
 
-                <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: "20rem", textAlign: "left" }}>
+                {/* <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: "20rem", textAlign: "left" }}> */}
+                <div className={styles.sellBlooksQuantityContainer}>
                     <Textfit className={styles.sellBlookBlookName} mode="single" min={0} max={40}>
                         {shiny && "Shiny"} {type === AuctionTypeEnum.BLOOK ? blook!.name : item!.name}
                     </Textfit>
@@ -118,7 +136,7 @@ export default function AuctionModal({ type, blook, item, shiny }: AuctionModalP
                     <Form>
                         <Input
                             value={price}
-                            icon="fas fa-dollar-sign"
+                            icon="fas fa-gem"
                             onChange={(e) => {
                                 const value = e.target.value;
                                 const parsedValue = parseInt(value);
@@ -135,7 +153,10 @@ export default function AuctionModal({ type, blook, item, shiny }: AuctionModalP
                             }
                             autoComplete="off"
                             containerProps={{
-                                style: { marginLeft: 0 }
+                                style: {
+                                    marginLeft: 0,
+                                    width: "unset"
+                                }
                             }}
                         />
 
@@ -156,7 +177,10 @@ export default function AuctionModal({ type, blook, item, shiny }: AuctionModalP
                             placeholder="Duration (minutes)"
                             autoComplete="off"
                             containerProps={{
-                                style: { marginLeft: 0 }
+                                style: {
+                                    marginLeft: 0,
+                                    width: "unset"
+                                }
                             }}
                         />
                     </Form>

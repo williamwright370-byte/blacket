@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Modal } from "@components/index";
 import { useModal } from "@stores/ModalStore/index";
+import { localStorage } from "@functions/core/localStorage";
 
 export function ModalUI() {
     const modals = useModal((s) => s.modals);
@@ -26,8 +27,9 @@ export function ModalUI() {
     if (modals[0]) return (
         <Modal.GenericModal
             closing={closing}
-            noAnimation={localStorage.getItem("DISABLE_MODAL_ANIMATION") === "true"}
-            outside={modals[0].outsideModal}
+            noAnimation={!localStorage.get("settings:modalAnimation")}
+            outside={modals[0].props?.outsideModal}
+            fullscreen={modals[0].props?.fullscreen}
         >
             {modals[0].modal}
         </Modal.GenericModal>

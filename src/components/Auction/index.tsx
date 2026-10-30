@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Blook, ImageOrVideo, Username } from "@components/index";
 import { useResource } from "@stores/ResourceStore/index";
 import { useData } from "@stores/DataStore/index";
-import { formatTimeRemaining } from "@functions/blacket/formatTimeRemaining";
+import { formatTimeRemaining } from "@functions/blacket/formatTime";
 import normalStyles from "./auction.module.scss";
 import vhStyles from "./auctionVh.module.scss";
 
@@ -49,7 +49,7 @@ export default function Auction({ auction, useVhStyles = false, ...props }: Auct
             </div>
 
             <div className={styles.auctionInfo}>
-                <div>Name: <span>{auction.blook && auction.blook.shiny && "Shiny "}{item.name}</span></div>
+                <div className={styles.auctionName}>{auction.blook && auction.blook.shiny && "Shiny "}{item.name}</div>
                 {auction.type === AuctionTypeEnum.BLOOK && auction.blook && `Serial: ${auction.blook.serial ? `#${auction.blook.serial}` : "V2 Blook N/A"}`}
                 <div className={styles.auctionPrice}>
                     {
@@ -58,7 +58,7 @@ export default function Auction({ auction, useVhStyles = false, ...props }: Auct
                             : auction.bids!.length > 0
                                 ? "Current Bid"
                                 : "Starting Bid"
-                    }: <img src={window.constructCDNUrl("/content/token.png")} alt="Token" draggable={false} /> <span>{
+                    }: <img src={window.constructCDNUrl("/content/diamond.png")} alt="Diamond" draggable={false} /> <span>{
                         auction.buyItNow
                             ? auction.price.toLocaleString()
                             : auction.bids!.length > 0
@@ -66,7 +66,7 @@ export default function Auction({ auction, useVhStyles = false, ...props }: Auct
                                 : auction.price.toLocaleString()
                     }</span>
                 </div>
-                <div>Seller: <Username user={auction.seller} /></div>
+                <div className={styles.auctionSellerName}>Seller: <Username user={auction.seller} /></div>
                 {!auction.buyItNow && <div>Bids: <span>{auction.bids.length}</span></div>}
             </div>
 

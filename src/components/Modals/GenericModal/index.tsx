@@ -4,7 +4,7 @@ import styles from "./genericModal.module.scss";
 
 import { GenericModalProps } from "./genericModal.d";
 
-export default function GenericModal({ closing = false, noAnimation = false, children, outside }: GenericModalProps) {
+export default function GenericModal({ closing = false, noAnimation = false, children, outside, fullscreen }: GenericModalProps) {
     const { playSound } = useSound();
 
     useEffect(() => {
@@ -17,7 +17,7 @@ export default function GenericModal({ closing = false, noAnimation = false, chi
             {outside && outside}
 
             <div data-closing={closing} data-animated={noAnimation ? false : true} className={styles.content}>
-                <div data-closing={closing} data-animated={noAnimation ? false : true} className={styles.container}>
+                <div data-closing={closing} data-animated={noAnimation ? false : true} data-fullscreen={fullscreen} className={styles.container}>
                     {children}
                 </div>
             </div>

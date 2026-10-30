@@ -5,3 +5,9 @@ export interface UsernameProps extends HTMLAttributes<HTMLSpanElement> {
     user: Partial<User | PrivateUser | PublicUser>;
     style?: CSSProperties;
 }
+
+export interface RoleColor {
+    key: string;
+    color: string;
+    text: string;
+}

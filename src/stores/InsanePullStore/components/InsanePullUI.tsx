@@ -1,12 +1,22 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSound } from "@stores/SoundStore";
-import { useInsanePull } from "@stores/InsanePullStore";
+import { useResource } from "@stores/ResourceStore/index";
+import { useSocket } from "@stores/SocketStore/index";
+import { useUser } from "@stores/UserStore/index";
+import { useSound } from "@stores/SoundStore/index";
+import { useInsanePull } from "@stores/InsanePullStore/index";
 import styles from "../insanePullStore.module.scss";
 
+import { SocketMarketInsanePullEntity, SocketMessageType } from "@blacket/types";
+
 export default function InsanePullUI() {
-    const { video, setVideo } = useInsanePull();
+    const { resourceIdToPath } = useResource();
+    const { socket, connected } = useSocket();
+    const { user } = useUser();
     const { stopAllSounds, playSound } = useSound();
+    const { video, setVideo, setIsPlaying } = useInsanePull();
+
+    if (!user) return null;
 
     const flashRef = useRef<HTMLDivElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -24,6 +34,13 @@ export default function InsanePullUI() {
         }
     };
 
+    const onInsanePull = (data: SocketMarketInsanePullEntity) => {
+        if (user.id === data.userId) return;
+
+        navigate("/chat");
+        setVideo(resourceIdToPath(data.videoId));
+    };
+
     useEffect(() => {
         if (!video) return;
 
@@ -31,16 +48,15 @@ export default function InsanePullUI() {
         const vid = videoRef.current;
         if (!flash || !vid) return;
 
-        // weird workaround for autoplay issues - xotic
+        // weird workaround for autoplay issues
         vid.pause();
 
         stopAllSounds();
         playSound("bass-drop");
-        navigate("/chat");
 
         setTimeout(() => {
             flash.style.backgroundColor = "black";
-        }, 250);
+        }, 150);
 
         const handleCanPlayThrough = () => {
             setTimeout(() => {
@@ -56,6 +72,16 @@ export default function InsanePullUI() {
         vid.addEventListener("canplaythrough", handleCanPlayThrough);
     }, [video]);
 
+    useEffect(() => {
+        if (!connected || !socket) return;
+
+        socket.on(SocketMessageType.MARKET_INSANE_PULL, onInsanePull);
+
+        return () => {
+            socket.off(SocketMessageType.MARKET_INSANE_PULL, onInsanePull);
+        };
+    }, [connected, socket]);
+
     if (video) return (<>
         <style>{"body{overflow:hidden}"}</style>
 
@@ -69,10 +95,12 @@ export default function InsanePullUI() {
             muted={false}
             playsInline
             onEnded={() => {
+                setIsPlaying(false);
+
                 videoRef.current!.onpause = null;
 
-                flashRef.current!.style.opacity = "0";
-                videoRef.current!.style.opacity = "0";
+                flashRef.current!.style.opacity = String(0);
+                videoRef.current!.style.opacity = String(0);
 
                 setTimeout(() => {
                     document.exitFullscreen();

@@ -36,7 +36,10 @@ export const useData = create<DataStore>((set, get) => ({
     products: [],
     setProducts: (products) => set({ products }),
 
-    stores: [],
+    subscriptions: [],
+    setSubscriptions: (subscriptions) => set({ subscriptions }),
+
+    stores: undefined,
     setStores: (stores) => set({ stores }),
 
     spinnyWheels: [],
@@ -49,6 +52,6 @@ export const useData = create<DataStore>((set, get) => ({
 
     fontIdToName: (id) => {
         const match = get().fonts.find((f) => f.id === id);
-        return match ? match.name : "Nunito";
+        return match ? match.name : "sans-serif";
     }
 }));

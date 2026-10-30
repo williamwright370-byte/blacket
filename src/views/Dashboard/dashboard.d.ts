@@ -50,10 +50,6 @@ export enum CosmeticsModalCategory {
     GRADIENT
 }
 
-export interface DailyRewardsModalProps {
-    amount: number;
-}
-
 export enum FriendsViewMode {
     ALL,
     REQUESTS,

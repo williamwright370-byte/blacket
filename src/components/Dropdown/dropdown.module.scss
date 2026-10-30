@@ -16,13 +16,13 @@
     cursor: pointer;
     user-select: none;
     background-color: transparent;
-    border-radius: 7px;
+    border-radius: var(--border-radius);
     box-sizing: border-box;
     border: 1px solid var(--accent-color);
     transition: .2s;
 
     &:hover {
-        background-color: var(--accent-color);
+        background: var(--accent-color);
         color: var(--background-color);
     }
 
@@ -53,8 +53,8 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    background-color: var(--primary-color);
-    border-radius: 7px;
+    background: var(--primary-color);
+    border-radius: var(--border-radius);
     outline: .5px solid var(--accent-color);
     width: 400px;
 
@@ -88,7 +88,7 @@
     transition: .2s;
 
     &:hover {
-        background-color: var(--accent-color);
+        background: var(--accent-color);
         color: var(--background-color);
     }
 

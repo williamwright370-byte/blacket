@@ -19,13 +19,13 @@
     height: 20%;
     top: 4%;
     margin-right: 3%;
-    font-family: "Titan One", sans-serif;
+    font-family: var(--heading-font);
     transform: rotate(-4deg) scale(0.95);
 
     display: flex;
     justify-content: center;
     align-items: center;
 
-    // box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.5); /* 135-degree angle shadow */
+    // box-shadow: 5px 5px 0px rgba(var(--black), 0.5); /* 135-degree angle shadow */
     text-shadow: 5px 5px 0px #895b50; /* 135-degree angle shadow */
 }

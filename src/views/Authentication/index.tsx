@@ -83,7 +83,7 @@ export default function Authentication({ type }: AuthenticationProps) {
             <div className={styles.container}>
                 <div className={styles.leftSide}>
                     <form className={`${styles.inside} ${styles.glass}`}>
-                        <div className={styles.header}>
+                        <div className={`${styles.header} ${styles.glassZ}`}>
                             {type === AuthenticationType.LOGIN ? "Login" : "Register"}
                         </div>
 
@@ -99,7 +99,7 @@ export default function Authentication({ type }: AuthenticationProps) {
                                 setOtpCode("");
                                 setError("");
                             }}
-                            className={styles.input}
+                            className={`${styles.input} ${styles.glassZ}`}
                         />
 
                         <Input
@@ -111,7 +111,7 @@ export default function Authentication({ type }: AuthenticationProps) {
                                 setPassword(e.target.value);
                                 setError("");
                             }}
-                            className={styles.input}
+                            className={`${styles.input} ${styles.glassZ}`}
                         />
 
                         {otpRequired && (
@@ -124,12 +124,12 @@ export default function Authentication({ type }: AuthenticationProps) {
                                     setOtpCode(e.target.value);
                                     setError("");
                                 }}
-                                className={styles.input}
+                                className={`${styles.input} ${styles.glassZ}`}
                             />
                         )}
 
                         {type === AuthenticationType.REGISTER && <>
-                            <div className={styles.agreeHolder}>
+                            <div className={`${styles.agreeHolder} ${styles.glassZ}`}>
                                 <Toggle
                                     checked={checked}
                                     onClick={() => {
@@ -149,26 +149,27 @@ export default function Authentication({ type }: AuthenticationProps) {
                             sitekey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
                             onVerify={setCaptchaToken}
                             theme="light"
+                            className={styles.glassZ}
                         />
 
                         <Button.ClearButton style={{ marginTop: 10, fontSize: 25, padding: "5px 20px" }} onClick={submitForm}>
-                            {type === AuthenticationType.LOGIN ? "Login" : "Register"}
-                        </Button.ClearButton>
+                        {type === AuthenticationType.LOGIN ? "Login" : "Register"}
+                    </Button.ClearButton>
 
-                        {error && <ErrorContainer style={{ marginTop: 15, marginBottom: 0 }}>{error}</ErrorContainer>}
-                    </form>
-                </div>
+                    {error && <ErrorContainer style={{ marginTop: 15, marginBottom: 0 }}>{error}</ErrorContainer>}
+                </form>
+            </div>
 
-                {/* <div className={styles.rightSide}>
+            {/* <div className={styles.rightSide}>
                     <img src={window.constructCDNUrl("/content/yapbot.png")} className={styles.rightImage} />
 
                     <div className={styles.rightText}>
 
                     </div>
                 </div> */}
-            </div>
+        </div >
 
-            <svg style={{ display: "none" }}>
+            <svg style={{ display: "none", zIndex: -1 }}>
                 <filter id="displacementFilter">
                     <feTurbulence
                         type="turbulence"

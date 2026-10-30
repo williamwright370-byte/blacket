@@ -5,7 +5,7 @@ export const drawText = (text: DrawTextProps) => {
 
     textCtx.save();
 
-    textCtx.font = `${(text.style?.fontSize ?? 15) * (text.useCamera ? camera.scale : 1)}px ${text.style?.fontFamily ?? "Nunito"}`;
+    textCtx.font = `${(text.style?.fontSize ?? 15) * (text.useCamera ? camera.scale : 1)}px ${text.style?.fontFamily ?? "sans-serif"}`;
     textCtx.fillStyle = text.style?.color ?? "white";
     textCtx.textAlign = text.style?.textAlign ?? "left";
 

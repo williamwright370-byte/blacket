@@ -1,10 +1,20 @@
 import { HTMLAttributes, ReactNode } from "react";
-import { StripeProductEntity } from "@blacket/types";
+import { BillingIntervalEnum, StripeProductEntity, StripeSubscriptionEntity } from "@blacket/types";
 
 export interface CategoryProps {
     title: string;
     subTitle: string;
+    spaceEvenly?: boolean;
+    rightChildren?: ReactNode;
     children?: ReactNode;
+}
+
+export interface PriceProps {
+    price: number;
+    discount?: number;
+    isSubPrice?: boolean;
+    isPriceUsingCrystals: boolean;
+    strikethrough?: boolean;
 }
 
 export interface ProductProps extends HTMLAttributes<HTMLDivElement> {
@@ -12,5 +22,11 @@ export interface ProductProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 export interface ProductModalProps {
-    product: StripeProductEntity;
+    product?: StripeProductEntity;
+    subscription?: StripeSubscriptionEntity;
+}
+
+export interface SubscriptionProps {
+    subscription: StripeSubscriptionEntity;
+    interval?: BillingIntervalEnum;
 }

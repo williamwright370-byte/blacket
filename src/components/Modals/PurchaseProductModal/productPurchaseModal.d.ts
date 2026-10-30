@@ -1,12 +1,15 @@
-import { StripeProductEntity } from "@blacket/types";
+import { BillingIntervalEnum, StripeProductEntity, StripeSubscriptionEntity } from "@blacket/types";
 
 export interface ProductPurchaseModalProps {
-    product: StripeProductEntity;
-    subscription?: boolean;
+    product?: StripeProductEntity;
+    subscription?: StripeSubscriptionEntity;
+    subscriptionInterval?: BillingIntervalEnum;
+    priceOverride?: number;
 }
 
 export interface ProductSuccessModalProps {
-    product: StripeProductEntity;
+    product?: StripeProductEntity;
+    subscription?: StripeSubscriptionEntity;
     quantity: number;
-    subscription?: boolean;
+    priceOverride?: number;
 }

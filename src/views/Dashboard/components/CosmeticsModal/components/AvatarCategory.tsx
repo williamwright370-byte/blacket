@@ -9,7 +9,7 @@ import { useChangeAvatar } from "@controllers/cosmetics/useChangeAvatar/index";
 import { useUpload } from "@controllers/users/useUpload/index";
 import styles from "../cosmeticsModal.module.scss";
 
-import { PermissionTypeEnum, UserBlook } from "@blacket/types";
+import { BlookObtainMethodEnum, PermissionTypeEnum, UserBlook } from "@blacket/types";
 
 export default function AvatarCategory() {
     const { user, getUserAvatarPath } = useUser();
@@ -75,13 +75,18 @@ export default function AvatarCategory() {
             <div className={styles.holder}>
                 <div style={{ display: "flex", gap: 10, padding: 10 }}>
                     <div
-                        className={styles.uploadAvatarButton}
+                        className={styles.topBlook}
                         onClick={openFileSelect}
                     >
                         <img src={user.customAvatar ? getUserAvatarPath(user) : window.constructCDNUrl("/content/icons/upload-avatar.png")} />
                     </div>
 
-                    <InventoryBlook blook={blooks.find((blook) => blook.id === 1)!} amount={0} onClick={() => onSelect(0)} data-selectable={true} />
+                    <InventoryBlook
+                        blook={{ blookId: blooks.find((blook) => blook.name === "Default")?.id } as any}
+                        onClick={() => onSelect(0)}
+                        data-selectable={true}
+                        className={styles.topBlook}
+                    />
                 </div>
 
                 <ItemContainer
@@ -100,7 +105,7 @@ export default function AvatarCategory() {
 
                         searchQuery: search
                     }}
-                    style={{ height: "calc(100% + 150px)"}}
+                    style={{ height: "calc(100% + 150px)" }}
                 />
             </div>
         </>

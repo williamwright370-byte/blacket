@@ -10,6 +10,7 @@ export const useToast = create<ToastStore>((set, get) => ({
     createToast: (toast) => {
         const id = toast.id || Math.random().toString(36).substring(7);
         const expires = toast.expires || 5000;
+
         set((state) => ({ toasts: [...state.toasts, { ...toast, id, expires }] }));
     },
 

@@ -1,13 +1,37 @@
-@import url("https://fonts.googleapis.com/css?family=Nunito:400,700|Titan+One|Creepster|Satisfy|Eczar:700");
-@import url("https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap");
+@font-face {
+    font-family: "Quicksand";
+    src: url("/fonts/Quicksand.ttf") format("opentype");
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Puffet";
+    src: url("/fonts/Puffet.ttf") format("opentype");
+    font-style: normal;
+}
 
 :root {
+    --white: 255, 255, 255;
+    --black: 0, 0, 0;
+
     --background-opacity: 0.05;
-    --background-color: #2f2f2f;
-    --primary-color: #1f1f1f;
-    --secondary-color: #3f3f3f;
-    --tertiary-color: #0f0f0f;
-    --accent-color: #ffffff;
+    --background-gradient-stops: rgba(var(--black), 0.33) 0%, rgba(var(--black), 0.15) 50%, rgba(var(--black), 0.05) 100%;
+    --background-color: rgba(47, 47, 47);
+
+    --primary-color: rgba(31, 31, 31);
+    --secondary-color: rgba(63, 63, 63);
+    --tertiary-color: rgba(15, 15, 15);
+    --accent-color: rgb(var(--white));
+
+    --border-radius: 8px;
+    --border-radius-vh: 0.8vh;
+
+    --sidebar-width: 220px;
+    --sidebar-text-scale: 1;
+
+    --paragraph-font: "Quicksand", sans-serif;
+    --heading-font: "Puffet", sans-serif;
 }
 
 * {
@@ -29,7 +53,7 @@
 
     &::-webkit-scrollbar-thumb {
         background: var(--secondary-color);
-        border-radius: 20px;
+        border-radius: var(--border-radius);
         border: 2px solid var(--primary-color);
     }
 
@@ -53,7 +77,7 @@
 body {
     background-color: var(--background-color);
     color: var(--accent-color);
-    font-family: "Nunito", sans-serif;
+    font-family: var(--paragraph-font);
     margin: 0;
     padding: 0;
     max-width: 100%;
@@ -88,6 +112,10 @@ button {
 
 a {
     color: var(--accent-color);
+}
+
+input[type="color"] {
+    color-scheme: light dark;
 }
 
 .react-tooltip {
@@ -153,4 +181,8 @@ a {
             background: hsl(235 calc(1 * 85.6%) 64.7% / 0.5);
         }
     }
+}
+
+.StripeElement {
+    width: 100% !important;
 }

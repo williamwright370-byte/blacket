@@ -1,6 +1,5 @@
-
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Title, UpdatedAt, Section } from "./components";
 import styles from "./legal.module.scss";
 
@@ -14,29 +13,83 @@ export default function Legal() {
     const [privacy, setPrivacy] = useState<LegalObject | null>(null);
     const [eula, setEula] = useState<LegalObject | null>(null);
 
+    const location = useLocation();
+    const navigate = useNavigate();
+    const hasScrolledOnLoad = useRef<boolean>(false);
+
     useEffect(() => {
         Promise.all([
-            window.fetch2.get(window.constructCDNUrl("/terms.json"))
-                .then((res) => setTerms(res.data))
-                .catch((error) => setError(error?.data?.message || "Something went wrong.")),
-            window.fetch2.get(window.constructCDNUrl("/privacy.json"))
-                .then((res) => setPrivacy(res.data))
-                .catch((error) => setError(error?.data?.message || "Something went wrong.")),
-            window.fetch2.get(window.constructCDNUrl("/eula.json"))
-                .then((res) => setEula(res.data))
-                .catch((error) => setError(error?.data?.message || "Something went wrong."))
+            fetch(window.constructCDNUrl("/terms.json"))
+                .then((res) => res.json())
+                .then((data) => setTerms(data))
+                .catch(() => setError("Something went wrong.")),
+            fetch(window.constructCDNUrl("/privacy.json"))
+                .then((res) => res.json())
+                .then((data) => setPrivacy(data))
+                .catch(() => setError("Something went wrong.")),
+            fetch(window.constructCDNUrl("/eula.json"))
+                .then((res) => res.json())
+                .then((data) => setEula(data))
+                .catch(() => setError("Something went wrong."))
         ])
             .finally(() => setLoading(false));
     }, []);
 
+    const updatePathBasedOnScroll = useCallback(() => {
+        const sections = [
+            { id: "terms", path: "/terms" },
+            { id: "privacy", path: "/privacy" },
+            { id: "eula", path: "/eula" }
+        ];
+
+        let currentSection = "";
+
+        sections.forEach(({ id }) => {
+            const element = document.getElementById(id);
+
+            if (element) {
+                const rect = element.getBoundingClientRect();
+                const windowHeight = window.innerHeight;
+
+                if (rect.top <= windowHeight / 2 && rect.bottom >= windowHeight / 2) currentSection = id;
+            }
+        });
+
+        if (!currentSection) return navigate("/legal", { replace: true });
+        if (currentSection) {
+            const targetPath = sections.find((s) => s.id === currentSection)?.path;
+
+            if (targetPath && location.pathname !== targetPath) navigate(targetPath, { replace: true });
+        }
+    }, [location.pathname, navigate]);
+
     useEffect(() => {
         const handleHashChange = () => {
-            const hash = window.location.hash;
+            if (loading || hasScrolledOnLoad.current) return;
+
+            let hash = window.location.hash;
+            if (!hash) {
+                switch (location.pathname) {
+                    case "/terms":
+                        hash = "#terms";
+                        break;
+                    case "/privacy":
+                        hash = "#privacy";
+                        break;
+                    case "/eula":
+                        hash = "#eula";
+                        break;
+                    default:
+                        hash = "";
+                }
+            }
 
             if (hash) {
                 const element = document.querySelector(hash);
                 if (element) element.scrollIntoView({ behavior: "smooth" });
             }
+
+            hasScrolledOnLoad.current = true;
         };
 
         window.addEventListener("hashchange", handleHashChange);
@@ -45,7 +98,32 @@ export default function Legal() {
         return () => {
             window.removeEventListener("hashchange", handleHashChange);
         };
-    }, [loading]);
+    }, [loading, location.pathname]);
+
+    useEffect(() => {
+        if (loading) return;
+
+        let throttleTimer: number | null = null;
+
+        const handleScroll = () => {
+            if (throttleTimer) return;
+
+            throttleTimer = window.setTimeout(() => {
+                updatePathBasedOnScroll();
+
+                throttleTimer = null;
+            }, 100);
+        };
+
+        window.addEventListener("scroll", handleScroll, { passive: true });
+
+        setTimeout(updatePathBasedOnScroll, 100);
+
+        return () => {
+            window.removeEventListener("scroll", handleScroll);
+            if (throttleTimer) clearTimeout(throttleTimer);
+        };
+    }, [loading, updatePathBasedOnScroll]);
 
     return (
         <div className={styles.containerContainer}>

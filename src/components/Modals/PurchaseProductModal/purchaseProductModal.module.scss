@@ -18,8 +18,14 @@
     margin-top: 5px;
     margin-bottom: 25px;
     padding: 5px 10px;
-    border-radius: 7px;
+    border-radius: var(--border-radius);
     background: var(--background-color);
+
+    @media screen and (max-width: 768px) {
+        width: fit-content;
+        gap: 10px;
+        flex-direction: column;
+    }
 }
 
 .productImage {
@@ -27,4 +33,26 @@
     width: 25px;
     margin-right: 10px;
     object-fit: contain;
+}
+
+.productCurrencyImage {
+    width: 24px;
+    height: 24px;
+    user-select: none;
+    object-fit: contain;
+}
+
+.productPrice {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    text-align: right;
+}
+
+.paymentMethodDropdown {
+    width: 100%;
+}
+
+.prorationPrice {
+    color: lightgreen;
 }

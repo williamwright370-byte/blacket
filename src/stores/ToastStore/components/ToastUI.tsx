@@ -15,6 +15,10 @@ export default function ToastUI() {
 
     useEffect(() => {
         if (toast && !toast.closing) playSound(toast.sound || "notification");
+
+        setTimeout(() => {
+            if (toast) closeToast(toast.id!);
+        }, toast?.expires);
     }, [toast]);
 
     if (!toast) return null;

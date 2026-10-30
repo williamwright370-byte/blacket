@@ -10,7 +10,7 @@ export default function Background({ color, opacity }: { color?: string, opacity
         <div className={styles.background} style={{ background: color || "var(--background-color)" }}>
             <div className={styles.backgroundGradient} />
             <div className={styles.backgroundBlooks} style={{
-                backgroundImage: `url("${window.constructCDNUrl("/content/background.png")}")`,
+                backgroundImage: `url("${window.constructCDNUrl("/content/background.svg")}")`,
                 opacity: opacity || "var(--background-opacity)"
             }} />
         </div>

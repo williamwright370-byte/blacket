@@ -1,9 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
 import Textfit from "react-textfit";
-import { SidebarBody } from "@components/index";
-import { Category, Product, ProductModal } from "./components/index";
+import { Button, MiniNavbar, SidebarBody } from "@components/index";
+import { Category, Product, ProductModal, Subscription } from "./components/index";
 import { useUser } from "@stores/UserStore/index";
 import { useLoading } from "@stores/LoadingStore/index";
 import { useModal } from "@stores/ModalStore/index";
@@ -11,29 +11,28 @@ import { useData } from "@stores/DataStore/index";
 import { useStores } from "@controllers/stripe/useProducts/index";
 import styles from "./store.module.scss";
 
+import { BillingIntervalEnum } from "@blacket/types";
+
 export default function Store() {
     const { user } = useUser();
     if (!user) return <Navigate to="/login" />;
 
     const { setLoading } = useLoading();
     const { createModal } = useModal();
-    const { stores, setStores, products } = useData();
+    const { stores, setStores, products, subscriptions } = useData();
 
     const { getStores } = useStores();
 
     useEffect(() => {
-        if (stores.length) return;
+        if (stores) return;
 
         setLoading(true);
 
         getStores()
-            .then((res) => {
-                if (res.length) setStores(res);
-                else return;
-            })
+            .then((res) => setStores(res))
             .catch(() => setStores([]))
             .finally(() => setLoading(false));
-    }, [stores]);
+    }, []);
 
     const getGreeting = () => {
         const hour = new Date().getHours();
@@ -53,6 +52,8 @@ export default function Store() {
         }
     };
 
+    const [subscriptionInterval, setSubscriptionInterval] = useState<BillingIntervalEnum>(BillingIntervalEnum.MONTHLY);
+
     return (
         <>
             <SidebarBody pushOnMobile={false}>
@@ -64,7 +65,29 @@ export default function Store() {
                         </div>
                     </div>
 
-                    {stores
+                    {subscriptions && <Category
+                        title="Plans"
+                        subTitle={`The best way to enhance your ${import.meta.env.VITE_INFORMATION_NAME} experience with exclusive perks and benefits!`}
+                        spaceEvenly={true}
+                        rightChildren={<MiniNavbar items={[
+                            {
+                                text: "Monthly",
+                                active: subscriptionInterval === BillingIntervalEnum.MONTHLY,
+                                onClick: () => setSubscriptionInterval(BillingIntervalEnum.MONTHLY)
+                            },
+                            {
+                                text: "Yearly",
+                                active: subscriptionInterval === BillingIntervalEnum.YEARLY,
+                                onClick: () => setSubscriptionInterval(BillingIntervalEnum.YEARLY)
+                            }
+                        ]} mobileIconOnly={false} />}
+                    >
+                        {subscriptions
+                            .sort((a, b) => a.priority - b.priority)
+                            .map((subscription, i) => <Subscription key={i} subscription={subscription} interval={subscriptionInterval} />)}
+                    </Category>}
+
+                    {stores && stores
                         .sort((a, b) => a.priority - b.priority)
                         .map((store, i) => (
                             <Category key={i} title={store.name} subTitle={store.description}>
