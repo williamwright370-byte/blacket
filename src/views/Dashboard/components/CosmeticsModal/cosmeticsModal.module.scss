@@ -17,7 +17,7 @@
     width: 380px;
     padding: 20px 30px;
     width: auto;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(var(--black), 0.2);
     border-radius: var(--border-radius);
     flex-direction: column;
     cursor: pointer;
@@ -50,7 +50,7 @@
     padding: 5px;
     border-radius: var(--border-radius);
     width: 380px;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(var(--black), 0.2);
     cursor: pointer;
     transition: transform .2s;
     font-size: 25px;
@@ -71,7 +71,7 @@
     padding: 5px;
     border-radius: var(--border-radius);
     width: 380px;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(var(--black), 0.2);
     cursor: pointer;
     transition: transform .2s;
     font-size: 25px;
@@ -101,7 +101,7 @@
     background: linear-gradient(90deg, #000, #fff);
     height: 40px;
     margin: 10px 0;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 10px rgba(var(--white), 0.2);
 
     @media screen and (max-width: 768px) {
         width: 320px;

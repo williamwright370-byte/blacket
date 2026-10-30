@@ -326,8 +326,8 @@ export default function Market() {
                             ) && "No packs found."}
                         </div>
                     </Category>
-                    
-                    {/* 
+
+                    {/*
                         pro-tip for future:
 
                         const weeklyItems = itemShop.filter(item => item.weekly);
@@ -340,7 +340,7 @@ export default function Market() {
                             {(() => {
                                 const nonWeeklyItems = itemShop.filter((entry) => !entry.weekly);
 
-                                return nonWeeklyItems.length > 0 ? nonWeeklyItems.map((entry) => <Item itemShop={entry} key={entry.id}></Item>) : "No items found." // no items found works
+                                return nonWeeklyItems.length > 0 ? nonWeeklyItems.map((entry) => <Item itemShop={entry} key={entry.id}></Item>) : "No items found."; // no items found works
                             })()}
                         </div>
                     </Category>
@@ -351,7 +351,7 @@ export default function Market() {
                             {(() => {
                                 const weeklyItems = itemShop.filter((entry) => entry.weekly);
 
-                                return weeklyItems.length > 0 ? weeklyItems.map((entry) => <Item itemShop={entry} key={entry.id}></Item>) : "No items found." // no items found works
+                                return weeklyItems.length > 0 ? weeklyItems.map((entry) => <Item itemShop={entry} key={entry.id}></Item>) : "No items found."; // no items found works
                             })()}
                         </div>
                     </Category>

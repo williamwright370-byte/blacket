@@ -41,7 +41,7 @@ export default function MobileRunButton({ onPress, onRelease }: MobileRunButtonP
             ref={baseRef}
             className={styles.mRunButtonBase}
             style={{
-                backgroundColor: isRunning ? "rgba(0, 0, 0, 0.7)" : "rgba(0, 0, 0, 0.5)"
+                backgroundColor: isRunning ? "rgba(var(--black), 0.7)" : "rgba(var(--black), 0.5)"
             }}
         >
             <i className="fas fa-person-running" />

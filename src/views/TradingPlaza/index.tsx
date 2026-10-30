@@ -50,6 +50,8 @@ const MOVEMENT_KEYS = {
     RUN: ["shift"]
 };
 
+const PLAYER_SPAWN = { x: (750 - 300 / 6) / 2, y: (750 - 345 / 6) / 2 };
+
 const STEP_SOUNDS = ["step-1", "step-2", "step-3", "step-4", "step-5"];
 
 const clampBit = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
@@ -205,7 +207,7 @@ export default function TradingPlaza() {
         const COLUMNS = 35;
         const ROWS = 40;
 
-        let _previousPos = { x: 0, y: 0 };
+        let _previousPos = { ...PLAYER_SPAWN };
         let _lastFootstep = 0;
 
         let sprinting = false;
@@ -414,8 +416,9 @@ export default function TradingPlaza() {
         const createPlayerEntity = async (userId: string) => {
             const entity = brender.createPlayerEntity({
                 id: userId,
-                x: 0,
-                y: 0,
+                ...PLAYER_SPAWN,
+                targetX: PLAYER_SPAWN.x,
+                targetY: PLAYER_SPAWN.y,
                 z: 1,
                 image: brender.loadingImage,
                 width: 300 / 6,
@@ -498,8 +501,7 @@ export default function TradingPlaza() {
 
         const player = brender.createPlayerEntity({
             id: user.id,
-            x: 0,
-            y: 0,
+            ...PLAYER_SPAWN,
             z: 10,
             image: brender.loadingImage,
             width: 300 / 6,
@@ -666,6 +668,19 @@ export default function TradingPlaza() {
         movementLoop();
 
         (async () => {
+            const spawnRing = TILES.find((tile) => tile.id === "spawn-ring")!;
+
+            brender.createObject({
+                id: "spawn-ring",
+                x: (750 - spawnRing.width) / 2,
+                y: (750 - spawnRing.height) / 2,
+                z: 0,
+                image: await brender.urlToImage(spawnRing.image),
+                width: spawnRing.width,
+                height: spawnRing.height,
+                hasCollision: false
+            });
+
             brender.createObject({
                 id: "spawn",
                 x: 0,
@@ -759,7 +774,7 @@ export default function TradingPlaza() {
                     right: 100,
                     padding: 10,
                     zIndex: 10,
-                    background: "rgba(0,0,0,0.35)",
+                    background: "rgba(var(--black),0.35)",
                     backdropFilter: "blur(4px)",
                     borderRadius: 8,
                     color: "#fff",

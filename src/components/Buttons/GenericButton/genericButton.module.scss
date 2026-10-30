@@ -40,7 +40,7 @@
 }
 
 .buttonShadow {
-    background: rgba(0, 0, 0, .25);
+    background: rgba(var(--black), .25);
     transform: translateY(2px);
     transition: transform .6s cubic-bezier(.3, .7, .4, 1)
 }
@@ -52,12 +52,12 @@
     left: 0;
     width: 100%;
     height: 100%;
-    border-radius: 5px
+    border-radius: var(--border-radius);
 }
 
 .buttonEdge {
     filter: brightness(.7);
-    background-color: var(--secondary-color);
+    background: var(--secondary-color);
 }
 
 .buttonInside {
@@ -72,7 +72,7 @@
     border-radius: var(--border-radius);
     transform: translateY(-4px);
     transition: transform .6s cubic-bezier(.3, .7, .4, 1);
-    background-color: var(--secondary-color);
+    background: var(--secondary-color);
 
     .buttonInsideIcon {
         font-size: inherit;

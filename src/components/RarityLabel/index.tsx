@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from "react";
 
 function getOverlayFill(hex: string): string {
     if (!hex.startsWith("#") || (hex.length !== 7 && hex.length !== 4)) {
-        return "rgba(0, 0, 0, 0.8)";
+        return "rgba(var(--black), 0.8)";
     }
 
     if (hex.length === 4) {
@@ -16,14 +16,11 @@ function getOverlayFill(hex: string): string {
     const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
 
     return luminance < 128
-        ? "rgba(255, 255, 255, 0.5)"
-        : "rgba(0, 0, 0, 0.5)";
+        ? "rgba(var(--white), 0.5)"
+        : "rgba(var(--black), 0.5)";
 }
 
-export default function RarityLabel({
-    text,
-    backgroundColor
-}: {
+export default function RarityLabel({ text, backgroundColor }: {
     text: string;
     backgroundColor: string;
 }) {
@@ -195,7 +192,7 @@ export default function RarityLabel({
                                 ? "url(#shinyPattern)"
                                 : backgroundColor
                     }
-                    stroke="rgba(0, 0, 0, 0.4)"
+                    stroke="rgba(var(--black), 0.4)"
                     strokeWidth={4}
                     mask={`url(#${maskId})`}
                 />

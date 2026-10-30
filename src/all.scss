@@ -12,13 +12,17 @@
 }
 
 :root {
+    --white: 255, 255, 255;
+    --black: 0, 0, 0;
+
     --background-opacity: 0.05;
+    --background-gradient-stops: rgba(var(--black), 0.33) 0%, rgba(var(--black), 0.15) 50%, rgba(var(--black), 0.05) 100%;
     --background-color: rgba(47, 47, 47);
 
     --primary-color: rgba(31, 31, 31);
     --secondary-color: rgba(63, 63, 63);
     --tertiary-color: rgba(15, 15, 15);
-    --accent-color: rgba(255, 255, 255);
+    --accent-color: rgb(var(--white));
 
     --border-radius: 8px;
     --border-radius-vh: 0.8vh;

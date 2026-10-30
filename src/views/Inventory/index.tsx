@@ -448,8 +448,7 @@ export default function Inventory() {
                             <Button.GenericButton onClick={() => {
                                 if (blook && selectedType === SelectedTypeEnum.BLOOK) {
                                     createModal(<AuctionModal type={AuctionTypeEnum.BLOOK} blook={blook} shiny={(selected as UserBlook).shiny} />);
-                                }
-                                else if (item && selectedType === SelectedTypeEnum.ITEM) {
+                                } else if (item && selectedType === SelectedTypeEnum.ITEM) {
                                     createModal(<AuctionModal type={AuctionTypeEnum.ITEM} item={item} />);
                                 }
                             }}

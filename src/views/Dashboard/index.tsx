@@ -291,7 +291,7 @@ export default function Dashboard() {
 
             <div className={`${styles.section} ${styles.statsSection}`}>
                 <div className={styles.statsContainer} style={{
-                    backgroundColor: "unset",
+                    background: "unset",
                     boxShadow: "unset"
                 }}>
                     <div className={styles.statsContainerHolder}>

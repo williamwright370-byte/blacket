@@ -4,17 +4,16 @@ import { useStripe } from "@stripe/react-stripe-js";
 import { useUser } from "@stores/UserStore/index";
 import { useModal } from "@stores/ModalStore/index";
 import { useResource } from "@stores/ResourceStore/index";
+import { useData } from "@stores/DataStore/index";
 import { useSound } from "@stores/SoundStore/index";
+import { useSubscriptionProration } from "@controllers/stripe/subscriptions/useProration/index";
 import { Modal, ErrorContainer, Button, StripeElementsWrapper, ImageOrVideo, Dropdown, Toggle, ParticleCanvas, Input } from "@components/index";
 import { ParticleCanvasRef } from "@components/ParticleCanvas/particleCanvas";
 import styles from "./purchaseProductModal.module.scss";
 
 import { ProductPurchaseModalProps, ProductSuccessModalProps } from "./productPurchaseModal.d";
-import { BillingIntervalEnum, Forbidden, InternalServerError, PaymentMethodTypeEnum, RarityAnimationTypeEnum, StripeProductEntity, StripeSubscriptionEntity, UserPaymentMethod } from "@blacket/types";
-import { calculateFinalPrice } from "@blacket/common";
-
-// TODO: move to types?
-const MUST_SELECT_PAYMENT_METHOD = "You must select a payment method.";
+import { BillingIntervalEnum, Forbidden, SubscriptionSwitchType, InternalServerError, PaymentMethodTypeEnum, RarityAnimationTypeEnum, StripeProductEntity, StripeSubscriptionEntity, StripeSubscriptionProrationEntity, UserPaymentMethod, BadRequest } from "@blacket/types";
+import { calculateFinalPrice, getSubscriptionSwitchType } from "@blacket/common";
 
 function SuccessModalOutside() {
     const particleCanvasRef = useRef<ParticleCanvasRef>(null);
@@ -129,14 +128,19 @@ function SuccessModal({ product, subscription, quantity, priceOverride }: Produc
     );
 }
 
-function TheModal({ product, subscription, subscriptionInterval }: ProductPurchaseModalProps) {
+function TheModal({ product, subscription, subscriptionInterval, priceOverride }: ProductPurchaseModalProps) {
     if (!product && !subscription) return null;
     if (subscription && !subscriptionInterval) return null;
 
     const stripe = useStripe();
     const { user } = useUser();
+    if (!user) return null;
+
     const { createModal, closeModal } = useModal();
     const { resourceIdToPath } = useResource();
+
+    const { subscriptions } = useData();
+    const { getSubscriptionProration } = useSubscriptionProration();
 
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>("");
@@ -145,16 +149,38 @@ function TheModal({ product, subscription, subscriptionInterval }: ProductPurcha
     );
     const [quantity, setQuantity] = useState<string>("1");
     const [accepted, setAccepted] = useState<boolean>(false);
-    const [finalPrice, setFinalPrice] = useState<number>(product?.price ?? 0);
+    const [finalPrice, setFinalPrice] = useState<number>(priceOverride ?? product?.price ?? 0);
+    const [proration, setProration] = useState<StripeSubscriptionProrationEntity | null>(null);
+
+    const prorationPrice = proration && (
+        subscriptionInterval === BillingIntervalEnum.MONTHLY ? proration.monthly :
+            subscriptionInterval === BillingIntervalEnum.YEARLY ? proration.yearly :
+                proration.lifetime
+    );
+
+    const currentIntervalPlan = user.intervalSubscription
+        ? subscriptions.find((s) => s.id === user.intervalSubscription!.subscriptionId)
+        : undefined;
+    const isDowngrade = !!subscription && !!subscriptionInterval && !!user.intervalSubscription
+        && subscriptionInterval !== BillingIntervalEnum.LIFETIME
+        && getSubscriptionSwitchType({
+            priority: currentIntervalPlan?.priority ?? 0,
+            billingInterval: user.intervalSubscription.billingInterval
+        }, {
+            priority: subscription.priority,
+            billingInterval: subscriptionInterval
+        }) === SubscriptionSwitchType.DOWNGRADE;
+
+    const showProration = !isDowngrade && proration && Number(prorationPrice) !== Number(finalPrice);
 
     const navigate = useNavigate();
 
-    const showSuccessModal = (priceOverride?: number) => {
+    const showSuccessModal = () => {
         createModal(<SuccessModal
             product={product}
             subscription={subscription}
             quantity={parseInt(quantity)}
-            priceOverride={priceOverride}
+            priceOverride={prorationPrice ?? priceOverride}
         />, { outsideModal: <SuccessModalOutside /> }
         );
         closeModal();
@@ -166,14 +192,10 @@ function TheModal({ product, subscription, subscriptionInterval }: ProductPurcha
     };
 
     useEffect(() => {
-        if (product) {
-            const i = product as StripeProductEntity;
-
-            setFinalPrice(calculateFinalPrice(i.price, Number(quantity), i.discount, i.isPriceUsingCrystals));
-        } else if (subscription) {
+        if (subscription) {
             const i = subscription as StripeSubscriptionEntity;
 
-            switch (subscriptionInterval) {
+            if (!priceOverride) switch (subscriptionInterval) {
                 case BillingIntervalEnum.MONTHLY:
                     setFinalPrice(i.monthlyPrice ?? 0);
                     break;
@@ -182,8 +204,19 @@ function TheModal({ product, subscription, subscriptionInterval }: ProductPurcha
                     break;
                 case BillingIntervalEnum.LIFETIME:
                     setFinalPrice(i.lifetimePrice ?? 0);
+
                     break;
             }
+
+            getSubscriptionProration(subscription.id).then(setProration);
+        }
+
+        if (priceOverride) return setFinalPrice(calculateFinalPrice(priceOverride, Number(quantity), 0, false));
+
+        if (product) {
+            const i = product as StripeProductEntity;
+
+            setFinalPrice(calculateFinalPrice(i.price, Number(quantity), i.discount, i.isPriceUsingCrystals));
         }
     }, [product, quantity, subscription, subscriptionInterval]);
 
@@ -234,13 +267,21 @@ function TheModal({ product, subscription, subscriptionInterval }: ProductPurcha
                             {product && product?.isPriceUsingCrystals ? <>
                                 <img className={styles.productCurrencyImage} src={window.constructCDNUrl("/content/crystal.png")} />
                                 {finalPrice} Crystals
-                            </> : <>
-                                ${finalPrice.toFixed(2)} USD {
+                            </> : <div>
+                                <span style={{
+                                    textDecoration: showProration ? "line-through" : "unset"
+                                }}>${finalPrice.toFixed(2)} USD</span> {
                                     subscription && subscriptionInterval &&
                                         subscriptionInterval === BillingIntervalEnum.MONTHLY ? "/ month" :
                                         subscriptionInterval === BillingIntervalEnum.YEARLY ? "/ year" : ""
                                 }
-                            </>}
+                                {showProration && <div className={styles.prorationPrice}>
+                                    Proration: ${prorationPrice} USD
+                                </div>}
+                                {isDowngrade && <div className={styles.prorationPrice}>
+                                    Will be charged on next interval
+                                </div>}
+                            </div>}
                         </span>
                     </div>
                 </div>
@@ -313,7 +354,7 @@ function TheModal({ product, subscription, subscriptionInterval }: ProductPurcha
                                     setLoading(false);
                                 });
                         } else if (product && !subscription) {
-                            if (!selectedPaymentMethod) return setError(MUST_SELECT_PAYMENT_METHOD);
+                            if (!selectedPaymentMethod) return setError(BadRequest.STRIPE_PAYMENT_METHOD_REQUIRED);
 
                             setLoading(true);
 
@@ -330,7 +371,7 @@ function TheModal({ product, subscription, subscriptionInterval }: ProductPurcha
                                         }
                                         default:
                                             // TODO: implement other payment method types (everything works except stuff like paypal)
-                                            return setErrorAndStopLoading(MUST_SELECT_PAYMENT_METHOD);
+                                            return setErrorAndStopLoading(BadRequest.STRIPE_PAYMENT_METHOD_REQUIRED);
                                     }
 
                                     showSuccessModal();
@@ -340,13 +381,32 @@ function TheModal({ product, subscription, subscriptionInterval }: ProductPurcha
                                     setLoading(false);
                                 });
                         } else if (subscription) {
-                            if (!selectedPaymentMethod) return setError(MUST_SELECT_PAYMENT_METHOD);
+                            if (!selectedPaymentMethod) return setError(BadRequest.STRIPE_PAYMENT_METHOD_REQUIRED);
                             if (selectedPaymentMethod.type !== PaymentMethodTypeEnum.CARD) return setError("Only card payments are supported right now.");
 
                             setLoading(true);
                             setError("");
 
-                            window.fetch2.post(`/api/stripe/subscription/${subscription.id}`, {
+                            if (user.intervalSubscription && subscriptionInterval !== BillingIntervalEnum.LIFETIME) {
+                                window.fetch2.post(`/api/stripe/subscription/${subscription.id}/switch`, {
+                                    interval: subscriptionInterval
+                                })
+                                    .then(async (res) => {
+                                        const clientSecret = res?.data?.clientSecret;
+
+                                        if (clientSecret) {
+                                            const { error: stripeError } = await stripe.confirmCardPayment(clientSecret);
+
+                                            if (stripeError) return setErrorAndStopLoading(stripeError?.message ?? InternalServerError.DEFAULT);
+                                        }
+
+                                        if (isDowngrade) {
+                                            closeModal();
+                                            navigate("/settings/billing");
+                                        } else showSuccessModal();
+                                    })
+                                    .catch((err) => setErrorAndStopLoading(err?.data?.message ?? InternalServerError.DEFAULT));
+                            } else window.fetch2.post(`/api/stripe/subscription/${subscription.id}`, {
                                 interval: subscriptionInterval
                             })
                                 .then(async (res) => {
@@ -355,19 +415,14 @@ function TheModal({ product, subscription, subscriptionInterval }: ProductPurcha
                                     if (clientSecret) {
                                         const { error: stripeError } = await stripe.confirmCardPayment(clientSecret);
 
-                                        if (stripeError) {
-                                            setError(stripeError.message ?? InternalServerError.DEFAULT);
-                                            setLoading(false);
-                                            return;
-                                        }
+                                        if (stripeError) return setErrorAndStopLoading(stripeError?.message ?? InternalServerError.DEFAULT);
+                                    } else {
+                                        return setErrorAndStopLoading(InternalServerError.DEFAULT);
                                     }
 
-                                    showSuccessModal(finalPrice);
+                                    showSuccessModal();
                                 })
-                                .catch((err) => {
-                                    setError(err?.data?.message ?? InternalServerError.DEFAULT);
-                                    setLoading(false);
-                                });
+                                .catch((err) => setErrorAndStopLoading(err?.data?.message ?? InternalServerError.DEFAULT));
                         }
                     }}
                 >
@@ -380,10 +435,10 @@ function TheModal({ product, subscription, subscriptionInterval }: ProductPurcha
     );
 }
 
-export default function PurchaseProductModal({ product, subscription, subscriptionInterval }: ProductPurchaseModalProps) {
+export default function PurchaseProductModal({ product, subscription, subscriptionInterval, priceOverride }: ProductPurchaseModalProps) {
     return (
         <StripeElementsWrapper>
-            <TheModal product={product} subscription={subscription} subscriptionInterval={subscriptionInterval} />
+            <TheModal product={product} subscription={subscription} subscriptionInterval={subscriptionInterval} priceOverride={priceOverride} />
         </StripeElementsWrapper>
     );
 }

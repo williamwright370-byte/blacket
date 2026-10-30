@@ -1,3 +1,4 @@
+import { useData } from "@stores/DataStore/index";
 import { useResource } from "@stores/ResourceStore/index";
 import { useUser } from "@stores/UserStore/index";
 import { useModal } from "@stores/ModalStore/index";
@@ -6,9 +7,11 @@ import { ProductModal } from "../index";
 import styles from "./subscription.module.scss";
 
 import { BillingIntervalEnum } from "@blacket/types";
+import { calculateSubscriptionDisplayPrice } from "@blacket/common";
 import { SubscriptionProps } from "../../store.d";
 
 export default function Subscription({ subscription, interval = BillingIntervalEnum.MONTHLY }: SubscriptionProps) {
+    const { subscriptions } = useData();
     const { resourceIdToPath } = useResource();
     const { user } = useUser();
     const { createModal } = useModal();
@@ -20,10 +23,19 @@ export default function Subscription({ subscription, interval = BillingIntervalE
         reverse: `linear-gradient(${subscription.color2} 0%, ${subscription.color1} 100%)`
     };
 
+    const currentLifetimePlan = user.lifetimeSubscription
+        ? subscriptions.find((s) => s.id === user.lifetimeSubscription!.subscriptionId)
+        : undefined;
+
+    const calculateFinalPrice = (price: number, interval: BillingIntervalEnum) => calculateSubscriptionDisplayPrice(user.lifetimeSubscription, currentLifetimePlan, subscription, price, interval);
+
     const PRICE_TEXT = {
-        [BillingIntervalEnum.MONTHLY]: subscription.monthlyPrice ? `$${subscription.monthlyPrice} / month` : null,
-        [BillingIntervalEnum.YEARLY]: subscription.yearlyPrice ? `$${subscription.yearlyPrice} / year` : null,
-        [BillingIntervalEnum.LIFETIME]: subscription.lifetimePrice ? `$${subscription.lifetimePrice} one time` : null
+        [BillingIntervalEnum.MONTHLY]:
+            subscription.monthlyPrice ? `$${calculateFinalPrice(subscription.monthlyPrice, BillingIntervalEnum.MONTHLY)} / month` : null,
+        [BillingIntervalEnum.YEARLY]:
+            subscription.yearlyPrice ? `$${calculateFinalPrice(subscription.yearlyPrice, BillingIntervalEnum.YEARLY)} / year` : null,
+        [BillingIntervalEnum.LIFETIME]:
+            subscription.lifetimePrice ? `$${calculateFinalPrice(subscription.lifetimePrice, BillingIntervalEnum.LIFETIME)} one time` : null
     };
     if (!PRICE_TEXT[interval]) return null;
 

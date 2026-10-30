@@ -1,5 +1,4 @@
 .background {
-    --gradient-stops: rgba(0, 0, 0, 0.33) 0%, rgba(0, 0, 0, 0.15) 50%, rgba(0, 0, 0, 0.05) 100%;
     --blooks-transform: translate(-50%, -50%) rotate(15deg);
 
     position: fixed;
@@ -34,7 +33,7 @@
     height: 100%;
     top: 0;
     left: 0;
-    background: -webkit-linear-gradient(140deg, var(--gradient-stops));
-    background: linear-gradient(140deg, var(--gradient-stops));
+    background: -webkit-linear-gradient(140deg, var(--background-gradient-stops));
+    background: linear-gradient(140deg, var(--background-gradient-stops));
     z-index: 1;
 }

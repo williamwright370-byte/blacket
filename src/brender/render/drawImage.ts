@@ -62,7 +62,7 @@ export const drawImage = (image: DrawImageProps) => {
 
         baseCtx.save();
 
-        baseCtx.shadowColor = "rgba(255, 255, 255, 1)";
+        baseCtx.shadowColor = "rgba(var(--white), 1)";
         baseCtx.shadowBlur = 10;
         baseCtx.shadowOffsetX = 0;
         baseCtx.shadowOffsetY = 0;

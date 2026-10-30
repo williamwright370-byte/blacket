@@ -167,7 +167,7 @@ export default function MapEditor() {
                         z: objectUnderMouse.z ?? 0,
                         width: objectUnderMouse?.image?.width ?? 0,
                         height: objectUnderMouse?.image?.height ?? 0,
-                        color: "rgba(255, 255, 255, 0.2)"
+                        color: "rgba(var(--white), 0.2)"
                     });
                 }
 

@@ -37,7 +37,7 @@ export default function Cosmetics() {
             <Tooltip id="onlyRareSounds" place="right">This will disable sounds for common blooks such as epic and below.</Tooltip>
             <Button.ClearButton data-tooltip-id="onlyRareSounds" onClick={onlyRareSoundsButton}>Only Rare Sounds: {user.settings.onlyRareSounds ? "On" : "Off"}</Button.ClearButton>
 
-            {/* <Button.ClearButton onClick={() => {
+            <Button.ClearButton onClick={() => {
                     if (document.getElementById("theme")) return;
                     const style = document.createElement("style");
                     style.id = "theme";
@@ -57,7 +57,7 @@ export default function Cosmetics() {
                     if (style) style.remove();
                 }}>
                     revert to default theme
-                </Button.ClearButton> */}
+                </Button.ClearButton>
 
 
         </SettingsContainer>

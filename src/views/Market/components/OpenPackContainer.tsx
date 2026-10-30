@@ -186,7 +186,7 @@ export default function OpenPackContainer({ opening, image, video, animationType
             img.style.top = "50%";
             img.style.transformOrigin = "center center";
             img.style.zIndex = "9999";
-            img.style.filter = `brightness(${brightness}) drop-shadow(0 0 ${glow}px rgba(255, 255, 255, 1))`;
+            img.style.filter = `brightness(${brightness}) drop-shadow(0 0 ${glow}px rgba(var(--white), 1))`;
 
             const explode = () => {
                 playSounds(["chroma-explode", isMythical ? "mythical-explode" : ""]);

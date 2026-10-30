@@ -4,6 +4,7 @@ export interface ProductPurchaseModalProps {
     product?: StripeProductEntity;
     subscription?: StripeSubscriptionEntity;
     subscriptionInterval?: BillingIntervalEnum;
+    priceOverride?: number;
 }
 
 export interface ProductSuccessModalProps {

@@ -35,7 +35,8 @@
     &>input {
         align-items: center;
         border: none;
-        background-color: var(--primary-color);
+        border-radius: var(--border-radius);
+        background: var(--primary-color);
         color: var(--accent-color);
         display: flex;
         flex-direction: row;

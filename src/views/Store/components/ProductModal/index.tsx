@@ -7,12 +7,15 @@ import { Modal, Button, Markdown, ErrorContainer, ImageOrVideo } from "@componen
 import styles from "./productModal.module.scss";
 
 import { ProductModalProps } from "../../store.d";
-import { BillingIntervalEnum, Forbidden, UserSubscriptionStatusEnum } from "@blacket/types";
-import { getSubscriptionIntervalRank, getSubscriptionSwitchType } from "@blacket/common";
+import { BillingIntervalEnum, Forbidden, SubscriptionSwitchType, UserSubscriptionStatusEnum } from "@blacket/types";
+import { getSubscriptionIntervalRank, getSubscriptionSwitchType, calculateFinalPrice, calculateSubscriptionDisplayPrice } from "@blacket/common";
 
 export default function ProductModal({ product, subscription }: ProductModalProps) {
     const { user } = useUser();
     if (!user) return null;
+
+    const { subscriptions } = useData();
+
     if (!product && !subscription) return null;
 
     let name, description, price, discount, imageId;
@@ -20,7 +23,6 @@ export default function ProductModal({ product, subscription }: ProductModalProp
     if (subscription) {
         name = subscription.name;
         description = subscription.description;
-        price = 0;
         imageId = subscription.imageId;
     } else if (product) {
         name = product.name;
@@ -38,28 +40,66 @@ export default function ProductModal({ product, subscription }: ProductModalProp
 
     const [error, setError] = useState<string>("");
 
-    const FINAL_PRICE = !discount ? price :
-        (price * (1 - (discount / 100))).toFixed(product?.isPriceUsingCrystals ? 0 : 2);
+    const FINAL_PRICE = calculateFinalPrice(price ?? 0, 1, discount ?? 0, product?.isPriceUsingCrystals ?? false);
 
-    const activeUserSubscription = user.subscriptions
-        .filter((userSubscription) =>
-            [UserSubscriptionStatusEnum.ACTIVE, UserSubscriptionStatusEnum.PENDING_CANCELLATION].includes(userSubscription.status as UserSubscriptionStatusEnum) &&
-            (!userSubscription.expiresAt || new Date(userSubscription.expiresAt) > new Date())
-        )
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+    const currentIntervalSubscription = user.intervalSubscription
+        ? subscriptions.find((s) => s.id === user.intervalSubscription!.subscriptionId)
+        : undefined;
+
+    const currentLifetimePlan = user.lifetimeSubscription
+        ? subscriptions.find((s) => s.id === user.lifetimeSubscription!.subscriptionId)
+        : undefined;
 
     const canSwitchTo = (interval: BillingIntervalEnum) => {
         if (!subscription) return false;
-        if (activeUserSubscription?.billingInterval === BillingIntervalEnum.LIFETIME) return false;
+        if (currentLifetimePlan && currentLifetimePlan.priority >= subscription.priority) return false;
+        if (!user.intervalSubscription) return true;
 
-        return true;
+        const switchType = getSubscriptionSwitchType({
+            priority: currentIntervalSubscription?.priority ?? 0,
+            billingInterval: user.intervalSubscription.billingInterval
+        }, {
+            priority: subscription.priority,
+            billingInterval: interval
+        });
+
+        switch (switchType) {
+            case SubscriptionSwitchType.DOWNGRADE:
+            case SubscriptionSwitchType.UPGRADE:
+                return true;
+            case SubscriptionSwitchType.LATERAL:
+                return false;
+            default:
+                return false;
+        }
     };
+
+    const subscriptionPrice = (price: number, interval: BillingIntervalEnum) =>
+        subscription ? calculateSubscriptionDisplayPrice(user.lifetimeSubscription, currentLifetimePlan, subscription, price, interval) : price;
 
     const subscriptionOnClick = (interval: BillingIntervalEnum) => {
         if (!subscription) return;
 
+        if (interval === BillingIntervalEnum.LIFETIME && (currentIntervalSubscription?.priority ?? 0) > subscription.priority) {
+            closeModal();
+            createModal(<Modal.ErrorModal>{Forbidden.STRIPE_SUBSCRIPTION_NOT_ALLOWED}</Modal.ErrorModal>);
+
+            return;
+        }
+
+        const pO = subscriptionPrice(
+            interval === BillingIntervalEnum.MONTHLY ? subscription.monthlyPrice ?? 0 :
+                interval === BillingIntervalEnum.YEARLY ? subscription.yearlyPrice ?? 0 :
+                    interval === BillingIntervalEnum.LIFETIME ? subscription.lifetimePrice ?? 0 : 0,
+            interval
+        );
+
         closeModal();
-        createModal(<Modal.PurchaseProductModal subscription={subscription} subscriptionInterval={interval} />);
+        createModal(<Modal.PurchaseProductModal
+            subscription={subscription}
+            subscriptionInterval={interval}
+            priceOverride={pO}
+        />);
     };
 
     return (
@@ -110,19 +150,19 @@ export default function ProductModal({ product, subscription }: ProductModalProp
                 {subscription && <>
                     {subscription.monthlyPrice && canSwitchTo(BillingIntervalEnum.MONTHLY) && <Button.GenericButton onClick={() => subscriptionOnClick(BillingIntervalEnum.MONTHLY)} type="submit">
                         <div className={styles.productPrice}>
-                            ${subscription.monthlyPrice} USD / month
+                            ${subscriptionPrice(subscription.monthlyPrice, BillingIntervalEnum.MONTHLY)} USD / month
                         </div>
                     </Button.GenericButton>}
 
                     {subscription.yearlyPrice && canSwitchTo(BillingIntervalEnum.YEARLY) && <Button.GenericButton onClick={() => subscriptionOnClick(BillingIntervalEnum.YEARLY)} type="submit">
                         <div className={styles.productPrice}>
-                            ${subscription.yearlyPrice} USD / year
+                            ${subscriptionPrice(subscription.yearlyPrice, BillingIntervalEnum.YEARLY)} USD / year
                         </div>
                     </Button.GenericButton>}
 
                     {subscription.lifetimePrice && canSwitchTo(BillingIntervalEnum.LIFETIME) && <Button.GenericButton onClick={() => subscriptionOnClick(BillingIntervalEnum.LIFETIME)} type="submit">
                         <div className={styles.productPrice}>
-                            ${subscription.lifetimePrice} USD one time
+                            ${subscriptionPrice(subscription.lifetimePrice, BillingIntervalEnum.LIFETIME)} USD one time
                         </div>
                     </Button.GenericButton>}
                 </>}

@@ -1,5 +1,5 @@
-import { UserPaymentMethod } from "@blacket/types";
+import { PublicPaymentMethod } from "@blacket/types";
 
 export interface PaymentMethodTextProps {
-    paymentMethod?: UserPaymentMethod;
+    paymentMethod?: PublicPaymentMethod | null;
 }

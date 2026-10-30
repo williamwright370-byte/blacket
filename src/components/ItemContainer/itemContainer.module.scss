@@ -70,7 +70,7 @@
 .setDivider {
     width: 100%;
     height: 5px;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(var(--white), 0.2);
     margin: 10px 0;
     border-radius: 10px;
 }

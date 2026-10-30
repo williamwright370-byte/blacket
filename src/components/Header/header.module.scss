@@ -12,13 +12,13 @@
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(var(--white), 0.1);
     border-radius: var(--border-radius);
     margin: 2px 5px;
 }
 
 .glass {
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(var(--black), 0.2);
     backdrop-filter: blur(1vh);
 }
 

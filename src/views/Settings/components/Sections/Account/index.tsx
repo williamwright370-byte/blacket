@@ -8,7 +8,7 @@ import { useDiscordLink } from "@controllers/discord/useDiscordLink/index";
 import { useSettings } from "@controllers/settings/useSettings/index";
 import { Button, Modal, PaymentMethodText } from "@components/index";
 import { SettingsContainer, Divider } from "..";
-import { PlanText, UpgradeButton, ChangeUsernameModal } from "./components/index";
+import { PlanText, ChangeUsernameModal } from "./components/index";
 
 import { SettingFriendRequestEnum } from "@blacket/types";
 
@@ -92,12 +92,6 @@ export default function Account() {
         </SettingsContainer>
 
         <SettingsContainer header={{ icon: "fas fa-wallet", text: "Billing" }}>
-            <PlanText>Basic</PlanText>
-
-            <UpgradeButton>Upgrade</UpgradeButton>
-
-            <Divider margin={15} />
-
             <div>
                 <b>Payment Method:</b> {user.paymentMethods.length > 0 ? <>
                     <PaymentMethodText paymentMethod={user.paymentMethods.find((method) => method.primary)} />

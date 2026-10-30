@@ -1,14 +1,7 @@
 import { useState, useRef, useEffect, useLayoutEffect, CSSProperties } from "react";
 import { TextfitProps } from "./textfit.d";
 
-export default function Textfit({
-    min = 1,
-    max = 72,
-    mode = "multi",
-    children,
-    className,
-    style
-}: TextfitProps) {
+export default function Textfit({ min = 1, max = 72, mode = "multi", children, className, style }: TextfitProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const textRef = useRef<HTMLDivElement>(null);
     const [fontSize, setFontSize] = useState<number>(min);
@@ -52,6 +45,7 @@ export default function Textfit({
             }
         }
 
+        text.style.fontSize = `${best}px`;
         setFontSize(best);
     };
 
@@ -62,6 +56,7 @@ export default function Textfit({
     useEffect(() => {
         const observer = new ResizeObserver(() => measure());
         if (containerRef.current) observer.observe(containerRef.current);
+        document.fonts.ready.then(measure);
 
         return () => observer.disconnect();
     }, []);

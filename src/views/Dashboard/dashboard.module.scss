@@ -12,10 +12,10 @@
     }
 
     &>.section {
-        // background-color: rgba(0, 0, 0, 0.125);
+        // background-color: rgba(var(--black), 0.125);
         border-radius: var(--border-radius-vh);
         margin: 1vh;
-        filter: drop-shadow(0 0.4vh 0.4vh rgba(0, 0, 0, 0.25));
+        filter: drop-shadow(0 0.4vh 0.4vh rgba(var(--black), 0.25));
 
         @media screen and (max-width: 475px) {
             &:last-child {
@@ -108,7 +108,7 @@
 .userAvatarContainer {
     height: 11vh;
     // max-width: 10vh;
-    filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+    filter: drop-shadow(0px 4px 4px rgba(var(--black), 0.25));
     transition: transform 0.2s;
 
     @media screen and (max-width: 475px) {
@@ -165,7 +165,7 @@
     height: 100%;
     border-radius: 1vh;
     overflow: hidden;
-    background-color: rgba(0, 0, 0, 0.15);
+    background-color: rgba(var(--black), 0.15);
 
     &>div {
         // background: linear-gradient(#fcd843, #fcd843 50%, #feb31a 50%, #feb31a);
@@ -321,8 +321,8 @@
         width: 4vh;
         height: 4vh;
         padding: 0.75vh;
-        box-shadow: inset 0 -0.5vh rgba(0, 0, 0, 0.2);
-        background-color: var(--primary-color);
+        box-shadow: inset 0 -0.5vh rgba(var(--black), 0.2);
+        background: var(--primary-color);
         border-radius: var(--border-radius-vh);
         display: flex;
         align-items: center;
@@ -331,7 +331,7 @@
         @media screen and (max-width: 475px) {
             height: 30px;
             padding: 7.5px;
-            box-shadow: inset 0 -5px rgba(0, 0, 0, 0.2);
+            box-shadow: inset 0 -5px rgba(var(--black), 0.2);
             border-radius: var(--border-radius);
         }
 
@@ -449,8 +449,8 @@
     width: fit-content;
     padding: 0.5vh 1.5vh;
     border-radius: var(--border-radius-vh);
-    background-color: var(--primary-color);
-    box-shadow: inset 0 -0.5vh rgba(0, 0, 0, 0.2);
+    background: var(--primary-color);
+    box-shadow: inset 0 -0.5vh rgba(var(--black), 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -466,7 +466,7 @@
         padding: 5px 15px;
         padding-bottom: 10px;
         border-radius: var(--border-radius);
-        box-shadow: inset 0 -5px rgba(0, 0, 0, 0.2);
+        box-shadow: inset 0 -5px rgba(var(--black), 0.2);
         font-size: 20px;
     }
 
@@ -479,7 +479,7 @@
     }
 
     &[data-secondary] {
-        background-color: var(--secondary-color);
+        background: var(--secondary-color);
     }
 }
 
@@ -488,8 +488,8 @@
     top: -1.8vh;
     left: 1vh;
     height: 3.5vh;
-    box-shadow: inset 0 -0.7vh rgba(0, 0, 0, 0.2);
-    background-color: var(--primary-color);
+    box-shadow: inset 0 -0.7vh rgba(var(--black), 0.2);
+    background: var(--primary-color);
     padding: 0.4vh 0.4vh 0.8vh;
     border-radius: var(--border-radius-vh);
     z-index: 1;
@@ -497,7 +497,7 @@
     @media screen and (max-width: 475px) {
         padding: 4px 4px 8px;
         border-radius: var(--border-radius);
-        box-shadow: inset 0 -7px rgba(0, 0, 0, 0.2);
+        box-shadow: inset 0 -7px rgba(var(--black), 0.2);
         left: 10px;
         height: 35px;
         top: -18px;
@@ -527,11 +527,11 @@
 
 .statsContainer {
     border-radius: 0.5vh;
-    background-color: var(--primary-color);
+    background: var(--primary-color);
     width: 100%;
     height: 100%;
     padding: 4vh 1.5vh;
-    box-shadow: inset 0 -0.7vh rgba(0, 0, 0, 0.2);
+    box-shadow: inset 0 -0.7vh rgba(var(--black), 0.2);
     box-sizing: border-box;
     color: var(--accent-color);
     overflow-y: auto;
@@ -580,9 +580,9 @@
     flex-flow: column;
     text-align: center;
     gap: 1vh;
-    box-shadow: inset 0 -0.7vh rgba(0, 0, 0, 0.2);
+    box-shadow: inset 0 -0.7vh rgba(var(--black), 0.2);
     border-radius: var(--border-radius-vh);
-    background-color: var(--primary-color);
+    background: var(--primary-color);
     line-height: 1;
     padding: 0.5vh 2vh 1.5vh 2vh;
     flex-grow: 1;
@@ -590,7 +590,7 @@
     @media screen and (max-width: 475px) {
         padding: 5px 20px 15px 20px;
         gap: 10px;
-        box-shadow: inset 0 -7px rgba(0, 0, 0, 0.2);
+        box-shadow: inset 0 -7px rgba(var(--black), 0.2);
         border-radius: var(--border-radius);
         height: 65px;
         width: calc(50% - 45px);
@@ -612,14 +612,14 @@
 .statHeader {
     font-family: var(--heading-font);
     font-size: 1.8vh;
-    text-shadow: 0 0 0.3vh rgba(0, 0, 0, 0.5);
+    text-shadow: 0 0 0.3vh rgba(var(--black), 0.5);
 
     // I DONT LIKE THIS BECAUSE OF LACK OF SUPPORT
     -webkit-text-stroke: .05vh #000;
 
     @media screen and (max-width: 475px) {
         font-size: 1rem;
-        text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+        text-shadow: 0 0 3px rgba(var(--black), 0.5);
         -webkit-text-stroke: .5px #000;
     }
 
@@ -640,7 +640,7 @@
 .statDivider {
     width: 100%;
     height: 0.3vh;
-    background-color: var(--accent-color);
+    background: var(--accent-color);
     opacity: 0.1;
     border-radius: var(--border-radius-vh);
 
@@ -705,7 +705,7 @@
     justify-content: center;
     color: var(--accent-color);
     font-family: var(--heading-font);
-    box-shadow: inset 0 -0.25vh rgba(0, 0, 0, .2);
+    box-shadow: inset 0 -0.25vh rgba(var(--black), .2);
     -webkit-text-stroke: 0.12vh #000000;
     font-size: 2vh;
 
@@ -749,7 +749,7 @@
     text-align: center;
     height: 100%;
     font-size: 1.5vh;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(var(--black), 0.2);
     padding: 1vh;
     border-radius: var(--border-radius-vh);
 
@@ -966,7 +966,7 @@
     @media screen and (max-width: 768px) {
         width: 15%;
         height: 70px;
-        background-color: rgba(255, 255, 255, 0.1);
+        background-color: rgba(var(--white), 0.1);
         border-radius: var(--border-radius);
         padding: 2px 7px;
     }
@@ -998,7 +998,7 @@
 
     @media screen and (max-width: 768px) {
 
-        background-color: rgba(255, 255, 255, 0.1);
+        background-color: rgba(var(--white), 0.1);
         border-radius: var(--border-radius);
         padding: 7px 0;
     }

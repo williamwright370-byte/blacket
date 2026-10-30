@@ -4,6 +4,7 @@ import { TypeAnimation } from "react-type-animation";
 import { useUser } from "@stores/UserStore/index";
 import { lerp } from "@functions/core/mathematics";
 import styles from "./home.module.scss";
+import podiumStyles from "../Leaderboard/leaderboard.module.scss";
 import { Button } from "@components/index";
 
 const EYE_MOVEMENT_SPEED = 0.04;
@@ -26,11 +27,14 @@ export default function Home() {
             if (eyeRect) {
                 const eyeCenterX = eyeRect.left + eyeRect.width / 2;
                 const eyeCenterY = eyeRect.top + eyeRect.height / 2;
-                const angle = Math.atan2(e.clientY - eyeCenterY, e.clientX - eyeCenterX);
+                const angle = Math.atan2(
+                    e.clientY - eyeCenterY,
+                    e.clientX - eyeCenterX,
+                );
 
                 targetEyePos = {
                     x: Math.cos(angle) * EYE_MOVEMENT_INTENSITY,
-                    y: Math.sin(angle) * EYE_MOVEMENT_INTENSITY
+                    y: Math.sin(angle) * EYE_MOVEMENT_INTENSITY,
                 };
             }
         };
@@ -75,15 +79,13 @@ export default function Home() {
                                     "multiplayer",
                                     2000,
                                     "RNG",
-                                    2000
+                                    2000,
                                 ]}
                                 wrapper="span"
                                 speed={50}
                                 repeat={Infinity}
                             />
-
                             <br />
-
                             web-game for everyone!
                         </div>
 
@@ -91,14 +93,19 @@ export default function Home() {
                             <Button.ClearButton
                                 to="/register"
                                 className={styles.heroButton}
-                            >Register</Button.ClearButton>
+                            >
+                                Register
+                            </Button.ClearButton>
                             <Button.ClearButton
                                 to="/register"
                                 className={styles.heroButton}
-                            >Discord</Button.ClearButton>
+                            >
+                                Discord
+                            </Button.ClearButton>
                         </div>
                     </div>
 
+                    {/*
                     <div className={styles.heroRight}>
                         <div className={styles.zoeyPlatform}>
                             <div className={styles.zoeyImage}>
@@ -128,11 +135,53 @@ export default function Home() {
                             </div>
                         </div>
                     </div>
+                    */}
+
+                    <div className={styles.heroRight}>
+                        <div className={styles.zoeyPlatform}>
+                            <div
+                                className={`${podiumStyles.podiumPlacement} ${styles.platform}`}
+                            >
+                                <div
+                                    className={`${podiumStyles.podiumTop} ${styles.platformTop}`}
+                                >
+                                    <div className={styles.zoeyImage}>
+                                        <img
+                                            src={"/home/zoey-body.png"}
+                                            className={styles.body}
+                                            draggable={false}
+                                        />
+
+                                        <img
+                                            ref={eyesRef}
+                                            src={"/home/zoey-eyes.png"}
+                                            className={styles.eyes}
+                                            draggable={false}
+                                        />
+
+                                        <img
+                                            src={"/home/zoey-sclera.png"}
+                                            className={styles.sclera}
+                                            draggable={false}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <div className={styles.mobileHero}>
                         <div className={styles.mobileZoeyImage}>
-                            <img className={styles.mobileHead} src={"/home/zoey-mobile-head.png"} draggable={false} />
-                            <img className={styles.mobilePaws} src={"/home/zoey-mobile-paws.png"} draggable={false} />
+                            <img
+                                className={styles.mobileHead}
+                                src={"/home/zoey-mobile-head.png"}
+                                draggable={false}
+                            />
+                            <img
+                                className={styles.mobilePaws}
+                                src={"/home/zoey-mobile-paws.png"}
+                                draggable={false}
+                            />
                         </div>
                     </div>
                 </div>

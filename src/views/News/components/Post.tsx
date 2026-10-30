@@ -1,13 +1,13 @@
-import { useUser } from "@stores/UserStore/index";
+import { Link } from "react-router-dom";
 import { Markdown, Username } from "@components/index";
 import styles from "../news.module.scss";
 
 import { PostProps } from "../news.d";
 
 export default function Post({ post, ...props }: PostProps) {
-    const { user } = useUser();
-
-    if (!user) return null;
+    const image = typeof post.image === "string"
+        ? post.image
+        : post.image && `${import.meta.env.VITE_CDN_URL}/users/${post.image.userId}/${post.image.uploadId}/${post.image.filename}`;
 
     return (
         <div className={styles.postContainer} {...props}>
@@ -15,7 +15,8 @@ export default function Post({ post, ...props }: PostProps) {
                 <img
                     className={styles.postImage}
                     draggable={false}
-                    src={`${import.meta.env.VITE_UPLOAD_PATH}${post.image as string}`}
+                    src={image || window.errorImage}
+                    alt=""
                 />
                 <div className={styles.postDate}>
                     <i className="fas fa-calendar-alt" />
@@ -27,9 +28,9 @@ export default function Post({ post, ...props }: PostProps) {
                 </div>
             </div>
 
-            <div className={styles.postTitle}>
+            <Link to={`/news/${post.id}`} className={styles.postTitle}>
                 {post.title}
-            </div>
+            </Link>
             <div className={styles.postDivider} />
 
             <div className={styles.postBottomContainer}>

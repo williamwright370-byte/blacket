@@ -41,73 +41,200 @@
 //     }
 // }
 
-.placement1 {
-    position: absolute;
-    height: calc(85vh - 65px);
-    width: 25vw;
-    top: 10vh;
-    left: 37.5vw;
-    border-radius: 10px;
-    background-color: var(--primary-color);
-    box-shadow: inset 0 -7px rgba(0, 0, 0, .2), 0 0 4px rgba(0, 0, 0, .15);
-    cursor: pointer;
-    color: var(--accent-color);
-    transition: top .2s;
+.podiumSection {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 24px;
+    box-sizing: border-box;
+    height: 100svh;
+    padding: 24px 0;
 
-    &:hover {
-        top: 8vh;
-    }
-
-    @media only screen and (max-width: 1400px) {
-        display: none;
-        visibility: hidden;
+    @media only screen and (max-width: 850px) {
+        gap: 16px;
+        padding-top: 56px;
     }
 }
 
-.placement2 {
-    position: absolute;
-    height: calc(67.5vh - 65px);
-    width: 25vw;
-    top: 27.5vh;
-    left: 7.5vw;
-    border-radius: 10px;
-    background-color: var(--primary-color);
-    box-shadow: inset 0 -7px rgba(0, 0, 0, .2), 0 0 4px rgba(0, 0, 0, .15);
-    cursor: pointer;
-    color: var(--accent-color);
-    transition: top .2s;
+.podiumViewport {
+    container-type: size;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+}
 
-    &:hover {
-        top: 25.5vh;
+.podium {
+    container-type: inline-size;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: end;
+    gap: 2.5%;
+    width: min(95cqw, 185cqh);
+    aspect-ratio: 1.85;
+    margin: 0;
+}
+
+.podiumPlacement {
+    position: relative;
+    grid-row: 1;
+    min-width: 0;
+    height: 35cqw;
+    border-radius: 3cqw;
+    background: var(--primary-color);
+    box-shadow: inset 0 -16px rgba(var(--black), 0.2);
+    color: var(--accent-color);
+    text-align: center;
+    text-decoration: none;
+    font-family: var(--heading-font);
+
+    &[data-placement="1"] {
+        --placement-color: #ffe449;
+        grid-column: 2;
     }
 
-    @media only screen and (max-width: 1400px) {
-        display: none;
-        visibility: hidden;
+    &[data-placement="2"] {
+        --placement-color: #bdbdd5;
+        grid-column: 1;
+        height: 28cqw;
+
+        .podiumUsername {
+            height: 8cqw;
+        }
+
+        .podiumRank {
+            font-size: 4.8cqw;
+        }
+
+        .podiumScore {
+            height: 5cqw;
+        }
+
+        .podiumAvatar {
+            transform: rotate(5deg);
+            left: auto;
+            right: 1cqw;
+        }
+
+        .podiumTrophy {
+            left: -1cqw;
+            right: auto;
+            transform: rotate(-8deg);
+        }
+    }
+
+    &[data-placement="3"] {
+        --placement-color: #c36c53;
+        grid-column: 3;
+        height: 19cqw;
+
+        .podiumTop {
+            height: 5cqw;
+        }
+
+        .podiumDetails {
+            padding-top: 0.8cqw;
+        }
+
+        .podiumUsername {
+            height: 5cqw;
+        }
+
+        .podiumRank {
+            font-size: 3.1cqw;
+        }
+
+        .podiumScore {
+            height: 3cqw;
+        }
+    }
+
+    &:focus-visible {
+        outline: 3px solid var(--placement-color);
+        outline-offset: 6px;
     }
 }
 
-.placement3 {
+.podiumTop {
+    position: relative;
+    height: 7cqw;
+    border-radius: 3cqw;
+    // border-bottom-left-radius: 0;
+    // border-bottom-right-radius: 0;
+    background: var(--background-color);
+    // box-shadow: inset 0 7px rgba(var(--black), 0.2);
+    // box-shadow:
+    //     inset 0 -7px rgba(var(--black), 0.2),
+    //     0 0 4px rgba(var(--black), 0.15);
+}
+
+.podiumAvatar {
     position: absolute;
-    height: calc(55vh - 65px);
-    width: 25vw;
-    top: 40vh;
-    left: 67.5vw;
-    border-radius: 10px;
-    background-color: var(--primary-color);
-    box-shadow: inset 0 -7px rgba(0, 0, 0, .2), 0 0 4px rgba(0, 0, 0, .15);
-    cursor: pointer;
-    color: var(--accent-color);
-    transition: top .2s;
+    bottom: 2cqw;
+    left: 1cqw;
+    width: 20cqw;
+    height: 22cqw;
+    transform: rotate(-5deg);
+}
 
-    &:hover {
-        top: 38vh;
-    }
+.podiumTrophy {
+    position: absolute;
+    bottom: 2cqw;
+    right: -1cqw;
+    color: var(--placement-color);
+    font-size: 12cqw;
+    line-height: 1;
+    transform: rotate(8deg);
+}
 
-    @media only screen and (max-width: 1400px) {
-        display: none;
-        visibility: hidden;
+.podiumDetails {
+    padding: 1.2cqw 1cqw 0;
+}
+
+.podiumUsername {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 9cqw;
+    overflow: visible;
+
+    > div {
+        line-height: 1.2 !important;
     }
+}
+
+.podiumRank {
+    color: var(--placement-color);
+    font-size: 5.5cqw;
+    line-height: 1.1;
+}
+
+.podiumScore {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 6cqw;
+    margin-top: 0.5cqw;
+}
+
+.podiumScoreContent {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15em;
+
+    img {
+        width: 1em;
+        height: 1em;
+        object-fit: contain;
+    }
+}
+
+.podiumPlacement[data-placement="1"] .podiumScore {
+    position: absolute;
+    bottom: 1cqw;
+    left: 1cqw;
+    right: 1cqw;
+    // height: 3cqw;
+    margin-top: 0;
 }
 
 .placementInside {
@@ -142,7 +269,7 @@
     float: left;
     text-align: center;
     font-size: 30px;
-    top: .75vw;
+    top: 0.75vw;
     left: 3.45vw;
     height: 1.7vw;
     width: 1.85vw;
@@ -163,14 +290,14 @@
     font-family: var(--paragraph-font);
     font-weight: 700;
 
-    &>img {
+    & > img {
         position: relative;
         top: 7.5px;
         width: 45px;
         object-fit: content;
     }
 
-    &>video {
+    & > video {
         position: relative;
         top: 7.5px;
         width: 45px;
@@ -181,7 +308,9 @@
 .place1 {
     position: absolute;
     border-radius: 10px;
-    box-shadow: inset 0 -7px rgba(0, 0, 0, .2), 0 0 4px rgba(0, 0, 0, .15);
+    box-shadow:
+        inset 0 -7px rgba(var(--black), 0.2),
+        0 0 4px rgba(var(--black), 0.15);
     height: 6vw;
     width: 6vw;
     top: -3vw;
@@ -198,14 +327,14 @@
     height: 20.7vw;
     width: 18vw;
 
-    &>img {
+    & > img {
         width: 100%;
         height: 100%;
         object-fit: contain;
         -o-object-fit: contain;
     }
 
-    &>video {
+    & > video {
         width: 100%;
         height: 100%;
         object-fit: contain;
@@ -232,14 +361,14 @@
     font-weight: 700;
     text-align: center;
 
-    &>img {
+    & > img {
         position: relative;
         top: 7.5px;
         width: 45px;
         object-fit: content;
     }
 
-    &>video {
+    & > video {
         position: relative;
         top: 7.5px;
         width: 45px;
@@ -250,7 +379,9 @@
 .place2 {
     position: absolute;
     border-radius: 10px;
-    box-shadow: inset 0 -7px rgba(0, 0, 0, .2), 0 0 4px rgba(0, 0, 0, .15);
+    box-shadow:
+        inset 0 -7px rgba(var(--black), 0.2),
+        0 0 4px rgba(var(--black), 0.15);
     height: 6vw;
     width: 6vw;
     top: -3vw;
@@ -267,7 +398,7 @@
     height: 15.64vw;
     width: 13.6vw;
 
-    &>img {
+    & > img {
         width: 100%;
         height: 100%;
         object-fit: contain;
@@ -294,14 +425,14 @@
     font-weight: 700;
     text-align: center;
 
-    &>img {
+    & > img {
         position: relative;
         top: 7.5px;
         width: 40px;
         object-fit: content;
     }
 
-    &>video {
+    & > video {
         position: relative;
         top: 7.5px;
         width: 40px;
@@ -318,7 +449,9 @@
     border-radius: 10px;
     color: var(--accent-color);
     background-color: #cd7f32;
-    box-shadow: inset 0 -7px rgba(0, 0, 0, .2), 0 0 4px rgba(0, 0, 0, .15);
+    box-shadow:
+        inset 0 -7px rgba(var(--black), 0.2),
+        0 0 4px rgba(var(--black), 0.15);
 }
 
 .avatar3 {
@@ -329,14 +462,14 @@
     height: 10.695vw;
     width: 9.3vw;
 
-    &>img {
+    & > img {
         width: 100%;
         height: 100%;
         object-fit: contain;
         -o-object-fit: contain;
     }
 
-    &>video {
+    & > video {
         width: 100%;
         height: 100%;
         object-fit: contain;
@@ -351,7 +484,7 @@
     // top: 0;
     width: 95%;
     // padding: 1vh 0 4vh;
-    padding: 2% 2%;
+    padding: 0 2% 24px;
     margin: 0 auto;
     justify-content: center;
 
@@ -383,27 +516,29 @@
     width: 100%;
     margin: 12.5px auto;
     text-decoration: none;
-    transition: transform .2s;
+    transition: transform 0.2s;
 
     @media not screen and (max-width: 850px) {
         &:hover {
-            transform: scale(.99);
+            transform: scale(0.99);
         }
 
         &:active {
-            transform: scale(.97);
+            transform: scale(0.97);
         }
     }
 }
 
 .otherStandingContainer {
-    background-color: var(--primary-color);
+    background: var(--primary-color);
     border-radius: var(--border-radius);
-    box-shadow: inset 0 -7px rgba(0, 0, 0, .2), 0 0 4px rgba(0, 0, 0, .15);
+    box-shadow:
+        inset 0 -7px rgba(var(--black), 0.2),
+        0 0 4px rgba(var(--black), 0.15);
     color: var(--accent-color);
     height: 70px;
     width: 100%;
-    transition: height .2s;
+    transition: height 0.2s;
 
     @media screen and (max-width: 850px) {
         &:hover {
@@ -430,7 +565,7 @@
 .otherStandingBottomScore {
     font-size: 20px;
 
-    &>img {
+    & > img {
         position: relative;
         top: 5px;
         right: 5px;
@@ -438,7 +573,7 @@
         width: 25px;
     }
 
-    &>video {
+    & > video {
         position: relative;
         top: 5px;
         right: 5px;
@@ -455,10 +590,12 @@
     padding: 5px 10px;
     border-radius: var(--border-radius);
     border: 2px solid var(--accent-color);
-    transition: background-color .2s, color .2s;
+    transition:
+        background-color 0.2s,
+        color 0.2s;
 
     &:hover {
-        background-color: var(--accent-color);
+        background: var(--accent-color);
         color: var(--primary-color);
     }
 }
@@ -495,13 +632,13 @@
         margin-right: 20px;
     }
 
-    &>img {
+    & > img {
         height: 95%;
         object-fit: contain;
         -o-object-fit: contain;
     }
 
-    &>video {
+    & > video {
         height: 95%;
         object-fit: contain;
         -o-object-fit: contain;
@@ -528,7 +665,7 @@
     margin-right: 20px;
     font-weight: 700;
 
-    &>img {
+    & > img {
         position: relative;
         top: 10px;
         left: 5px;
@@ -536,7 +673,7 @@
         width: 40px;
     }
 
-    &>video {
+    & > video {
         position: relative;
         top: 10px;
         left: 5px;

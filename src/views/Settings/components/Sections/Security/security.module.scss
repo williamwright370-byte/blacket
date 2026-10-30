@@ -15,7 +15,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 10px 15px;
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(var(--white), 0.05);
     border-radius: var(--border-radius);
     gap: 20px;
 }
@@ -50,14 +50,14 @@
     align-items: center;
     width: 30px;
     height: 30px;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(var(--white), 0.1);
     cursor: pointer;
     padding: 5px;
     border-radius: var(--border-radius);
     transition: background-color 0.2s;
 
     &:hover {
-        background-color: rgba(255, 255, 255, 0.2);
+        background-color: rgba(var(--white), 0.2);
     }
 }
 

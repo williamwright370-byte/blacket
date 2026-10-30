@@ -5,9 +5,9 @@
     height: calc(100% - 110px);
     width: calc(100% - 45vh);
     border-radius: 10px;
-    background-color: var(--primary-color);
+    background: var(--primary-color);
     padding: 10px 10px 20px;
-    box-shadow: inset 0 0 0 5px rgba(0, 0, 0, 0.1);
+    box-shadow: inset 0 0 0 5px rgba(var(--black), 0.1);
     box-sizing: border-box;
 
     &[data-fill="true"] {
@@ -33,7 +33,7 @@
     right: 1%;
     height: calc(100% - 110px);
     width: 40vh;
-    background-color: var(--primary-color);
+    background: var(--primary-color);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -176,22 +176,22 @@
     width: 100%;
     height: 100%;
     font-family: var(--heading-font);
-    // text-shadow: 0.2rem 0.2rem 0 rgba(0, 0, 0, .4);
+    // text-shadow: 0.2rem 0.2rem 0 rgba(var(--black), .4);
     // text outline
-    text-shadow: 0.2rem 0.2rem 0rem rgba(0, 0, 0, .5);
+    text-shadow: 0.2rem 0.2rem 0rem rgba(var(--black), .5);
 }
 
 .itemNameM {
     width: 100%;
     height: 40%;
     font-family: var(--heading-font);
-    text-shadow: 0.2rem 0.2rem 0 rgba(0, 0, 0, .2);
+    text-shadow: 0.2rem 0.2rem 0 rgba(var(--black), .2);
 }
 
 .itemDescriptionM {
     width: 100%;
     height: 60%;
-    text-shadow: 0.1rem 0.1rem 0 rgba(0, 0, 0, .2);
+    text-shadow: 0.1rem 0.1rem 0 rgba(var(--black), .2);
 }
 
 .rarityLabelContainer {
@@ -221,7 +221,7 @@
     width: 1vh;
     height: 1vh;
     border-radius: 50%;
-    background-color: var(--primary-color);
+    background: var(--primary-color);
 }
 
 .itemImageContainer {
@@ -413,14 +413,14 @@
 
 .sellBlookExtraOptionButton {
     padding: 4px 10px;
-    background-color: rgba(0, 0, 0, .2);
+    background-color: rgba(var(--black), .2);
     border-radius: var(--border-radius);
     transition: ease .2s;
     cursor: pointer;
     font-weight: 600;
 
     &:hover {
-        background-color: rgba(0, 0, 0, .1);
+        background-color: rgba(var(--black), .1);
     }
 }
 
@@ -463,7 +463,7 @@
     align-items: center;
     flex-direction: row;
     gap: 10px;
-    background-color: rgba(0, 0, 0, .2);
+    background-color: rgba(var(--black), .2);
     padding: 10px;
     border-radius: var(--border-radius);
     margin: 10px;
@@ -471,11 +471,11 @@
     transition: background-color .2s;
 
     &:hover {
-        background-color: rgba(0, 0, 0, .4);
+        background-color: rgba(var(--black), .4);
     }
 
     &[data-selected="true"] {
-        background-color: rgba(255, 255, 255, .4);
+        background-color: rgba(var(--white), .4);
     }
 }
 
