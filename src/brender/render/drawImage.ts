@@ -93,7 +93,7 @@ export const drawImage = (image: DrawImageProps) => {
     if (image.tint) {
         imageCtx.fillStyle = image.tint;
 
-        imageCtx.globalAlpha = 0.5;
+        imageCtx.globalAlpha = image.tintIntensity ?? 0.5;
         imageCtx.globalCompositeOperation = "source-atop";
 
         imageCtx.fillRect(

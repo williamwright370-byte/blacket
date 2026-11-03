@@ -3,7 +3,7 @@ import { useData } from "@stores/DataStore/index";
 
 import { NotFound, MarketOpenPackDto, UserBlook } from "@blacket/types";
 
-type Response = Fetch2Response & { data: UserBlook };
+type Response = Fetch2Response & { data: UserBlook; };
 
 export function useOpenPack() {
     const { user, setUser } = useUser();

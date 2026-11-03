@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { useId, useRef, useEffect, useState } from "react";
 
 function getOverlayFill(hex: string): string {
     if (!hex.startsWith("#") || (hex.length !== 7 && hex.length !== 4)) {
@@ -27,6 +27,7 @@ export default function RarityLabel({ text, backgroundColor }: {
     const textRef = useRef<SVGTextElement>(null);
     const [finalWidth, setFinalWidth] = useState<number | null>(null);
 
+    const id = useId();
     const maskId = `mask-${text}-${Math.random().toString(36).slice(2)}`;
     const useRainbow = backgroundColor === "rainbow";
     const useShiny = backgroundColor === "shiny";
@@ -109,7 +110,7 @@ export default function RarityLabel({ text, backgroundColor }: {
 
                     {useRainbow && (
                         <>
-                            <linearGradient id="rainbowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <linearGradient id={`${id}-rainbowGradient`} x1="0%" y1="0%" x2="100%" y2="0%">
                                 <stop offset="0%" stopColor="red" />
                                 <stop offset="14.28%" stopColor="orange" />
                                 <stop offset="28.56%" stopColor="yellow" />
@@ -121,12 +122,12 @@ export default function RarityLabel({ text, backgroundColor }: {
                             </linearGradient>
 
                             <pattern
-                                id="rainbowPattern"
+                                id={`${id}-rainbowPattern`}
                                 patternUnits="userSpaceOnUse"
                                 width="400"
                                 height="50"
                             >
-                                <rect width="400" height="50" fill="url(#rainbowGradient)" />
+                                <rect width="400" height="50" fill={`url(#${id}-rainbowGradient)`} />
                                 <animateTransform
                                     attributeName="patternTransform"
                                     type="translate"
@@ -142,7 +143,7 @@ export default function RarityLabel({ text, backgroundColor }: {
 
                     {useShiny && (
                         <>
-                            <linearGradient id="shinyGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <linearGradient id={`${id}-shinyGradient`} x1="0%" y1="0%" x2="100%" y2="0%">
                                 <stop offset="0%" stopColor="#FDE4E4" />
                                 <stop offset="25%" stopColor="#C8F3D4" />
                                 <stop offset="50%" stopColor="#A7FFE2" />
@@ -152,12 +153,12 @@ export default function RarityLabel({ text, backgroundColor }: {
                             </linearGradient>
 
                             <pattern
-                                id="shinyPattern"
+                                id={`${id}-shinyPattern`}
                                 patternUnits="userSpaceOnUse"
                                 width="400"
                                 height="50"
                             >
-                                <rect width="400" height="50" fill="url(#shinyGradient)" />
+                                <rect width="400" height="50" fill={`url(#${id}-shinyGradient)`} />
                                 <animateTransform
                                     attributeName="patternTransform"
                                     type="translate"
@@ -187,9 +188,9 @@ export default function RarityLabel({ text, backgroundColor }: {
                     ry={borderRadius}
                     fill={
                         useRainbow
-                            ? "url(#rainbowPattern)"
+                            ? `url(#${id}-rainbowPattern)`
                             : useShiny
-                                ? "url(#shinyPattern)"
+                                ? `url(#${id}-shinyPattern)`
                                 : backgroundColor
                     }
                     stroke="rgba(var(--black), 0.4)"

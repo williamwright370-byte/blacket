@@ -1,11 +1,11 @@
 import { useEffect } from "react";
-import { useSound } from "@stores/SoundStore/index";
+import { useAudio } from "@stores/AudioStore/index";
 import styles from "./genericModal.module.scss";
 
 import { GenericModalProps } from "./genericModal.d";
 
 export default function GenericModal({ closing = false, noAnimation = false, children, outside, fullscreen }: GenericModalProps) {
-    const { playSound } = useSound();
+    const { playSound } = useAudio();
 
     useEffect(() => {
         if (closing) playSound("modal-close");

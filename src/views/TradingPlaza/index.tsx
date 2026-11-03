@@ -15,23 +15,24 @@ import { useUser } from "@stores/UserStore/index";
 import { useSocket, useSocketLatency } from "@stores/SocketStore/index";
 import { useData } from "@stores/DataStore/index";
 import { useCachedUser } from "@stores/CachedUserStore/index";
-import { useSound } from "@stores/SoundStore/index";
+import { useAudio } from "@stores/AudioStore/index";
+import { useChat } from "@stores/ChatStore/index";
+import { AudioChannel } from "@stores/AudioStore/audioStore.d";
 import { Joystick, WaterBackground } from "@components/index";
 import { MobileRunButton } from "./components";
 import { lerp } from "@functions/core/mathematics";
+import { TILES } from "@constants/index";
 import styles from "./tradingPlaza.module.scss";
 
 import { SocketMessageType } from "@blacket/types";
-import { TILES } from "@constants/index";
-import { useChat } from "@stores/ChatStore";
 
 // TODO: put these somewhere else
-type RGBA = { r: number; g: number; b: number; a: number };
+type RGBA = { r: number; g: number; b: number; a: number; };
 
 const getDistance = (x1: number, y1: number, x2: number, y2: number) =>
     Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 
-const TIME_KEYFRAMES: Array<{ minute: number; color: RGBA }> = [
+const TIME_KEYFRAMES: Array<{ minute: number; color: RGBA; }> = [
     { minute: 0, color: { r: 6, g: 10, b: 22, a: 0.7 } }, // 00:00 midnight - almost black-blue
     { minute: 300, color: { r: 10, g: 15, b: 30, a: 0.6 } }, // 05:00 pre-dawn
     { minute: 360, color: { r: 255, g: 150, b: 70, a: 0.2 } }, // 06:00 sunrise (strong warm glow)
@@ -96,7 +97,7 @@ export default function TradingPlaza() {
     const { latency } = useSocketLatency();
     const { fontIdToName } = useData();
     const { addCachedUser } = useCachedUser();
-    const { playSound, defineSounds, stopSound, setVolume } = useSound();
+    const { playSound, defineSounds, stopSound, setVolume } = useAudio();
     const { messages, fetchMessages, sendMessage } = useChat();
 
     if (!user) return <Navigate to="/login" />;
@@ -141,7 +142,8 @@ export default function TradingPlaza() {
                 options: {
                     loop: true,
                     preload: true,
-                    volume: gainToDb(0)
+                    volume: gainToDb(0),
+                    channel: AudioChannel.MUSIC
                 }
             },
             {
@@ -152,7 +154,8 @@ export default function TradingPlaza() {
                 options: {
                     loop: true,
                     preload: true,
-                    volume: gainToDb(0)
+                    volume: gainToDb(0),
+                    channel: AudioChannel.MUSIC
                 }
             },
             ...STEP_SOUNDS.map((sound) => ({
@@ -160,7 +163,10 @@ export default function TradingPlaza() {
                 url: window.constructCDNUrl(
                     `/content/audio/sound/trading-plaza/${sound}.mp3`
                 ),
-                options: { volume: gainToDb(0.5) }
+                options: {
+                    volume: gainToDb(0.5),
+                    channel: AudioChannel.SOUND
+                }
             }))
         ]).then(() => {
             playSound("trading-plaza-ambience");
@@ -466,7 +472,7 @@ export default function TradingPlaza() {
             return entity;
         };
 
-        const handleJoin = async (data: { userId: string }) =>
+        const handleJoin = async (data: { userId: string; }) =>
             createPlayerEntity(data.userId);
 
         const handleMove = async (data: {
@@ -483,10 +489,10 @@ export default function TradingPlaza() {
             entity.targetY = data.y;
         };
 
-        const handleLeave = (data: { userId: string }) =>
+        const handleLeave = (data: { userId: string; }) =>
             brender.findEntity(data.userId)?.destroy?.();
 
-        const handleLagback = (data: { x: number; y: number }) => {
+        const handleLagback = (data: { x: number; y: number; }) => {
             const player = brender.findEntity(user.id) as PlayerEntity;
             if (!player) return;
 

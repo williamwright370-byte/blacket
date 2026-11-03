@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Blook, ImageOrVideo, RarityLabel } from "@components/index";
 import { useResource } from "@stores/ResourceStore/index";
 import { useData } from "@stores/DataStore/index";
-import { useSound } from "@stores/SoundStore/index";
+import { useAudio } from "@stores/AudioStore/index";
 import { useInsanePull } from "@stores/InsanePullStore/index";
 import Textfit from "react-textfit";
 import styles from "../market.module.scss";
@@ -13,7 +13,7 @@ import { RarityAnimationTypeEnum } from "@blacket/types";
 export default function OpenPackBlook({ userBlook, animate = false, isNew }: OpenPackBlookProps) {
     const { resourceIdToPath } = useResource();
     const { blooks, rarities } = useData();
-    const { playSound } = useSound();
+    const { playSound } = useAudio();
     const { isPlaying } = useInsanePull();
 
     const blook = blooks.find((b) => b.id === userBlook.blookId);

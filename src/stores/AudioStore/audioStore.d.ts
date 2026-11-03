@@ -3,12 +3,14 @@ import { Player } from "tone";
 export interface Sound {
     id: string;
     player: Player;
+    channel: AudioChannel;
 }
 
 export interface SoundOptions {
     loop?: boolean;
     volume?: number;
     preload?: boolean;
+    channel?: AudioChannel;
 }
 
 export interface DefinedSound {
@@ -17,7 +19,12 @@ export interface DefinedSound {
     options?: SoundOptions;
 }
 
-export interface SoundStore {
+export enum AudioChannel {
+    SOUND = "SOUND",
+    MUSIC = "MUSIC"
+}
+
+export interface AudioStore {
     sounds: Sound[];
 
     getSound: (id: string) => Promise<Tone.Player | undefined>;
@@ -26,6 +33,9 @@ export interface SoundStore {
     stopSound: (id: string) => Promise<void>;
     stopSounds: (ids: string[]) => Promise<void>;
     stopAllSounds: () => Promise<void>;
+
+    setChannelVolume: (channel: AudioChannel, volume: number) => void;
+    setChannelMuted: (channel: AudioChannel, muted: boolean) => void;
 
     defineSounds: (definedSounds: DefinedSound[]) => Promise<void>;
 

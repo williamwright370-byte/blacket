@@ -5,7 +5,7 @@ import { useUser } from "@stores/UserStore/index";
 import { useModal } from "@stores/ModalStore/index";
 import { useResource } from "@stores/ResourceStore/index";
 import { useData } from "@stores/DataStore/index";
-import { useSound } from "@stores/SoundStore/index";
+import { useAudio } from "@stores/AudioStore/index";
 import { useSubscriptionProration } from "@controllers/stripe/subscriptions/useProration/index";
 import { Modal, ErrorContainer, Button, StripeElementsWrapper, ImageOrVideo, Dropdown, Toggle, ParticleCanvas, Input } from "@components/index";
 import { ParticleCanvasRef } from "@components/ParticleCanvas/particleCanvas";
@@ -18,7 +18,7 @@ import { calculateFinalPrice, getSubscriptionSwitchType } from "@blacket/common"
 function SuccessModalOutside() {
     const particleCanvasRef = useRef<ParticleCanvasRef>(null);
 
-    const { playSound, playSounds, stopSounds } = useSound();
+    const { playSound, playSounds, stopSounds } = useAudio();
 
     useEffect(() => {
         if (!particleCanvasRef.current) return;
@@ -232,7 +232,7 @@ function TheModal({ product, subscription, subscriptionInterval, priceOverride }
                 Please review your {product ? "purchase" : "subscription"} below.
             </Modal.ModalBody>
 
-            <Modal.ModalBody style={{ minWidth: 500 }}>
+            <Modal.ModalBody>
                 <div className={styles.purchaseDetailsContainer}>
                     <span className={styles.purchaseDetailsText}>{
                         product ? "Product" : "Subscription"

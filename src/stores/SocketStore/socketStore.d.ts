@@ -5,6 +5,7 @@ export interface SocketStore {
     connected: boolean;
     getLatency: () => number;
     initializeSocket: () => void;
+    disconnectSocket: () => void;
     forceLatencyUpdate: () => void;
     latency?: number;
 }

@@ -1,4 +1,4 @@
-import { ReactNode, memo } from "react";
+import { Fragment, ReactNode, memo } from "react";
 import { ConfigLoader } from "@stores/ConfigStore/ConfigLoader";
 import { DataLoader } from "@stores/DataStore/components/index";
 import { LoadingUI } from "@stores/LoadingStore/components/index";
@@ -9,7 +9,8 @@ import { InsanePullUI } from "@stores/InsanePullStore/components/index";
 import { SocketDefiner } from "@stores/SocketStore/components/index";
 import { ChatDefiner } from "@stores/ChatStore/components/index";
 import { FriendDefiner } from "@stores/FriendStore/components/index";
-import { SoundDefiner } from "@stores/SoundStore/components/index";
+import { AudioDefiner } from "@stores/AudioStore/components/index";
+import { useUserStore } from "@stores/UserStore/index";
 // import { useContextMenu } from "@stores/ContextMenuStore/index";
 
 const StaticUI = memo(() => (
@@ -31,21 +32,25 @@ const EventDefiners = memo(() => (
 ));
 EventDefiners.displayName = "EventDefiners";
 
-export default function Wrapper({ children }: { children: ReactNode }) {
+export default function Wrapper({ children }: { children: ReactNode; }) {
+    const userId = useUserStore((s) => s.user?.id);
+
     return (
         <>
             <ConfigLoader>
                 <DataLoader>
-                    <StaticUI />
-                    <ContextMenuUI />
+                    <Fragment key={userId ?? "guest"}>
+                        <StaticUI />
+                        <ContextMenuUI />
 
-                    {children}
+                        {children}
 
-                    <EventDefiners />
+                        <EventDefiners />
+                    </Fragment>
                 </DataLoader>
-            </ConfigLoader>
+            </ConfigLoader >
 
-            <SoundDefiner />
+            <AudioDefiner />
         </>
     );
 }

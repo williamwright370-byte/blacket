@@ -11,7 +11,8 @@
     font-size: 20px;
 
     @media only screen and (max-width:768px) {
-        width: 95%;
+        // width: 95%;
+        width: auto;
         margin: 10px;
         box-sizing: border-box;
         flex-wrap: nowrap;

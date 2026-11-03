@@ -38,10 +38,9 @@ export default function Dropdown({ search = { enabled: false, placeholder: "Sear
                 menu: (provided) => ({
                     ...provided,
                     backgroundColor: "var(--background-color)",
-                    borderRadius: "7px",
-                    width: "300px",
-                    "@media screen and (max-width: 650px)": { width: "95%" }
+                    borderRadius: "7px"
                 }),
+                menuPortal: (provided) => ({ ...provided, zIndex: 999 }),
                 option: (provided, state) => ({
                     ...provided,
                     backgroundColor: state.isSelected ? "var(--accent-color)" : "var(--background-color)",
@@ -60,6 +59,9 @@ export default function Dropdown({ search = { enabled: false, placeholder: "Sear
                 placeholder: (provided) => ({ ...provided, color: "var(--accent-color)", fontSize: "18px" })
             }}
             classNamePrefix="dropdown"
+            menuPortalTarget={document.body}
+            menuPosition="fixed"
+            menuPlacement="auto"
             options={options}
             isSearchable={search.enabled}
             placeholder={children}

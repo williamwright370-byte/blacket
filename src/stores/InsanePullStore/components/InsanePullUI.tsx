@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useResource } from "@stores/ResourceStore/index";
 import { useSocket } from "@stores/SocketStore/index";
 import { useUser } from "@stores/UserStore/index";
-import { useSound } from "@stores/SoundStore/index";
+import { useAudio } from "@stores/AudioStore/index";
 import { useInsanePull } from "@stores/InsanePullStore/index";
 import styles from "../insanePullStore.module.scss";
 
@@ -13,7 +13,7 @@ export default function InsanePullUI() {
     const { resourceIdToPath } = useResource();
     const { socket, connected } = useSocket();
     const { user } = useUser();
-    const { stopAllSounds, playSound } = useSound();
+    const { stopAllSounds, playSound } = useAudio();
     const { video, setVideo, setIsPlaying } = useInsanePull();
 
     if (!user) return null;

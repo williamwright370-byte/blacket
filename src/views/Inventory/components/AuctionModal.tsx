@@ -15,7 +15,7 @@ export default function AuctionModal({ type, blook, item, shiny }: AuctionModalP
     const { user } = useUser();
     if (!user) return null;
 
-    const [loading, setLoading] = useState<boolean>(true);
+    const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>("");
     const [price, setPrice] = useState<string>("");
     const [suspicious, setSuspicious] = useState<boolean>(false);
@@ -66,20 +66,20 @@ export default function AuctionModal({ type, blook, item, shiny }: AuctionModalP
         setDurationTax(Math.floor(parseInt(duration !== "" ? duration : "0") / 60 * 10));
     }, [price, duration, buyItNow]);
 
-    useEffect(() => {
-        getRecentAveragePrice({
-            type,
-            itemId: item ? item.id : undefined,
-            blookId: blook ? blook.id : undefined,
-            shiny
-        })
-            .then((res) => {
-                if (res.data.averagePrice !== null) setPrice(Math.floor(res.data.averagePrice * 0.99).toString());
-                setSuspicious(res.data.suspicious);
-            })
-            .catch((err) => setError(err?.data?.message || "Something went wrong."))
-            .finally(() => setLoading(false));
-    }, []);
+    // useEffect(() => {
+    //     getRecentAveragePrice({
+    //         type,
+    //         itemId: item ? item.id : undefined,
+    //         blookId: blook ? blook.id : undefined,
+    //         shiny
+    //     })
+    //         .then((res) => {
+    //             if (res.data.averagePrice !== null) setPrice(Math.floor(res.data.averagePrice * 0.99).toString());
+    //             setSuspicious(res.data.suspicious);
+    //         })
+    //         .catch((err) => setError(err?.data?.message || "Something went wrong."))
+    //         .finally(() => setLoading(false));
+    // }, []);
 
     useEffect(() => {
         if (!(type === AuctionTypeEnum.BLOOK && blook)) return;

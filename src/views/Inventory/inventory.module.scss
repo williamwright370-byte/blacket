@@ -183,7 +183,7 @@
 
 .itemNameM {
     width: 100%;
-    height: 40%;
+    height: 30%;
     font-family: var(--heading-font);
     text-shadow: 0.2rem 0.2rem 0 rgba(var(--black), .2);
 }
@@ -307,6 +307,16 @@
 .info {
     display: flex;
     justify-content: space-between;
+    max-height: 20px;
+    padding: 2px 2px;
+
+    &[data-mobile="true"] {
+        display: none;
+
+        @media only screen and (max-width: 768px) {
+            display: flex;
+        }
+    }
 }
 
 .infoText {

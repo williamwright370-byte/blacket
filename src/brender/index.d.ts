@@ -36,6 +36,7 @@ export interface DrawImageProps {
     blendMode?: GlobalCompositeOperation;
     opacity?: number;
     tint?: string;
+    tintIntensity?: number;
     shiny?: boolean;
     shineOffset?: number;
     useCamera?: boolean;
@@ -47,8 +48,8 @@ export interface BrenderCanvasRef {
     objects: BrenderObject[];
     entities: BrenderEntity[];
     camera: BrenderCamera;
-    pressing: { [key: string]: boolean };
-    mousePosition: { x: number; y: number };
+    pressing: { [key: string]: boolean; };
+    mousePosition: { x: number; y: number; };
     loadingImage: HTMLImageElement;
     isMouseOver(object: BrenderObject | BrenderEntity): boolean;
     createGenericEntity(entity: BrenderEntity): BrenderEntity;
@@ -56,7 +57,7 @@ export interface BrenderCanvasRef {
     createObject(object: BrenderObject): BrenderObject;
     findEntity(id: string): BrenderEntity | undefined;
     findObject(id: string): BrenderObject | undefined;
-    drawRect(rect: DrawRectProps): void
+    drawRect(rect: DrawRectProps): void;
     drawText(text: DrawTextProps): void;
     drawImage(image: DrawImageProps): void;
     urlToImage(url: string): Promise<HTMLImageElement | HTMLVideoElement>;
@@ -94,6 +95,7 @@ export interface BrenderObject {
     imageBlendMode?: GlobalCompositeOperation;
     imageOpacity?: number;
     imageTint?: string;
+    imageTintIntensity?: number;
     imageShiny?: boolean;
     hasCollision?: boolean;
     rotation?: number;

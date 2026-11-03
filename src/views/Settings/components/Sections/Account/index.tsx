@@ -1,22 +1,40 @@
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { Tooltip } from "react-tooltip";
+import { dbToGain, gainToDb } from "tone";
 import { useUser } from "@stores/UserStore/index";
 import { useData } from "@stores/DataStore/index";
 import { useModal } from "@stores/ModalStore/index";
 import { useLoading } from "@stores/LoadingStore/index";
+import { useAudio } from "@stores/AudioStore/index";
+import { AudioChannel } from "@stores/AudioStore/audioStore.d";
+import { localStorage } from "@functions/core/localStorage";
 import { useDiscordLink } from "@controllers/discord/useDiscordLink/index";
 import { useSettings } from "@controllers/settings/useSettings/index";
 import { Button, Modal, PaymentMethodText } from "@components/index";
 import { SettingsContainer, Divider } from "..";
-import { PlanText, ChangeUsernameModal } from "./components/index";
+import { ChangeUsernameModal } from "./components/index";
 
 import { SettingFriendRequestEnum } from "@blacket/types";
+
+const CHANNEL_LABELS: Record<AudioChannel, string> = {
+    [AudioChannel.SOUND]: "Sound Volume",
+    [AudioChannel.MUSIC]: "Music Volume"
+};
 
 export default function Account() {
     const { user } = useUser();
     const { fontIdToName } = useData();
     const { createModal } = useModal();
     const { setLoading } = useLoading();
+    const { setChannelVolume } = useAudio();
+
+    const [volumes, setVolumes] = useState<Record<string, number>>(() => Object.fromEntries(
+        Object.values(AudioChannel).map((channel) => [
+            channel,
+            Math.round(dbToGain(localStorage.get(`sound:volume:${channel}`)) * 100)
+        ])
+    ));
 
     const { changeSetting } = useSettings();
     const { getOAuthUrl } = useDiscordLink();
@@ -32,7 +50,18 @@ export default function Account() {
             value: user.settings.friendRequests === SettingFriendRequestEnum.ON ? SettingFriendRequestEnum.MUTUAL : user.settings.friendRequests === SettingFriendRequestEnum.MUTUAL ? SettingFriendRequestEnum.OFF : user.settings.friendRequests === SettingFriendRequestEnum.OFF ? SettingFriendRequestEnum.ON : SettingFriendRequestEnum.ON
         })
             .then(() => setLoading(false))
-            .catch(() => createModal(<Modal.ErrorModal>Failed to change settings.</Modal.ErrorModal>))
+            .catch((res) => createModal(<Modal.ErrorModal>{res.data.message}</Modal.ErrorModal>))
+            .finally(() => setLoading(false));
+    };
+
+    const onlyRareSoundsButton = () => {
+        setLoading("Changing settings");
+        changeSetting({
+            key: "onlyRareSounds",
+            value: !user.settings.onlyRareSounds
+        })
+            .then(() => setLoading(false))
+            .catch((res) => createModal(<Modal.ErrorModal>{res.data.message}</Modal.ErrorModal>))
             .finally(() => setLoading(false));
     };
 
@@ -47,7 +76,7 @@ export default function Account() {
             value: newValue
         })
             .then(() => setLoading(false))
-            .catch(() => createModal(<Modal.ErrorModal>Failed to change settings.</Modal.ErrorModal>))
+            .catch((res) => createModal(<Modal.ErrorModal>{res.data.message}</Modal.ErrorModal>))
             .finally(() => setLoading(false));
     };
 
@@ -103,10 +132,36 @@ export default function Account() {
         </SettingsContainer>
 
         <SettingsContainer header={{ icon: "fas fa-cog", text: "General" }}>
+            <Tooltip id="onlyRareSounds" place="right">This will disable sounds for common blooks such as epic and below.</Tooltip>
+            <Button.ClearButton data-tooltip-id="onlyRareSounds" onClick={onlyRareSoundsButton}>Only Rare Sounds: {user.settings.onlyRareSounds ? "On" : "Off"}</Button.ClearButton>
+
             <Tooltip id="lowPerformanceMode" place="right">This will reduce some animations and visual effects to improve performance on lower-end devices.</Tooltip>
             <Button.ClearButton data-tooltip-id="lowPerformanceMode" onClick={lowPerformanceModeButton}>Low Performance Mode: {
                 user.settings.lowPerformanceMode === null ? "Auto" : user.settings.lowPerformanceMode === false ? "Off" : user.settings.lowPerformanceMode === true ? "On" : "Auto"
             }</Button.ClearButton>
+
+            {/* TODO: better styles for this later */}
+            {Object.values(AudioChannel).map((channel) => <div key={channel} style={{ marginTop: 10 }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <b>{CHANNEL_LABELS[channel]}</b>
+                    <span>{volumes[channel]}%</span>
+                </div>
+
+                <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={volumes[channel]}
+                    onChange={(e) => {
+                        const percent = Number(e.target.value);
+
+                        setVolumes((prev) => ({ ...prev, [channel]: percent }));
+                        // -100 dB instead of -Infinity so the value survives JSON storage
+                        setChannelVolume(channel, Math.max(gainToDb(percent / 100), -100));
+                    }}
+                    style={{ width: "100%" }}
+                />
+            </div>)}
 
         </SettingsContainer>
     </>;

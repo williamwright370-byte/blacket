@@ -265,7 +265,7 @@ export default function Inventory() {
 
                     <div className={styles.itemContainerM}>
                         <div className={styles.basicInfoM}>
-                            <Textfit className={styles.itemNameM} mode="single" min={0} max={40}>
+                            <Textfit className={styles.itemNameM} mode="multi" min={0} max={100}>
                                 {selectedType === SelectedTypeEnum.BLOOK
                                     ? `${(selected as UserBlook).shiny ? "Shiny " : ""}${blook?.name}`
                                     : item?.name
@@ -339,6 +339,16 @@ export default function Inventory() {
                     </Textfit>
 
                     <div className={styles.infoContainer}>
+                        <Info
+                            name="Rarity"
+                            icon="fas fa-star"
+                            mobile={true}
+                        >
+                            <RarityLabel
+                                text={rarity.name}
+                                backgroundColor={rarity.color}
+                            />
+                        </Info>
 
                         {blook && selectedType === SelectedTypeEnum.BLOOK ? <Info
                             name="Amount"

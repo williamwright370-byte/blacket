@@ -9,6 +9,11 @@
     .purchaseDetailsText {
         opacity: 0.5;
     }
+
+    @media screen and (max-width: 768px) {
+        width: 100%;
+        max-width: unset;
+    }
 }
 
 .purchaseDetails {
@@ -22,7 +27,7 @@
     background: var(--background-color);
 
     @media screen and (max-width: 768px) {
-        width: fit-content;
+        width: auto;
         gap: 10px;
         flex-direction: column;
     }

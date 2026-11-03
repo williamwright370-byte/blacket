@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { io } from "socket.io-client";
+import { localStorage } from "@functions/core/localStorage";
 import { SocketMessageType } from "@blacket/types";
 
 import { SocketStore } from "./socketStore.d";
@@ -28,7 +29,7 @@ export const useSocket = create<SocketStore>()(
 
                 const socket = io(`${location.protocol}//${location.host}`, {
                     path: "/gateway",
-                    auth: { token: localStorage.getItem("token") },
+                    auth: { token: localStorage.get("token") },
                     transports: ["websocket"]
                 });
 
@@ -74,7 +75,7 @@ export const useSocket = create<SocketStore>()(
 
                     console.info("[Blacket] Disconnected from WebSocket server.");
 
-                    if (localStorage.getItem("token")) {
+                    if (localStorage.get("token")) {
                         console.info("[Blacket] Reconnecting to WebSocket server...");
 
                         setTimeout(() => get().initializeSocket(), 1000);
@@ -94,6 +95,16 @@ export const useSocket = create<SocketStore>()(
                 }
 
                 set({ socket });
+            },
+
+            disconnectSocket: () => {
+                const socket = get().socket;
+                if (!socket) return;
+
+                socket.removeAllListeners();
+                socket.disconnect();
+
+                set({ socket: null, connected: false });
             },
 
             forceLatencyUpdate: () => {

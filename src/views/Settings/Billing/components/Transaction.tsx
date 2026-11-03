@@ -17,6 +17,8 @@ export default function Transaction({ transaction, selected, ...props }: Transac
     };
     if (!product) return null;
 
+    const isMobile = window.innerWidth < 768;
+
     const getCurrencyString = (amount: number = transaction.amount) => {
         switch (transaction.currency) {
             case CurrencyTypeEnum.USD:
@@ -48,12 +50,12 @@ export default function Transaction({ transaction, selected, ...props }: Transac
     return (
         <div className={styles.transaction} {...props}>
             <div className={styles.transactionTopRow}>
-                <Textfit className={styles.transactionDate} mode="single" min={0} max={16}>
+                <Textfit className={styles.transactionDate} mode="single" min={0} max={!isMobile ? 16 : 12}>
                     {new Date(transaction.createdAt).toLocaleDateString()}
                 </Textfit>
 
                 <div className={styles.transactionDescriptionContainer}>
-                    {window.innerWidth > 768 && <ImageOrVideo src={resourceIdToPath(product.imageId)} className={styles.transactionImage} />}
+                    {!isMobile && <ImageOrVideo src={resourceIdToPath(product.imageId)} className={styles.transactionImage} />}
 
                     <Textfit className={styles.transactionDescription} mode="single" min={0} max={16}>
                         {product.isQuantityCapped === false ? `x${transaction.quantity} ` : ""}{product.name}
@@ -63,7 +65,7 @@ export default function Transaction({ transaction, selected, ...props }: Transac
                 <div className={styles.transactionStatus} style={{
                     backgroundColor: getStatusColor()
                 }}>
-                    {window.innerWidth > 768 ? transaction.status : transaction.status.charAt(0)}
+                    {!isMobile ? transaction.status : transaction.status.charAt(0)}
                 </div>
 
                 <div className={styles.transactionAmountContainer}>

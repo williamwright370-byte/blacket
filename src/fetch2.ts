@@ -1,3 +1,5 @@
+import { localStorage } from "@functions/core/localStorage";
+
 export enum HTTPMethod {
     GET = "GET",
     HEAD = "HEAD",
@@ -11,7 +13,7 @@ const fetchInterceptor = (method: HTTPMethod) => (url: string, body: JSON) => ne
     method,
     headers: {
         "Content-Type": "application/json",
-        Authorization: localStorage.getItem("token") as string
+        Authorization: localStorage.get("token") as string
     },
     body: JSON.stringify(body)
 })
@@ -34,7 +36,7 @@ const fetchInterceptor = (method: HTTPMethod) => (url: string, body: JSON) => ne
 const fetchUploadInterceptor = (method: HTTPMethod) => (url: string, body: FormData) => new Promise((resolve, reject) => window.fetch(url, {
     method,
     headers: {
-        Authorization: localStorage.getItem("token") as string
+        Authorization: localStorage.get("token") as string
     },
     body
 })

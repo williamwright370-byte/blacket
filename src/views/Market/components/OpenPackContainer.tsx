@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { useSound } from "@stores/SoundStore/index";
+import { useAudio } from "@stores/AudioStore/index";
+import { AudioChannel } from "@stores/AudioStore/audioStore.d";
 import { useInsanePull } from "@stores/InsanePullStore/index";
 import styles from "../market.module.scss";
 
@@ -7,7 +8,7 @@ import { OpenPackContainerProps } from "../market.d";
 import { RarityAnimationTypeEnum } from "@blacket/types";
 
 export default function OpenPackContainer({ opening, image, video, animationType }: OpenPackContainerProps) {
-    const { defineSounds, getSound, playSound, playSounds } = useSound();
+    const { defineSounds, getSound, playSound, playSounds } = useAudio();
     const { setVideo, isPlaying, setIsPlaying } = useInsanePull();
 
     const [ended, setEnded] = useState<boolean>(false);
@@ -27,11 +28,11 @@ export default function OpenPackContainer({ opening, image, video, animationType
     // define sounds
     useEffect(() => {
         defineSounds([
-            { id: "pack-tear", url: window.constructCDNUrl("/content/audio/sound/pack/pack-tear.mp3") },
-            { id: "chroma-grow", url: window.constructCDNUrl("/content/audio/sound/pack/chroma-grow.mp3") },
-            { id: "chroma-explode", url: window.constructCDNUrl("/content/audio/sound/pack/chroma-explode.mp3") },
-            { id: "mythical-grow", url: window.constructCDNUrl("/content/audio/sound/pack/mythical-grow.mp3") },
-            { id: "mythical-explode", url: window.constructCDNUrl("/content/audio/sound/pack/mythical-explode.mp3") }
+            { id: "pack-tear", url: window.constructCDNUrl("/content/audio/sound/pack/pack-tear.mp3"), options: { channel: AudioChannel.SOUND } },
+            { id: "chroma-grow", url: window.constructCDNUrl("/content/audio/sound/pack/chroma-grow.mp3"), options: { channel: AudioChannel.SOUND } },
+            { id: "chroma-explode", url: window.constructCDNUrl("/content/audio/sound/pack/chroma-explode.mp3"), options: { channel: AudioChannel.SOUND } },
+            { id: "mythical-grow", url: window.constructCDNUrl("/content/audio/sound/pack/mythical-grow.mp3"), options: { channel: AudioChannel.SOUND } },
+            { id: "mythical-explode", url: window.constructCDNUrl("/content/audio/sound/pack/mythical-explode.mp3"), options: { channel: AudioChannel.SOUND } }
         ]);
     }, []);
 

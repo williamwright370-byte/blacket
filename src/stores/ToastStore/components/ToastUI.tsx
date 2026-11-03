@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useToastLoop } from "../useToastLoop";
 import { useToast } from "@stores/ToastStore/index";
-import { useSound } from "@stores/SoundStore/index";
+import { useAudio } from "@stores/AudioStore/index";
 import { ImageOrVideo } from "@components/index";
 import styles from "../toast.module.scss";
 
@@ -9,7 +9,7 @@ export default function ToastUI() {
     useToastLoop();
 
     const { toasts, closeToast } = useToast();
-    const { playSound } = useSound();
+    const { playSound } = useAudio();
 
     const toast = toasts[0];
 

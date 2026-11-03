@@ -296,7 +296,10 @@ export default function Dashboard() {
                 }}>
                     <div className={styles.statsContainerHolder}>
                         <StatContainer title="User ID" icon={window.constructCDNUrl("/content/icons/dashboardStatsUserID.png")} value={viewingUser.id} />
-                        {viewingUser.guild && <StatContainer title="Clan" icon={window.constructCDNUrl("/content/icons/dashboardStatsGuild.png")} value={viewingUser.guild ? viewingUser.guild : "None"} />}
+                        {/*
+                            TODO: display clan
+                            {viewingUser.guild && <StatContainer title="Clan" icon={window.constructCDNUrl("/content/icons/dashboardStatsGuild.png")} value={viewingUser.guild ? viewingUser.guild : "None"} />}
+                        */}
                         <StatContainer title="Total Blooks" icon={window.constructCDNUrl("/content/icons/dashboardStatsBlooksUnlocked.png")} value={`${viewingUser.blooks.length.toLocaleString()}`} />
                         <StatContainer title="Tokens" icon={window.constructCDNUrl("/content/token.png")} value={viewingUser.tokens.toLocaleString()} />
                         <StatContainer title="Diamonds" icon={window.constructCDNUrl("/content/diamond.png")} value={viewingUser.diamonds.toLocaleString()} />

@@ -5,6 +5,7 @@ import { Item, UserItem } from "@blacket/types";
 export interface InfoProps extends HTMLAttributes<HTMLDivElement> {
     name?: string;
     icon?: string;
+    mobile?: boolean;
 }
 
 export interface SellBlooksModalProps {

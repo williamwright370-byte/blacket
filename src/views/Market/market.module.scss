@@ -526,7 +526,6 @@
     left: 0;
     user-select: none;
     z-index: 100;
-    cursor: pointer;
 }
 
 .canvas {
@@ -960,4 +959,51 @@
 
     opacity: 0;
     transition: opacity 1s ease-in-out;
+}
+
+.autoOpenLoader {
+    position: absolute;
+    top: 60px;
+    right: 60px;
+    background: rgba(var(--black), 0.6);
+    padding: 10px;
+    border-radius: var(--border-radius);
+    z-index: 2;
+}
+
+.autoOpenIcon {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(var(--black), 0.6);
+    padding: 10px;
+    border-radius: var(--border-radius);
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 101;
+    cursor: pointer;
+
+    &>i {
+        font-size: 30px;
+        color: var(--white);
+    }
+
+    &[data-active="true"] {
+        &>i {
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+
+            animation: spin 2s linear infinite;
+        }
+    }
 }

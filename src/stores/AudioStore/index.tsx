@@ -1,10 +1,21 @@
 import { create } from "zustand";
 import * as Tone from "tone";
 
-import { SoundStore, Sound, DefinedSound } from "./soundStore.d";
+import { localStorage } from "@functions/core/localStorage";
 
-export const useSound = create<SoundStore>((set, get) => {
+import { AudioStore, Sound, DefinedSound, AudioChannel } from "./audioStore.d";
+
+export const useAudio = create<AudioStore>((set, get) => {
     const sounds: Sound[] = [];
+
+    const channels = Object.fromEntries(
+        Object.values(AudioChannel).map((channel) => [channel, new Tone.Volume(0).toDestination()])
+    ) as Record<AudioChannel, Tone.Volume>;
+
+    for (const channel of Object.values(AudioChannel)) {
+        channels[channel].volume.value = localStorage.get(`sound:volume:${channel}`);
+        channels[channel].mute = localStorage.get(`sound:muted:${channel}`);
+    }
 
     return {
         sounds,
@@ -41,6 +52,16 @@ export const useSound = create<SoundStore>((set, get) => {
             await Promise.all(get().sounds.map((sound) => sound.player.stop()));
         },
 
+        setChannelVolume: (channel: AudioChannel, volume: number) => {
+            channels[channel].volume.value = volume;
+            localStorage.set(`sound:volume:${channel}`, volume);
+        },
+
+        setChannelMuted: (channel: AudioChannel, muted: boolean) => {
+            channels[channel].mute = muted;
+            localStorage.set(`sound:muted:${channel}`, muted);
+        },
+
         defineSounds: async (definedSounds: DefinedSound[]) => {
             const currentSounds = get().sounds;
 
@@ -48,15 +69,17 @@ export const useSound = create<SoundStore>((set, get) => {
                 definedSounds.map(async (definedSound) => {
                     if (currentSounds.find((s) => s.id === definedSound.id)) return null;
 
+                    const channel = definedSound.options?.channel ?? AudioChannel.SOUND;
+
                     const player = new Tone.Player({
                         url: definedSound.url,
                         loop: definedSound.options?.loop ?? false,
                         volume: definedSound.options?.volume ?? 0
-                    }).toDestination();
+                    }).connect(channels[channel]);
 
                     if (definedSound.options?.preload) await player.load(definedSound.url);
 
-                    return { id: definedSound.id, player };
+                    return { id: definedSound.id, player, channel };
                 })
             );
 

@@ -1,24 +1,26 @@
 import { useState, useEffect, useRef } from "react";
 import { Navigate } from "react-router-dom";
+import { Tooltip } from "react-tooltip";
 import { gainToDb } from "tone";
 import { useLoading } from "@stores/LoadingStore";
 import { useUser } from "@stores/UserStore/index";
 import { useResource } from "@stores/ResourceStore";
 import { useModal } from "@stores/ModalStore/index";
-import { useSound } from "@stores/SoundStore/index";
+import { useAudio } from "@stores/AudioStore/index";
 import { useData } from "@stores/DataStore/index";
 import { useInsanePull } from "@stores/InsanePullStore/index";
 import { useSettings } from "@controllers/settings/useSettings";
 import { useOpenPack } from "@controllers/market/useOpenPack";
 import { useBoosters } from "@controllers/data/useBoosters";
 import { useLocalStorageState } from "@functions/core/hooks/useLocalStorageState";
-import { SidebarBody, PageHeader, Modal, Button, SearchBox, ParticleCanvas } from "@components/index";
+import { SidebarBody, PageHeader, Modal, Button, SearchBox, ParticleCanvas, Loader } from "@components/index";
 import type { ParticleCanvasRef } from "@components/ParticleCanvas/particleCanvas.d";
 import { OpenPackModal, Category, Pack, OpenPackContainer, OpenPackBlook, Item, BoosterContainer } from "./components";
 import styles from "./market.module.scss";
 
-import { DataBoostersEntity, MarketOpenPackDto, Pack as PackType, RarityAnimationTypeEnum, UserBlook } from "@blacket/types";
+import { DataBoostersEntity, MarketOpenPackDto, NotFound, Pack as PackType, RarityAnimationTypeEnum, UserBlook } from "@blacket/types";
 import { BigButtonClickType, LittleButton, SearchOptions } from "./market.d";
+import { AudioChannel } from "@stores/AudioStore/audioStore.d";
 
 export default function Market() {
     const { user } = useUser();
@@ -27,7 +29,7 @@ export default function Market() {
     const { setLoading } = useLoading();
     const { createModal } = useModal();
     const { resourceIdToPath } = useResource();
-    const { playSound, stopSounds, defineSounds, setVolume } = useSound();
+    const { playSound, stopSounds, defineSounds, setVolume } = useAudio();
     const { packs, rarities, blooks, itemShop } = useData();
     const { isPlaying } = useInsanePull();
 
@@ -35,8 +37,10 @@ export default function Market() {
     const { openPack } = useOpenPack();
     const { getBoosters } = useBoosters();
 
-    const [currentPack, setCurrentPack] = useState<any | null>(null);
+    const [currentPack, setCurrentPack] = useState<PackType | null>(null);
     const [openingPack, setOpeningPack] = useState<boolean>(false);
+    const [autoOpen, setAutoOpen] = useState<boolean>(false);
+    const [autoOpenLoading, setAutoOpenLoading] = useState<boolean>(false);
     const [unlockedBlook, setUnlockedBlook] = useState<UserBlook | null>(null);
     const [bigButtonEvent, setBigButtonEvent] = useState<BigButtonClickType>(BigButtonClickType.CLOSE);
     const [search, setSearch] = useLocalStorageState<SearchOptions>("market:search", { query: "", onlyPurchasable: false });
@@ -93,30 +97,43 @@ export default function Market() {
             .finally(() => setLoading(false));
     };
 
+    const toggleAutoOpen = () => {
+        setAutoOpen(!autoOpen);
+    };
+
     const isNew = (blookId: number) => user.blooks?.find((b) => b.blookId === blookId) ? false : true;
 
     const purchasePack = (dto: MarketOpenPackDto) => new Promise<void>((resolve, reject) => {
-        if (user.settings.openPacksInstantly && user.tokens < packs.find((pack) => pack.id === dto.packId)!.price) {
+        const pack = packs.find((pack: PackType) => pack.id === dto.packId);
+        if (!pack) {
+            createModal(<Modal.ErrorModal>{NotFound.UNKNOWN_PACK}</Modal.ErrorModal>);
+
+            return reject(new Error(NotFound.UNKNOWN_PACK));
+        }
+
+        if (user.settings.openPacksInstantly && user.tokens < pack.price) {
             return reject(createModal(<Modal.ErrorModal>You do not have enough tokens to purchase this pack.</Modal.ErrorModal>));
         }
 
-        if (user.settings.openPacksInstantly) setLoading(`Opening ${packs.find((pack) => pack.id === dto.packId)!.name} pack`);
+        if (user.settings.openPacksInstantly && !autoOpen) setLoading(`Opening ${pack.name} pack`);
+        else if (autoOpen) {
+            setAutoOpenLoading(true);
+        }
 
         openPack(dto)
             .then(async (res) => {
-                const pack = packs.find((pack: PackType) => pack.id === dto.packId);
-                if (!pack) {
-                    createModal(<Modal.ErrorModal>Pack not found.</Modal.ErrorModal>);
-                    return reject(new Error("Pack not found"));
-                }
+                setAutoOpenLoading(false);
+                setUnlockedBlook(null);
+                setOpeningPack(false);
 
-                setCurrentPack(pack);
-                setAmbienceSound(pack);
+                setTimeout(() => {
+                    setCurrentPack(pack);
+                    setAmbienceSound(pack);
 
-                setBigButtonEvent(BigButtonClickType.NONE);
-                setTimeout(() => setBigButtonEvent(BigButtonClickType.OPEN), 100);
+                    setBigButtonEvent(BigButtonClickType.OPEN);
 
-                resolve(setUnlockedBlook(res.data));
+                    resolve(setUnlockedBlook(res.data));
+                }, 1);
             })
             .catch((err) => {
                 if (user.settings.openPacksInstantly) createModal(<Modal.ErrorModal>{err?.data?.message || "Something went wrong."}</Modal.ErrorModal>);
@@ -151,6 +168,7 @@ export default function Market() {
                     if (rarity.animationType === RarityAnimationTypeEnum.CHROMA) particleDelay = 5000;
                     if (rarity.animationType === RarityAnimationTypeEnum.MYTHICAL) particleDelay = 8800;
 
+                    particleCanvasRef.current?.stop();
                     setTimeout(() => {
                         if (!blook.video) particleCanvasRef.current?.start();
                     }, particleDelay);
@@ -199,6 +217,8 @@ export default function Market() {
                 break;
 
             case BigButtonClickType.CLOSE:
+                setAutoOpen(false);
+
                 stopRaritySound();
                 muteAmbience();
 
@@ -210,10 +230,22 @@ export default function Market() {
 
                 break;
 
+            case BigButtonClickType.OPENING:
+                setAutoOpen(false);
+                break;
+
             default:
                 break;
         }
     };
+
+    useEffect(() => {
+        if (autoOpen && unlockedBlook && bigButtonEvent === BigButtonClickType.OPEN) handleBigClick();
+    }, [autoOpen, unlockedBlook, bigButtonEvent]);
+
+    useEffect(() => {
+        if (autoOpen && currentPack && bigButtonEvent === BigButtonClickType.CLOSE) purchasePack({ packId: currentPack.id }).catch(() => { });
+    }, [autoOpen, bigButtonEvent, currentPack]);
 
     useEffect(() => {
         isPlayingRef.current = isPlaying;
@@ -225,11 +257,11 @@ export default function Market() {
             .then((res) => setBoosters(res.data));
 
         defineSounds([
-            { id: "common", url: window.constructCDNUrl("/content/audio/sound/pack/common.mp3") },
-            { id: "rare", url: window.constructCDNUrl("/content/audio/sound/pack/rare.mp3") },
-            { id: "epic", url: window.constructCDNUrl("/content/audio/sound/pack/epic.mp3") },
-            { id: "legendary", url: window.constructCDNUrl("/content/audio/sound/pack/legendary.mp3") },
-            { id: "shiny", url: window.constructCDNUrl("/content/audio/sound/pack/shiny.mp3") }
+            { id: "common", url: window.constructCDNUrl("/content/audio/sound/pack/common.mp3"), options: { channel: AudioChannel.SOUND } },
+            { id: "rare", url: window.constructCDNUrl("/content/audio/sound/pack/rare.mp3"), options: { channel: AudioChannel.SOUND } },
+            { id: "epic", url: window.constructCDNUrl("/content/audio/sound/pack/epic.mp3"), options: { channel: AudioChannel.SOUND } },
+            { id: "legendary", url: window.constructCDNUrl("/content/audio/sound/pack/legendary.mp3"), options: { channel: AudioChannel.SOUND } },
+            { id: "shiny", url: window.constructCDNUrl("/content/audio/sound/pack/shiny.mp3"), options: { channel: AudioChannel.SOUND } }
         ]);
 
         for (const pack of packs) {
@@ -241,7 +273,8 @@ export default function Market() {
                 options: {
                     loop: true,
                     volume: gainToDb(0.1),
-                    preload: true
+                    preload: true,
+                    channel: AudioChannel.MUSIC
                 }
             }]);
         }
@@ -264,6 +297,8 @@ export default function Market() {
             onClick: () => { }
         }
     ];
+
+    const unlockedRarity = rarities.find((rarity) => rarity.id === blooks.find((blook) => blook.id === unlockedBlook?.blookId)?.rarityId);
 
     return (
         <>
@@ -384,28 +419,15 @@ export default function Market() {
                         <img src={resourceIdToPath(currentPack.backgroundId)} />
                     </div>
 
-                    {unlockedBlook && <>
-                        <ParticleCanvas
-                            ref={particleCanvasRef}
-                            color={
-                                rarities.find((rarity) => rarity.id === blooks.find((blook) => blook.id === unlockedBlook.blookId)!.rarityId)!.color
-                            }
-                            animationType={
-                                rarities.find((rarity) => rarity.id === blooks.find((blook) => blook.id === unlockedBlook.blookId)!.rarityId)!.animationType
-                            }
-                            images={[
-                                window.constructCDNUrl("/content/particles/1.png"),
-                                window.constructCDNUrl("/content/particles/2.png"),
-                                window.constructCDNUrl("/content/particles/3.png"),
-                                window.constructCDNUrl("/content/particles/4.png"),
-                                window.constructCDNUrl("/content/particles/5.png"),
-                                window.constructCDNUrl("/content/particles/6.png"),
-                                window.constructCDNUrl("/content/particles/7.png"),
-                                window.constructCDNUrl("/content/particles/8.png")
-                            ]}
-                            className={styles.canvas}
-                        />
+                    <ParticleCanvas
+                        ref={particleCanvasRef}
+                        color={unlockedRarity?.color ?? "#ffffff"}
+                        animationType={unlockedRarity?.animationType as RarityAnimationTypeEnum}
+                        images={Array.from({ length: 8 }, (_, i) => window.constructCDNUrl(`/content/particles/${i + 1}.png`))}
+                        className={styles.canvas}
+                    />
 
+                    {unlockedBlook && <>
                         <OpenPackContainer
                             opening={openingPack}
                             image={resourceIdToPath(currentPack.imageId)}
@@ -423,6 +445,18 @@ export default function Market() {
                     } isNew={isNew(unlockedBlook.blookId)} />}
 
                     <div style={{ cursor: bigButtonEvent === BigButtonClickType.NONE ? "unset" : "" }} className={styles.openBigButton} onClick={handleBigClick} />
+
+                    {autoOpenLoading && <Loader className={styles.autoOpenLoader} noModal />}
+
+                    <Tooltip id="autoOpen" place="top">Auto Open</Tooltip>
+                    <div
+                        className={styles.autoOpenIcon}
+                        data-active={autoOpen}
+                        onClick={toggleAutoOpen}
+                        data-tooltip-id="autoOpen"
+                    >
+                        <i className="fas fa-sync-alt" />
+                    </div>
                 </div>
             </>}
         </>

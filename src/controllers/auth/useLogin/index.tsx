@@ -1,3 +1,7 @@
+import { useUser } from "@stores/UserStore";
+import { useFriend } from "@stores/FriendStore";
+import { localStorage } from "@functions/core/localStorage";
+
 import { LoginResponse } from "./useLogin.d";
 
 interface LoginDto {
@@ -8,12 +12,24 @@ interface LoginDto {
 }
 
 export function useLogin() {
+    const { setUser } = useUser();
+    const { setFriends, setFriendedBy, setBlocked } = useFriend();
+
     const login = (dto: LoginDto) => new Promise<LoginResponse>((resolve, reject) => window.fetch2.post("/api/auth/login", dto)
         .then((res: LoginResponse) => {
-            localStorage.setItem("token", res.data.token);
+            localStorage.set("token", res.data.token);
 
-            window.fetch2.get("/api/users/me").then((res: Fetch2Response) => {
-                resolve(res);
+            Promise.all([
+                window.fetch2.get("/api/users/me"),
+                window.fetch2.get("/api/friends")
+            ]).then(([me, friends]: Fetch2Response[]) => {
+                setFriends(friends.data.friends);
+                setFriendedBy(friends.data.friendedBy);
+                setBlocked(friends.data.blocked);
+
+                setUser(me.data);
+
+                resolve(me);
             })
                 .catch(reject);
         })

@@ -1,3 +1,4 @@
+import { CSSProperties } from "react";
 import { useResource } from "@stores/ResourceStore/index";
 import { useData } from "@stores/DataStore/index";
 import Blook from "../../../Blook/index";
@@ -50,20 +51,13 @@ export default function InventoryItem({ blook, item, shiny = false, locked = fal
                         backgroundColor: rarity.color
                     }}
                 >
-                    {rarity.color === "rainbow" && <div
-                        className="rainbowOverlay"
-                        style={{
-                            maskImage: rarity.imageId ? `url(${resourceIdToPath(rarity.imageId)})` : undefined,
-                            maskSize: "cover",
-                            width: useVhStyles ? "2vh" : 20,
-                            height: useVhStyles ? "2vh" : 20,
-                            zIndex: 2
-                        }}
-                    />}
-                    {rarity.imageId && <img
+                    {rarity.imageId && (rarity.color === "rainbow" ? <div
+                        className={`rainbowOverlay ${styles.blookQuantityImage}`}
+                        style={{ "--mask-image": `url(${resourceIdToPath(rarity.imageId)})` } as CSSProperties}
+                    /> : <img
                         src={resourceIdToPath(rarity.imageId)}
                         className={styles.blookQuantityImage}
-                    />}
+                    />)}
 
                     <div className={styles.blookQuantityText}>{amount >= 99 ? "99+" : amount.toLocaleString()}</div>
                 </div>

@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useSocket } from "@stores/SocketStore";
 import { useUser } from "@stores/UserStore";
 import { useCachedUser } from "@stores/CachedUserStore";
-import { useSound } from "@stores/SoundStore";
+import { useAudio } from "@stores/AudioStore";
 import { useMessages } from "@controllers/chat/messages/useMessages";
 import { useStartTyping } from "@controllers/chat/messages/roomId/useStartTyping";
 import { useSendMessage } from "@controllers/chat/messages/useSendMessage";
@@ -47,7 +47,7 @@ export function useChat() {
     const { addCachedUser } = useCachedUser();
     const { createToast } = useToast();
     const { getMessages } = useMessages();
-    const { playSound } = useSound();
+    const { playSound } = useAudio();
 
     const location = useLocation();
     const navigate = useNavigate();

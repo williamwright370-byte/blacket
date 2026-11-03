@@ -125,14 +125,11 @@ function animationTypeToParticleType(animationType: string) {
 const ParticleCanvas = forwardRef<ParticleCanvasRef, ParticleCanvasProps>(({ width, height, color, animationType, images, particleWidth = 30, particleHeight = 30, particleCount = 200, speed = 2, ...props }, ref) => {
     const brenderCanvasRef = useRef<BrenderCanvasRef>(null);
     const animationFrameRef = useRef<number | null>(null);
-    const lastSpawnRef = useRef<number>(0);
-    const activeRef = useRef<boolean>(false);
+    const sessionRef = useRef<number>(0);
 
-    let id = 0;
-
-    const spawnParticle = async (t: ParticleType, brender: BrenderCanvasRef) => {
+    const spawnParticle = (t: ParticleType, brender: BrenderCanvasRef, session: number, index: number) => {
         brender.createObject({
-            id: `particle-${t}-${id}`,
+            id: `particle-${t}-${session}-${index}`,
             x: 99999,
             y: 99999,
             z: 0,
@@ -140,20 +137,23 @@ const ParticleCanvas = forwardRef<ParticleCanvasRef, ParticleCanvasProps>(({ wid
             height: particleHeight,
             imageTint: color !== "rainbow" ? color : RAINBOW[Math.floor(Math.random() * RAINBOW.length)]
         });
-
-        id++;
     };
 
-    const setupParticles = async (t: ParticleType, brender: BrenderCanvasRef) => {
-        brender.createGenericEntity({
-            id: `__particle-emitter-${t}__`,
+    const setupParticles = async (t: ParticleType, brender: BrenderCanvasRef, session: number) => {
+        const isLive = () => sessionRef.current === session;
+
+        const emitter = brender.createGenericEntity({
+            id: `__particle-emitter-${t}-${session}__`,
             x: 0,
             y: 0,
             z: 0,
             onFrame: async (_, deltaTime) => {
                 const fakeDeltaTime = deltaTime * speed;
 
-                for (const object of brender.objects.filter((o) => o.id.startsWith(`particle-${t}`)) as ParticleObject[]) {
+                const objects = brender.objects.filter((o) => o.id.startsWith(`particle-${t}-${session}-`)) as ParticleObject[];
+                if (!objects.length && !isLive()) return emitter.destroy!();
+
+                for (const object of objects) {
                     object.vy = (object.vy ?? 0) + (object.gravity ?? 0) * fakeDeltaTime;
 
                     object.x += (object.vx ?? 0) * fakeDeltaTime;
@@ -162,7 +162,10 @@ const ParticleCanvas = forwardRef<ParticleCanvasRef, ParticleCanvasProps>(({ wid
                     object.rotation! += (object.angVelocity ?? 0) * fakeDeltaTime;
 
                     if (object.y > brender.getHeight() || object.y < -50 || object.x < -50 || object.x > brender.getWidth() + 50) {
-                        if (!activeRef.current) object.destroy!();
+                        if (!isLive()) {
+                            object.destroy!();
+                            continue;
+                        }
 
                         const type = particleType(t, brender);
                         const image = await brender.urlToImage(images[Math.floor(Math.random() * images.length)]);
@@ -183,6 +186,7 @@ const ParticleCanvas = forwardRef<ParticleCanvasRef, ParticleCanvasProps>(({ wid
                         object.width = particleWidth;
                         object.height = particleHeight;
                         object.imageTint = color !== "rainbow" ? color : RAINBOW[Math.floor(Math.random() * RAINBOW.length)];
+                        object.imageTintIntensity = 0.65;
                     }
                 }
             }
@@ -209,18 +213,16 @@ const ParticleCanvas = forwardRef<ParticleCanvasRef, ParticleCanvasProps>(({ wid
             const brender = brenderCanvasRef.current;
             if (!brender) return;
 
-            activeRef.current = true;
-
-            lastSpawnRef.current = performance.now();
+            const session = ++sessionRef.current;
 
             for (const t of animationTypeToParticleType(animationType)!) {
-                setupParticles(t, brender);
+                setupParticles(t, brender, session);
 
                 (async () => {
                     for (let i = 0; i < particleCount; i++) {
-                        if (!activeRef.current) break;
+                        if (sessionRef.current !== session) break;
 
-                        spawnParticle(t, brender);
+                        spawnParticle(t, brender, session, i);
 
                         await new Promise((r) => setTimeout(r, 10));
                     }
@@ -228,7 +230,7 @@ const ParticleCanvas = forwardRef<ParticleCanvasRef, ParticleCanvasProps>(({ wid
             }
         },
         stop: () => {
-            activeRef.current = false;
+            sessionRef.current++;
         },
         setColor: (newColor: string) => {
             color = newColor;

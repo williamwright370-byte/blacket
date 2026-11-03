@@ -3,6 +3,7 @@ import { useData } from "@stores/DataStore/index";
 import { useResource } from "@stores/ResourceStore/index";
 import { useUser } from "@stores/UserStore/index";
 import { useFriend } from "@stores/FriendStore/index";
+import { localStorage } from "@functions/core/localStorage";
 import Loading from "../../../views/Loading";
 import styles from "@stores/DataStore/dataStore.module.scss";
 
@@ -19,7 +20,7 @@ export default function DataLoader({ children }: { children: ReactNode }) {
     const [error, setError] = useState<any>(null);
     const [completed, setCompleted] = useState<number>(0);
 
-    const max = 13 + (localStorage.getItem("token") ? 2 : 0);
+    const max = 13 + (localStorage.get("token") ? 2 : 0);
 
     useEffect(() => {
         if (completed >= max) return setLoading(false);
@@ -70,7 +71,7 @@ export default function DataLoader({ children }: { children: ReactNode }) {
                 setFonts(res.data);
             });
 
-        if (localStorage.getItem("token")) {
+        if (localStorage.get("token")) {
             // window.fetch2.get("/api/users/me")
             //     .then((res) => {
             //         setUser(res.data);
@@ -78,7 +79,7 @@ export default function DataLoader({ children }: { children: ReactNode }) {
             //     })
             //     .catch((res) => {
             //         setError(res);
-            //         localStorage.removeItem("token");
+            //         localStorage.remove("token");
             //         setTimeout(() => setLoading(false), 2000);
             //     });
 
@@ -107,7 +108,7 @@ export default function DataLoader({ children }: { children: ReactNode }) {
                     })
                     .catch((res) => {
                         setError(res);
-                        localStorage.removeItem("token");
+                        localStorage.remove("token");
                         setTimeout(() => setLoading(false), 2000);
                     })
             ));

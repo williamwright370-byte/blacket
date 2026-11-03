@@ -38,10 +38,7 @@ export default function Authentication({ type }: AuthenticationProps) {
         if (type === AuthenticationType.LOGIN) {
             setLoading("Logging in");
             login({ username, password, otpCode: (otpRequired ? otpCode : undefined), captchaToken })
-                .then(() => {
-                    setLoading("Reloading");
-                    window.location.reload();
-                })
+                .then(() => setLoading(false))
                 .catch((err) => {
                     setTries((prev) => prev + 1);
 
@@ -57,10 +54,7 @@ export default function Authentication({ type }: AuthenticationProps) {
 
             setLoading("Registering");
             register({ username, password, captchaToken })
-                .then(() => {
-                    setLoading("Reloading");
-                    window.location.reload();
-                })
+                .then(() => setLoading(false))
                 .catch((err) => {
                     setTries((prev) => prev + 1);
 

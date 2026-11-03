@@ -207,7 +207,7 @@ export default function SellBlooksModal({ blook, shiny }: SellBlooksModalProps) 
 
             <Modal.ModalButtonContainer loading={loading}>
                 <Button.GenericButton onClick={submit} type="submit">
-                    Sell for <img src="/media/content/diamond.png" style={{ width: "20px", margin: "0 7px" }} /> {(selectedBlooks.length * blook.price * (shiny ? 10 : 1)).toLocaleString()} diamonds
+                    Sell for <img src={window.constructCDNUrl("/content/diamond.png")} style={{ width: "20px", margin: "0 7px" }} /> {(selectedBlooks.length * blook.price * (shiny ? 10 : 1)).toLocaleString()} diamonds
                 </Button.GenericButton>
 
                 <Button.GenericButton onClick={closeModal}>Cancel</Button.GenericButton>

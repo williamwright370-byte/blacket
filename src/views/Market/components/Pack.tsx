@@ -1,7 +1,7 @@
 import { useRef, useEffect } from "react";
 import { gainToDb } from "tone";
 import { useResource } from "@stores/ResourceStore/index";
-import { useSound } from "@stores/SoundStore/index";
+import { useAudio } from "@stores/AudioStore/index";
 import { ImageOrVideo } from "@components/index";
 import styles from "../market.module.scss";
 
@@ -9,7 +9,7 @@ import { PackProps } from "../market.d";
 
 export default function Pack({ pack, ambienceEnabled = true, onClick, ...props }: PackProps) {
     const { resourceIdToPath } = useResource();
-    const { getSound, playSound, stopSound } = useSound();
+    const { getSound, playSound, stopSound } = useAudio();
 
     const packRef = useRef<HTMLDivElement>(null);
     const ambienceIdRef = useRef<string>(`pack-ambience-${pack.id}`);
